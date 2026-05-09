@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260512">
+  <link rel="stylesheet" href="css/home.css?v=20260513">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -577,73 +577,165 @@
 </main>
 
 <!-- ══ CREATE API KEY DIALOG ══ -->
-<div class="ckey-backdrop" id="ckeyBackdrop" onclick="closeCkeyDialog(event)">
-  <div class="ckey-sheet" id="ckeySheet">
-    <div class="ckey-pill"></div>
-    <div class="ckey-step" id="ckeyStep1">
-      <div class="ckey-icon-wrap">
-        <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+<div class="modal-backdrop" id="apiModal" onclick="handleModalBackdropClick(event)">
+  <div class="modal" id="apiModalBox">
+    <div class="modal-handle"></div>
+
+    <!-- PASO 1: Formulario -->
+    <div id="apiStep1">
+      <div class="modal-header">
+        <div class="modal-title">Nueva Clave API</div>
+        <button class="modal-close" onclick="closeApiModal()">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
-      <div class="ckey-title">Nueva Clave API</div>
-      <div class="ckey-desc">Asigna un nombre a tu clave y define los permisos de acceso.</div>
-      <div class="ckey-body">
-        <label class="ckey-field-label">Nombre de la clave</label>
-        <input class="ckey-input" id="ckeyNameInput" type="text" placeholder="Ej: App Android, Producción…" maxlength="40" autocomplete="off">
-        <span class="ckey-perm-label">Permisos</span>
-        <div class="ckey-perm-grid">
-          <label class="ckey-perm-opt selected" id="ckey-perm-all" onclick="selectCkeyPerm(this,'all')">
-            <input type="radio" name="ckeyPerm" value="all" checked>
-            <div class="ckey-perm-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <div class="ckey-perm-name">Acceso total</div>
-            <div class="ckey-perm-desc">Lee y escribe en toda la API</div>
-          </label>
-          <label class="ckey-perm-opt" id="ckey-perm-read" onclick="selectCkeyPerm(this,'read')">
-            <input type="radio" name="ckeyPerm" value="read">
-            <div class="ckey-perm-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-            <div class="ckey-perm-name">Solo lectura</div>
-            <div class="ckey-perm-desc">Solo puede leer datos</div>
-          </label>
+      <p class="modal-subtitle">Dale un nombre descriptivo y elige qué permisos tendrá esta clave.</p>
+
+      <div class="modal-body">
+
+        <!-- Nombre -->
+        <div class="field">
+          <label class="field-label">Nombre de la clave</label>
+          <input class="field-input" type="text" id="apiKeyName"
+            placeholder="Ej. Producción, Staging, Mi app..."
+            maxlength="48" autocomplete="off" spellcheck="false">
         </div>
-        <div class="ckey-info">
+
+        <!-- Nivel de permiso general -->
+        <div class="field">
+          <label class="field-label">Nivel de permisos</label>
+          <div class="perm-tabs" id="permTabs">
+            <button class="perm-tab" onclick="setPermLevel('none',this)">Ninguno</button>
+            <button class="perm-tab" onclick="setPermLevel('read',this)">Solo lectura</button>
+            <button class="perm-tab active" onclick="setPermLevel('all',this)">Todo</button>
+            <button class="perm-tab" onclick="setPermLevel('custom',this)">Personalizado</button>
+          </div>
+          <div class="perm-level-desc" id="permLevelDesc">Acceso completo a todos los recursos.</div>
+        </div>
+
+        <!-- Tabla granular (visible solo en modo Personalizado) -->
+        <div class="field" id="granularSection" style="display:none">
+          <label class="field-label">Permisos por recurso</label>
+          <div class="perm-table">
+            <div class="perm-table-head">
+              <span>Recurso</span>
+              <span>Permiso</span>
+            </div>
+            <div class="perm-row">
+              <div class="perm-row-info">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                <div><div class="perm-row-name">Publicaciones</div><div class="perm-row-sub">Crear, leer y editar posts</div></div>
+              </div>
+              <select class="perm-row-select" id="gr-posts" onchange="updatePermCount()">
+                <option value="none">Ninguno</option><option value="read">Lectura</option><option value="write">Escritura</option><option value="all" selected>Todo</option>
+              </select>
+            </div>
+            <div class="perm-row">
+              <div class="perm-row-info">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <div><div class="perm-row-name">Categorías</div><div class="perm-row-sub">Organizar contenido</div></div>
+              </div>
+              <select class="perm-row-select" id="gr-cats" onchange="updatePermCount()">
+                <option value="none">Ninguno</option><option value="read">Lectura</option><option value="write">Escritura</option><option value="all" selected>Todo</option>
+              </select>
+            </div>
+            <div class="perm-row">
+              <div class="perm-row-info">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                <div><div class="perm-row-name">Imágenes</div><div class="perm-row-sub">Subir y gestionar imágenes</div></div>
+              </div>
+              <select class="perm-row-select" id="gr-images" onchange="updatePermCount()">
+                <option value="none">Ninguno</option><option value="read">Lectura</option><option value="write">Escritura</option><option value="all" selected>Todo</option>
+              </select>
+            </div>
+            <div class="perm-row">
+              <div class="perm-row-info">
+                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                <div><div class="perm-row-name">Videos</div><div class="perm-row-sub">Subir y reproducir videos</div></div>
+              </div>
+              <select class="perm-row-select" id="gr-videos" onchange="updatePermCount()">
+                <option value="none">Ninguno</option><option value="read">Lectura</option><option value="write">Escritura</option><option value="all" selected>Todo</option>
+              </select>
+            </div>
+            <div class="perm-row">
+              <div class="perm-row-info">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div><div class="perm-row-name">Archivos</div><div class="perm-row-sub">Documentos, APK y otros</div></div>
+              </div>
+              <select class="perm-row-select" id="gr-files" onchange="updatePermCount()">
+                <option value="none">Ninguno</option><option value="read">Lectura</option><option value="write">Escritura</option><option value="all" selected>Todo</option>
+              </select>
+            </div>
+            <div class="perm-row">
+              <div class="perm-row-info">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <div><div class="perm-row-name">Analytics</div><div class="perm-row-sub">Ver estadísticas y datos</div></div>
+              </div>
+              <select class="perm-row-select" id="gr-analytics" onchange="updatePermCount()">
+                <option value="none">Ninguno</option><option value="read" selected>Lectura</option><option value="write">Escritura</option><option value="all">Todo</option>
+              </select>
+            </div>
+            <div class="perm-row">
+              <div class="perm-row-info">
+                <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+                <div><div class="perm-row-name">Proyectos</div><div class="perm-row-sub">Gestionar proyectos</div></div>
+              </div>
+              <select class="perm-row-select" id="gr-projects" onchange="updatePermCount()">
+                <option value="none">Ninguno</option><option value="read">Lectura</option><option value="write">Escritura</option><option value="all" selected>Todo</option>
+              </select>
+            </div>
+          </div>
+          <div class="perm-count-row">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <span id="permCountLabel">7 permisos configurados</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeApiModal()">Cancelar</button>
+        <button class="btn btn-primary" id="apiCreateBtn" onclick="createApiKey()">
+          <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          Generar clave
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 2: Clave generada -->
+    <div id="apiStep2" style="display:none">
+      <div class="modal-header">
+        <div class="modal-title">Clave generada</div>
+        <button class="modal-close" onclick="closeApiModal()">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <p class="modal-subtitle">Copia y guarda tu clave ahora. Por seguridad, <strong>no se mostrará de nuevo</strong>.</p>
+
+      <div class="modal-body">
+        <div class="key-reveal-box">
+          <div class="key-reveal-label">Tu clave secreta</div>
+          <div class="key-reveal-row">
+            <span class="key-value" id="newKeyDisplay"></span>
+            <button class="key-action-btn" id="newKeyToggleBtn" onclick="toggleNewKeyVisibility()" title="Ver / Ocultar">
+              <svg viewBox="0 0 24 24" id="newKeyEyeIcon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="key-action-btn" onclick="copyNewKey()" title="Copiar">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="key-warn-box">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span>La clave solo se mostrará una vez. Cópiala antes de cerrar.</span>
+          <div class="key-warn-text">Guarda esta clave en un lugar seguro. Una vez cerres este diálogo, no podrás verla completa otra vez.</div>
         </div>
       </div>
-      <div class="ckey-actions">
-        <button class="ckey-btn-create" id="ckeyCreateBtn" onclick="confirmCreateKey()">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Crear clave API
-        </button>
-        <button class="ckey-btn-cancel" onclick="closeCkeyDialog()">Cancelar</button>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeApiModal()">Entendido, ya la guardé</button>
       </div>
     </div>
-    <div class="ckey-step hidden" id="ckeyStep2">
-      <div class="ckey-icon-wrap" style="background:#e8f5ee">
-        <svg viewBox="0 0 24 24" style="stroke:var(--success)"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="ckey-title">¡Clave creada!</div>
-      <div class="ckey-desc">Copia tu clave ahora. No se volverá a mostrar completa.</div>
-      <div style="height:14px"></div>
-      <div class="ckey-reveal-wrap">
-        <div class="ckey-reveal-label">Tu nueva API key</div>
-        <div class="ckey-reveal-box">
-          <div class="ckey-reveal-key" id="ckeyRevealText">—</div>
-          <button class="ckey-copy-btn" onclick="copyRevealKey()">
-            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="ckey-warn-once">
-        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span>Guarda esta clave en un lugar seguro. No la compartas ni la publiques en repositorios.</span>
-      </div>
-      <div class="ckey-actions">
-        <button class="ckey-btn-create" style="background:var(--success)" onclick="closeCkeyDialog()">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          Listo, ya la copié
-        </button>
-      </div>
-    </div>
+
   </div>
 </div>
 
@@ -680,6 +772,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260512"></script>
+<script src="js/home.js?v=20260513"></script>
 </body>
 </html>

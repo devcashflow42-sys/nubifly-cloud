@@ -1120,77 +1120,112 @@ function handleLogout() {
 // ═══════════════════════════════════════════════════════════════
 // ║  DIALOG — CREATE API KEY
 // ═══════════════════════════════════════════════════════════════
-let _ckeyPerm = 'all';
-let _ckeyPermLabel = 'Acceso total';
-let _ckeyNewKey = '';
+let _apiPermLevel = 'all';
+let _apiNewKey    = '';
+let _apiKeyVisible = false;
+
+const _permLevelDescriptions = {
+  none:   'Sin acceso a ningún recurso de la API.',
+  read:   'Solo lectura en todos los recursos.',
+  all:    'Acceso completo a todos los recursos.',
+  custom: 'Configura permisos individuales por recurso.'
+};
 
 function openCreateKeyDialog() {
-  document.getElementById('ckeyStep1').classList.remove('hidden');
-  document.getElementById('ckeyStep2').classList.add('hidden');
-  document.getElementById('ckeyNameInput').value = '';
-  document.getElementById('ckeyNameInput').classList.remove('error');
-  _ckeyPerm = 'all';
-  _ckeyPermLabel = 'Acceso total';
-  document.querySelectorAll('.ckey-perm-opt').forEach(o => o.classList.remove('selected'));
-  document.getElementById('ckey-perm-all').classList.add('selected');
-  document.getElementById('ckeyBackdrop').classList.add('show');
-  setTimeout(() => document.getElementById('ckeyNameInput').focus(), 380);
+  const modal = document.getElementById('apiModal');
+  document.getElementById('apiStep1').style.display = '';
+  document.getElementById('apiStep2').style.display = 'none';
+  document.getElementById('apiKeyName').value = '';
+  document.getElementById('apiKeyName').style.boxShadow = '';
+
+  // Reset to "Todo"
+  setPermLevel('all', document.querySelector('#permTabs .perm-tab:nth-child(3)'));
+  document.getElementById('granularSection').style.display = 'none';
+
+  modal.classList.add('show');
+  setTimeout(() => document.getElementById('apiKeyName').focus(), 380);
 }
 
-function closeCkeyDialog(e) {
-  if (e && e.target !== document.getElementById('ckeyBackdrop')) return;
-  document.getElementById('ckeyBackdrop').classList.remove('show');
-  // Reload keys if we were on step 2 (key was created)
-  if (!document.getElementById('ckeyStep2').classList.contains('hidden')) {
+function closeApiModal() {
+  const modal = document.getElementById('apiModal');
+  modal.classList.remove('show');
+  if (document.getElementById('apiStep2').style.display !== 'none') {
     loadApiKeys();
   }
 }
 
-function selectCkeyPerm(el, perm) {
-  document.querySelectorAll('.ckey-perm-opt').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  _ckeyPerm = perm;
-  _ckeyPermLabel = perm === 'all' ? 'Acceso total' : 'Solo lectura';
+function handleModalBackdropClick(e) {
+  if (e.target === document.getElementById('apiModal')) closeApiModal();
 }
 
-async function confirmCreateKey() {
-  const name = document.getElementById('ckeyNameInput').value.trim();
-  const btn  = document.getElementById('ckeyCreateBtn');
+function setPermLevel(level, btn) {
+  _apiPermLevel = level;
+  document.querySelectorAll('.perm-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const desc = document.getElementById('permLevelDesc');
+  if (desc) desc.textContent = _permLevelDescriptions[level] || '';
+  const granular = document.getElementById('granularSection');
+  if (granular) granular.style.display = level === 'custom' ? '' : 'none';
+  if (level === 'custom') updatePermCount();
+}
+
+function updatePermCount() {
+  const selects = ['gr-posts','gr-cats','gr-images','gr-videos','gr-files','gr-analytics','gr-projects'];
+  const active = selects.filter(id => {
+    const el = document.getElementById(id);
+    return el && el.value !== 'none';
+  }).length;
+  const lbl = document.getElementById('permCountLabel');
+  if (lbl) lbl.textContent = `${active} permiso${active !== 1 ? 's' : ''} configurado${active !== 1 ? 's' : ''}`;
+}
+
+async function createApiKey() {
+  const nameEl = document.getElementById('apiKeyName');
+  const btn    = document.getElementById('apiCreateBtn');
+  const name   = nameEl?.value.trim() || '';
 
   if (!name) {
-    const inp = document.getElementById('ckeyNameInput');
-    inp.classList.add('error');
-    inp.focus();
-    setTimeout(() => inp.classList.remove('error'), 1200);
+    nameEl.style.boxShadow = '0 0 0 2px rgba(229,72,77,.4)';
+    nameEl.focus();
+    setTimeout(() => nameEl.style.boxShadow = '', 1200);
     return;
   }
 
   setBtnLoading(btn, true);
 
   try {
-    // Generate key client-side (same format as server helper)
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let rawKey = 'cvlt_sk_live_';
     for (let i = 0; i < 20; i++) rawKey += chars[Math.floor(Math.random() * chars.length)];
 
     const id = crypto.randomUUID ? crypto.randomUUID().replace(/-/g,'') : Date.now().toString(36);
+
+    let granularPerms = {};
+    if (_apiPermLevel === 'custom') {
+      ['posts','cats','images','videos','files','analytics','projects'].forEach(r => {
+        const el = document.getElementById('gr-' + r);
+        if (el) granularPerms[r] = el.value;
+      });
+    }
+
     const payload = {
-      id,
-      name,
-      perm: _ckeyPerm,
-      permLabel: _ckeyPermLabel,
+      id, name,
+      perm: _apiPermLevel,
+      permLabel: _permLevelDescriptions[_apiPermLevel] || '',
       key: rawKey,
       created: new Date().toISOString(),
       projectId: '',
-      permissions: {}
+      permissions: granularPerms
     };
 
     await API.createApiKey(payload);
 
-    _ckeyNewKey = rawKey;
-    document.getElementById('ckeyRevealText').textContent = _ckeyNewKey;
-    document.getElementById('ckeyStep1').classList.add('hidden');
-    document.getElementById('ckeyStep2').classList.remove('hidden');
+    _apiNewKey    = rawKey;
+    _apiKeyVisible = false;
+    const display = document.getElementById('newKeyDisplay');
+    if (display) display.textContent = rawKey.replace(/./g, '•');
+    document.getElementById('apiStep1').style.display = 'none';
+    document.getElementById('apiStep2').style.display = '';
 
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
@@ -1199,11 +1234,23 @@ async function confirmCreateKey() {
   }
 }
 
-function copyRevealKey() {
-  if (!_ckeyNewKey) return;
-  copyToClipboard(_ckeyNewKey);
-  const btn = document.querySelector('.ckey-copy-btn');
-  if (btn) { btn.style.background = 'var(--success)'; setTimeout(() => btn.style.background = '', 1500); }
+function toggleNewKeyVisibility() {
+  if (!_apiNewKey) return;
+  _apiKeyVisible = !_apiKeyVisible;
+  const display = document.getElementById('newKeyDisplay');
+  const icon    = document.getElementById('newKeyEyeIcon');
+  if (display) display.textContent = _apiKeyVisible ? _apiNewKey : _apiNewKey.replace(/./g, '•');
+  if (icon) {
+    icon.innerHTML = _apiKeyVisible
+      ? `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
+      : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  }
+}
+
+function copyNewKey() {
+  if (!_apiNewKey) return;
+  copyToClipboard(_apiNewKey);
+  showToast('Clave copiada al portapapeles.', 'success');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1308,8 +1355,8 @@ function initKeyboardShortcuts() {
   document.getElementById('loginEmail')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('loginPass')?.focus();
   });
-  document.getElementById('ckeyNameInput')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') confirmCreateKey();
+  document.getElementById('apiKeyName')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') createApiKey();
   });
   document.getElementById('regPass')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleRegister();

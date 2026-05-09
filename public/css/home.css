@@ -595,6 +595,57 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .del-btn-cancel:hover{background:var(--smoke-3)}
 .del-btn-cancel:active{transform:scale(.97)}
 
+/* ═══════════════════════ API KEY MODAL ═══════════════════════════ */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,0);z-index:900;
+  display:flex;align-items:flex-end;justify-content:center;
+  pointer-events:none;transition:background .3s var(--ease);
+}
+.modal-backdrop.show{background:rgba(0,0,0,.5);pointer-events:auto}
+.modal{
+  width:100%;max-width:520px;background:var(--white);
+  border-radius:20px 20px 0 0;
+  transform:translateY(100%);transition:transform .35s var(--spring);
+  max-height:92dvh;overflow-y:auto;
+}
+.modal-backdrop.show .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--smoke-3);border-radius:99px;margin:12px auto 4px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0}
+.modal-title{font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--ink)}
+.modal-close{width:32px;height:32px;border-radius:8px;background:var(--smoke-2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-close svg{width:16px;height:16px;stroke:var(--ink-3);fill:none;stroke-width:2}
+.modal-subtitle{font-size:13px;color:var(--muted);line-height:1.5;padding:6px 20px 0;margin:0}
+.modal-body{padding:14px 20px 0;display:flex;flex-direction:column;gap:14px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 20px 24px;border-top:1px solid var(--smoke-2);margin-top:14px}
+/* Permission tabs */
+.perm-tabs{display:flex;gap:4px;background:var(--smoke-2);border-radius:10px;padding:3px}
+.perm-tab{flex:1;padding:7px 4px;border:none;background:transparent;border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.perm-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.10)}
+.perm-level-desc{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+/* Granular table */
+.perm-table{border:1px solid var(--smoke-2);border-radius:10px;overflow:hidden}
+.perm-table-head{display:flex;justify-content:space-between;padding:8px 12px;background:var(--smoke-2);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.perm-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--smoke-2)}
+.perm-row:first-of-type{border-top:none}
+.perm-row-info{display:flex;align-items:center;gap:10px}
+.perm-row-info svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;flex-shrink:0}
+.perm-row-name{font-size:13px;font-weight:600;color:var(--ink);line-height:1.2}
+.perm-row-sub{font-size:11px;color:var(--muted);line-height:1.2}
+.perm-row-select{background:var(--smoke-2);border:none;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:500;color:var(--ink);cursor:pointer;outline:none}
+.perm-count-row{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px;color:var(--muted)}
+.perm-count-row svg{width:13px;height:13px;stroke:var(--muted);fill:none;stroke-width:2;flex-shrink:0}
+/* Key reveal — step 2 */
+.key-reveal-box{background:var(--smoke-2);border:1.5px solid var(--smoke-3);border-radius:12px;padding:14px}
+.key-reveal-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px}
+.key-reveal-row{display:flex;align-items:center;gap:8px}
+.key-value{flex:1;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink);word-break:break-all;line-height:1.5}
+.key-action-btn{width:32px;height:32px;border-radius:8px;background:var(--white);border:1px solid var(--smoke-3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.key-action-btn:hover{background:var(--smoke-2)}
+.key-action-btn svg{width:14px;height:14px;stroke:var(--ink-3);fill:none;stroke-width:1.8}
+.key-warn-box{display:flex;align-items:flex-start;gap:9px;background:rgba(194,83,0,.06);border:1px solid rgba(194,83,0,.16);border-radius:10px;padding:11px 14px}
+.key-warn-box svg{width:15px;height:15px;stroke:var(--orange);fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+.key-warn-text{font-size:12px;color:var(--orange);line-height:1.5;font-weight:500}
+
 /* ═══════════════════════ CREATE API KEY DIALOG ═══════════════════════ */
 .ckey-backdrop{
   position:fixed;inset:0;background:rgba(0,0,0,0);z-index:900;
