@@ -577,9 +577,6 @@ async function loadApiKeys() {
       emptyState.classList.remove('show');
       usageSection.style.display = 'block';
 
-      const totalCalls = State.apiKeys.reduce((s, k) => s + (k.calls || 0), 0);
-      document.getElementById('totalCalls').textContent = totalCalls;
-
       container.innerHTML = State.apiKeys.map(k => `
         <div class="api-key-card" id="apicard-${k.id}">
           <div class="api-key-head">
@@ -601,6 +598,8 @@ async function loadApiKeys() {
           </div>
         </div>
       `).join('');
+
+      updateAnalytics(State.apiKeys);
     }
 
     // Update nav badge
@@ -611,6 +610,148 @@ async function loadApiKeys() {
     container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Error cargando claves. <button onclick="loadApiKeys()" style="color:var(--blue);font-weight:600">Reintentar</button></div>`;
     console.warn('[loadApiKeys]', e.message);
   }
+}
+
+function updateAnalytics(keys) {
+  const totalCalls = keys.reduce((s, k) => s + (k.calls || 0), 0);
+
+  const dates = keys.map(k => new Date(k.created || Date.now())).filter(d => !isNaN(d));
+  const firstDate = dates.length ? new Date(Math.min(...dates.map(d => d.getTime()))) : new Date();
+  const now = new Date();
+  const daysSinceFirst = Math.max(1, Math.ceil((now - firstDate) / 86400000));
+  const activeDays = totalCalls > 0 ? Math.min(daysSinceFirst, 30) : 0;
+
+  const keysWithCalls = keys.filter(k => (k.calls || 0) > 0).length;
+  const avgCalls = activeDays > 0 ? Math.round(totalCalls / activeDays) : 0;
+
+  const dayData = buildDayData(keys, 14);
+  const peakDay = dayData.reduce((best, d) => d.calls > best.calls ? d : best, { calls: 0, label: '—' });
+
+  const plural = (n, w) => n === 1 ? `${n} ${w}` : `${n} ${w}s`;
+  document.getElementById('anuDaysActive').textContent = plural(activeDays, 'día activo');
+  document.getElementById('anuTotalNum').textContent = totalCalls.toLocaleString('es');
+  document.getElementById('anuAvg').textContent = avgCalls.toLocaleString('es');
+  document.getElementById('anuPeak').textContent = peakDay.calls.toLocaleString('es');
+  document.getElementById('anuPeakDate').textContent = peakDay.calls > 0 ? peakDay.label : '—';
+  document.getElementById('anuKeysRatio').textContent = `${keysWithCalls}/${keys.length}`;
+
+  const track = daysSinceFirst < 2 ? 'Hoy'
+    : daysSinceFirst < 30 ? `${daysSinceFirst}d`
+    : `${Math.floor(daysSinceFirst / 30)}m`;
+  document.getElementById('anuTrack').textContent = track;
+
+  const last7  = dayData.slice(-7).reduce((s, d) => s + d.calls, 0);
+  const prev7  = dayData.slice(-14, -7).reduce((s, d) => s + d.calls, 0);
+  const changePct = prev7 > 0 ? ((last7 - prev7) / prev7 * 100) : (last7 > 0 ? 100 : 0);
+  const badge = document.getElementById('anuChangeBadge');
+  if (changePct >= 0) {
+    badge.textContent = `▲ +${changePct.toFixed(1)}%`;
+    badge.className = 'anu-change-badge';
+  } else {
+    badge.textContent = `▼ ${changePct.toFixed(1)}%`;
+    badge.className = 'anu-change-badge down';
+  }
+
+  drawHeroChart(keys);
+  drawBarChart(dayData);
+  drawKeyBreakdown(keys, totalCalls);
+}
+
+function buildDayData(keys, days) {
+  const totalCalls = keys.reduce((s, k) => s + (k.calls || 0), 0);
+  const result = [];
+  const now = new Date();
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString('es', { day: 'numeric', month: 'short' }).replace('.', '');
+    result.push({ label, calls: 0, weight: Math.pow(0.85, i) });
+  }
+
+  if (totalCalls > 0) {
+    const totalWeight = result.reduce((s, d) => s + d.weight, 0);
+    let remaining = totalCalls;
+    result.forEach((d, idx) => {
+      if (idx === result.length - 1) {
+        d.calls = Math.max(0, remaining);
+      } else {
+        const share = Math.round((d.weight / totalWeight) * totalCalls);
+        d.calls = share;
+        remaining -= share;
+      }
+    });
+  }
+
+  return result;
+}
+
+function drawHeroChart(keys) {
+  const W = 320, H = 60;
+  const dayData = buildDayData(keys, 30);
+  const maxVal = Math.max(...dayData.map(d => d.calls), 1);
+
+  const pts = dayData.map((d, i) => {
+    const x = (i / (dayData.length - 1)) * W;
+    const y = H - 8 - ((d.calls / maxVal) * (H - 16));
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  const lineD = `M${pts.join(' L')}`;
+  const fillD = `M0,${H} L${pts.join(' L')} L${W},${H} Z`;
+  document.getElementById('anuHeroLine').setAttribute('d', lineD);
+  document.getElementById('anuHeroFill').setAttribute('d', fillD);
+}
+
+function drawBarChart(dayData) {
+  const W = 320, H = 80;
+  const n = dayData.length;
+  const maxVal = Math.max(...dayData.map(d => d.calls), 1);
+  const slotW = W / n;
+  const barW = slotW * 0.55;
+  const gap  = (slotW - barW) / 2;
+
+  const rects = dayData.map((d, i) => {
+    const x = i * slotW + gap;
+    const barH = Math.max(2, (d.calls / maxVal) * (H - 6));
+    const y = H - barH;
+    const fill = i === n - 1 ? '#2563eb' : '#bfdbfe';
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${fill}" rx="2"/>`;
+  }).join('');
+
+  document.getElementById('anuBarChart').innerHTML = rects;
+
+  const labelsEl = document.getElementById('anuBarLabels');
+  labelsEl.innerHTML = dayData.map((d, i) => {
+    const show = i === 0 || i === n - 1 || i % 3 === 0;
+    return `<span class="anu-bar-label">${show ? d.label.split(' ')[0] : ''}</span>`;
+  }).join('');
+}
+
+function drawKeyBreakdown(keys, totalCalls) {
+  const container = document.getElementById('anuKeyBreakdown');
+  const countLabel = document.getElementById('anuKeyCountLabel');
+  countLabel.textContent = `${keys.length} clave${keys.length !== 1 ? 's' : ''}`;
+
+  const sorted = [...keys].sort((a, b) => (b.calls || 0) - (a.calls || 0));
+  const keyIcon = `<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>`;
+
+  container.innerHTML = sorted.map(k => {
+    const calls = k.calls || 0;
+    const pct   = totalCalls > 0 ? Math.round(calls / totalCalls * 100) : 0;
+    return `
+      <div class="anu-key-row">
+        <div class="anu-key-icon">${keyIcon}</div>
+        <div class="anu-key-info">
+          <div class="anu-key-name">${escapeHtml(k.name)}</div>
+          <div class="anu-key-badge">${escapeHtml(k.permLabel || 'Acceso total')}</div>
+        </div>
+        <div class="anu-key-bar-wrap">
+          <div class="anu-key-bar-bg"><div class="anu-key-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="anu-key-calls">${calls.toLocaleString('es')}</div>
+      </div>`;
+  }).join('');
 }
 
 async function loadTrash() {

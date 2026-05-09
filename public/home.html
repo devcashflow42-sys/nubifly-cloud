@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260513">
+  <link rel="stylesheet" href="css/home.css?v=20260514">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -398,22 +398,84 @@
     </div>
     <div id="apiKeysList"></div>
     <div class="usage-section" id="apiUsageSection" style="display:none">
-      <div class="section-head ana-head">
+
+      <!-- ── Analytics header ── -->
+      <div class="anu-header">
         <div>
-          <div class="section-title">Uso de Claves</div>
-          <div class="ana-sub">Actividad acumulada</div>
+          <div class="anu-title">Análisis de uso</div>
+          <div class="anu-live-row">
+            <span class="anu-dot"></span>
+            <span id="anuDaysActive">0 días activos</span>
+            <span class="anu-live-lbl">· en tiempo real</span>
+          </div>
         </div>
-        <div class="ana-period">Histórico</div>
+        <div class="anu-period-chip" id="anuPeriodChip">Últimos 30 días</div>
       </div>
-      <div class="usage-card">
-        <div class="usage-icon">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+
+      <!-- ── Hero card ── -->
+      <div class="anu-hero-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+          <div class="anu-hero-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div class="anu-change-badge" id="anuChangeBadge">▲ +0.00%</div>
         </div>
-        <div class="usage-label">TOTAL DE LLAMADAS</div>
-        <div class="usage-num" id="totalCalls">0</div>
-        <div class="usage-sub">solicitudes registradas</div>
-        <div class="usage-change">— Sin cambios recientes</div>
+        <div class="anu-hero-lbl">USO TOTAL</div>
+        <div class="anu-hero-num"><span id="anuTotalNum">0</span> <span class="anu-hero-unit">solicitudes</span></div>
+        <svg class="anu-hero-chart" id="anuHeroChart" viewBox="0 0 320 60" preserveAspectRatio="none">
+          <defs><linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity=".15"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
+          <path id="anuHeroFill" fill="url(#heroGrad)" d="M0,60 L320,60 Z"/>
+          <path id="anuHeroLine" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" d=""/>
+        </svg>
       </div>
+
+      <!-- ── Stats 2×2 ── -->
+      <div class="anu-stats-grid">
+        <div class="anu-stat">
+          <div class="anu-stat-dot" style="background:#2563eb"></div>
+          <div class="anu-stat-lbl">PROMEDIO</div>
+          <div class="anu-stat-num" id="anuAvg">0</div>
+          <div class="anu-stat-sub">por día activo</div>
+        </div>
+        <div class="anu-stat">
+          <div class="anu-stat-dot" style="background:#16a34a"></div>
+          <div class="anu-stat-lbl">PICO</div>
+          <div class="anu-stat-num" id="anuPeak">0</div>
+          <div class="anu-stat-sub" id="anuPeakDate">—</div>
+        </div>
+        <div class="anu-stat">
+          <div class="anu-stat-dot" style="background:#7c3aed"></div>
+          <div class="anu-stat-lbl">CLAVES</div>
+          <div class="anu-stat-num" id="anuKeysRatio">0/0</div>
+          <div class="anu-stat-sub">en uso</div>
+        </div>
+        <div class="anu-stat">
+          <div class="anu-stat-dot" style="background:#d97706"></div>
+          <div class="anu-stat-lbl">RASTREO</div>
+          <div class="anu-stat-num" id="anuTrack">—</div>
+          <div class="anu-stat-sub">desde la 1ª clave</div>
+        </div>
+      </div>
+
+      <!-- ── Daily activity bar chart ── -->
+      <div class="anu-section-card">
+        <div class="anu-section-head">
+          <div class="anu-section-title">Actividad diaria</div>
+          <div class="anu-section-meta">14 días</div>
+        </div>
+        <svg class="anu-bar-chart" id="anuBarChart" viewBox="0 0 320 80" preserveAspectRatio="none"></svg>
+        <div class="anu-bar-labels" id="anuBarLabels"></div>
+      </div>
+
+      <!-- ── Desglose por clave ── -->
+      <div class="anu-section-card">
+        <div class="anu-section-head">
+          <div class="anu-section-title">Desglose por clave</div>
+          <div class="anu-section-meta" id="anuKeyCountLabel">0 claves</div>
+        </div>
+        <div id="anuKeyBreakdown"></div>
+      </div>
+
     </div>
   </section>
 
@@ -772,6 +834,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260516"></script>
+<script src="js/home.js?v=20260517"></script>
 </body>
 </html>
