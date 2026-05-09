@@ -324,14 +324,8 @@ el('authForm').addEventListener('submit', async function (e) {
 // Break any redirect loop: if we've bounced here from /home more than twice,
 // something is wrong with the stored token — force a clean re-login instead.
 if (NubiflyAPI.getToken()) {
-  const _cnt = Number(sessionStorage.getItem('_nf_home_redir') || 0);
-  if (_cnt < 2) {
-    sessionStorage.removeItem('_nf_home_redir');
-    window.location.replace('/home');
-  } else {
-    sessionStorage.removeItem('_nf_home_redir');
-    NubiflyAPI.clearSession();
-  }
+  sessionStorage.removeItem('_nf_home_redir');
+  window.location.replace('/home');
 }
 
 // Show Google OAuth errors returned as ?error= in URL
