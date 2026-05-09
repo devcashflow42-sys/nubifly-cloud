@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260509">
+  <link rel="stylesheet" href="css/home.css?v=20260510">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -25,59 +25,50 @@
 <!-- ══ TOPBAR ══ -->
 <header class="topbar">
   <div class="topbar-left">
-    <button class="menu-btn" id="menuBtn" aria-label="Abrir menú" aria-expanded="false" aria-controls="drawer" aria-haspopup="true">
+    <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()">
       <span></span><span></span><span></span>
     </button>
     <div class="topbar-title" id="topbarTitle">Inicio</div>
   </div>
 </header>
 
-<!-- ══ OVERLAY (sin fondo oscuro) ══ -->
-<div class="overlay" id="overlay" role="presentation" aria-hidden="true"></div>
+<!-- ══ OVERLAY ══ -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
 
 <!-- ══ DRAWER ══ -->
-<aside class="drawer" id="drawer" role="navigation" aria-label="Menú principal">
-  <button class="drawer-x" id="drawerX">
+<aside class="drawer" id="drawer">
+  <button class="drawer-x" id="drawerX" onclick="closeDrawer()">
     <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
-
   <div class="drawer-logo">
     <div class="logo-mark">
-      <img src="/assets/icons/icon.png" alt="Nubifly" width="36" height="36" style="object-fit:contain;display:block;">
+      <svg class="logo-icon" viewBox="0 0 36 36" fill="none">
+        <path d="M8 24C8 16 14 10 18 10C22 10 28 16 28 24" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M13 22C13 18 15.5 14 18 14C20.5 14 23 18 23 22" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <circle cx="18" cy="22" r="2.5" fill="white"/>
+      </svg>
     </div>
     <div>
       <div class="logo-name">Nubifly</div>
       <div class="logo-sub">Gestión de contenido</div>
     </div>
   </div>
-
   <nav class="drawer-nav">
-    <p class="nav-label" aria-hidden="true">Menú</p>
-
+    <p class="nav-label">Menú</p>
     <div class="nav-item active" id="nav-panel" onclick="goPage('panel')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
       <span class="n-text">Inicio</span>
     </div>
-
     <div class="nav-item plain" id="nav-proyectos" onclick="goPage('proyectos')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></svg>
-      </div>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></svg></div>
       <span class="n-text">Proyectos</span>
-      <span class="n-badge" id="projBadge" style="display:none">0</span>
+      <span class="n-badge" id="badge-proyectos" style="display:none">0</span>
     </div>
-
     <div class="nav-group">
       <div class="nav-item" id="nav-pubs" onclick="toggleSub()">
-        <div class="n-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        </div>
+        <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
         <span class="n-text">Gestionar Publicaciones</span>
-        <div class="n-chev" id="pubChev">
-          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
+        <div class="n-chev" id="pubChev"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
       </div>
       <div class="nav-sub" id="pubSub">
         <div class="nav-sub-item" id="nav-nueva" onclick="goPage('nueva')">
@@ -90,251 +81,177 @@
         </div>
       </div>
     </div>
-
     <div class="nav-sep"></div>
-
     <div class="nav-item plain" id="nav-categorias" onclick="goPage('categorias')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-      </div>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
       <span class="n-text">Categorías</span>
     </div>
-
     <div class="nav-item plain" id="nav-analytics" onclick="goPage('analytics')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      </div>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
       <span class="n-text">Analytics</span>
     </div>
-
     <div class="nav-item plain" id="nav-apikeys" onclick="goPage('apikeys')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-      </div>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
       <span class="n-text">Claves API</span>
     </div>
-
     <div class="nav-item plain" id="nav-papelera" onclick="goPage('papelera')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-      </div>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
       <span class="n-text">Papelera</span>
-      <span class="n-badge" id="trashBadge" style="display:none">0</span>
+      <span class="n-badge" id="badge-papelera" style="display:none">0</span>
     </div>
-
     <div class="nav-item plain" id="nav-notificaciones" onclick="goPage('notificaciones')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-      </div>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
       <span class="n-text">Notificaciones</span>
-      <span class="n-badge" id="notifBadge" style="display:none">0</span>
+      <span class="n-badge" id="badge-notif" style="display:none">0</span>
     </div>
-
     <div class="nav-item plain" id="nav-log" onclick="goPage('log')">
-      <div class="n-icon">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-      </div>
-      <span class="n-text">Log</span>
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></div>
+      <span class="n-text">Log de Actividad</span>
     </div>
   </nav>
-
   <div class="drawer-bottom">
     <div class="user-card">
-      <div class="u-avatar">
-        <img data-user-avatar loading="lazy" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block">
-      </div>
+      <div class="u-avatar" id="uAvatar">?</div>
       <div style="flex:1;min-width:0">
-        <div class="u-name" data-user-name>—</div>
-        <div class="u-email" data-user-email>—</div>
+        <div class="u-name" id="uName">—</div>
+        <div class="u-email" id="uEmail">—</div>
       </div>
       <div class="u-dots">
-        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:#8A8A96;fill:none;stroke-width:2">
+        <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:#8A8A96;fill:none;stroke-width:2">
           <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
         </svg>
       </div>
     </div>
-    <button class="sign-out-btn" onclick="logoutUser()">
+    <button class="sign-out-btn" onclick="handleLogout()">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Cerrar sesión
     </button>
   </div>
 </aside>
 
-<!-- ══════════════════════════════════════════
-     PAGES CONTAINER
-══════════════════════════════════════════ -->
-<main class="page-wrap" id="pageWrap" role="main">
+<!-- ══ PAGES ══ -->
+<main class="page-wrap" id="pageWrap">
 
-  <!-- ── PAGE: PANEL ── -->
-  <section class="page active" id="page-panel" aria-label="Inicio">
+  <!-- ── PANEL / INICIO ── -->
+  <section class="page active" id="page-panel">
     <div class="page-head">
-      <div class="page-head-info">
-        <h1 class="page-h1">Inicio</h1>
-        <p class="page-sub">Resumen de tu contenido</p>
+      <div class="greeting-wrap">
+        <div class="greeting-eyebrow" id="greetingTime">Bienvenido</div>
+        <h1 class="greeting-name">Hola, <span id="greetingName">—</span> 👋</h1>
+        <p class="greeting-sub">Bienvenido de nuevo a tu panel.</p>
       </div>
       <div class="page-head-actions">
         <button class="btn btn-primary" onclick="goPage('nueva')">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nueva Publicación
+          Nueva
         </button>
       </div>
     </div>
-
-    <div class="stats-grid stagger" role="list" aria-label="Estadísticas">
-      <div class="stat-card" role="listitem">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
         <div class="stat-icon" style="background:#0C0C0E">
           <svg viewBox="0 0 24 24" style="stroke:#fff"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         </div>
-        <div class="stat-val" id="statTotalPubs">0</div>
-        <div class="stat-lbl">Total Publicaciones</div>
+        <div class="stat-val" id="sv-files">—</div>
+        <div class="stat-lbl">Archivos</div>
       </div>
-      <div class="stat-card" role="listitem">
+      <div class="stat-card">
         <div class="stat-icon" style="background:var(--teal-bg)">
-          <svg viewBox="0 0 24 24" style="stroke:var(--teal)"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg viewBox="0 0 24 24" style="stroke:var(--teal)"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
         </div>
-        <div class="stat-val" id="statPublishedPubs">0</div>
-        <div class="stat-lbl">Publicadas</div>
+        <div class="stat-val" id="sv-projects">—</div>
+        <div class="stat-lbl">Proyectos</div>
       </div>
-      <div class="stat-card" role="listitem">
+      <div class="stat-card">
         <div class="stat-icon" style="background:var(--orange-bg)">
-          <svg viewBox="0 0 24 24" style="stroke:var(--orange)"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <svg viewBox="0 0 24 24" style="stroke:var(--orange)"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5"/></svg>
         </div>
-        <div class="stat-val">0</div>
-        <div class="stat-lbl">Borradores</div>
+        <div class="stat-val" id="sv-apikeys">—</div>
+        <div class="stat-lbl">Claves API</div>
       </div>
-      <div class="stat-card" role="listitem">
+      <div class="stat-card">
         <div class="stat-icon" style="background:var(--blue-bg)">
-          <svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          <svg viewBox="0 0 24 24" style="stroke:var(--blue)"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
         </div>
-        <div class="stat-val">0</div>
-        <div class="stat-lbl">Categorías</div>
+        <div class="stat-val" id="sv-storage">—</div>
+        <div class="stat-lbl">Almacenamiento</div>
       </div>
-      <div class="stat-card full" role="listitem">
+      <div class="stat-card full">
         <div class="stat-icon" style="background:var(--purple-bg)">
           <svg viewBox="0 0 24 24" style="stroke:var(--purple)"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
-        <div class="stat-val">0</div>
-        <div class="stat-lbl">Vistas Totales</div>
+        <div class="stat-val" id="sv-activity">—</div>
+        <div class="stat-lbl">Actividad reciente</div>
       </div>
     </div>
-
     <div class="section-head">
-      <div class="section-title">Publicaciones Recientes</div>
+      <div class="section-title">Archivos Recientes</div>
       <button class="section-link" onclick="goPage('todas')">
-        Ver todas
-        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        Ver todos <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>
-
-    <div id="recentPubsWrap" class="stagger">
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        </div>
-        <div class="empty-title">Sin publicaciones todavía</div>
-        <div class="empty-desc">Sube archivos a tus proyectos para<br>verlos aparecer aquí.</div>
-        <button class="btn btn-primary" onclick="goPage('nueva')">Crear publicación</button>
+    <div id="recentFilesList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="list-empty-title">Sin archivos aún</div>
+        <div class="list-empty-sub">Crea tu primera publicación y aparecerá aquí.</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: NUEVA PUBLICACIÓN ── -->
-  <section class="page" id="page-nueva" aria-label="Nueva publicación">
-    <div class="page-head nueva-toolbar" id="nuevaToolbar">
+  <!-- ── NUEVA PUBLICACIÓN ── -->
+  <section class="page" id="page-nueva">
+    <div class="nueva-toolbar">
       <div style="display:flex;align-items:center;gap:12px">
         <button class="back-btn" onclick="goPage('panel')">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div class="page-head-info">
-          <h1 class="page-h1" style="font-size:18px;line-height:1.2">Nueva<br>Publicación</h1>
+        <div>
+          <h1 class="page-h1" style="font-size:22px">Nueva<br>Publicación</h1>
         </div>
       </div>
-      <div class="page-head-actions">
-        <button class="btn btn-primary btn-sm" onclick="handlePublish()">Publicar</button>
-      </div>
+      <button class="btn btn-primary btn-sm" id="pubBtn" onclick="handlePublish()">Publicar</button>
     </div>
-
     <div class="form-card">
-      <div class="form-card-head">¿Cual es tu nueva publicación?</div>
-      <div class="form-card-sub">Sube tu contenido. La primera imagen sera la miniatura. Arrastra hasta 3 archivos.</div>
-
+      <div class="form-card-head">¿Cuál es tu nueva publicación?</div>
+      <div class="form-card-sub">Sube tu contenido. La primera imagen será la miniatura.</div>
       <div class="field">
-        <label class="field-label">Titulo</label>
-        <input class="field-input" id="pubTitle" type="text" placeholder="Escribe el titulo de tu publicacion">
+        <label class="field-label">Título</label>
+        <input class="field-input" id="pubTitle" type="text" placeholder="Escribe el título de tu publicación">
       </div>
-
       <div class="field">
-        <label class="field-label">Subir Archivos</label>
-        <div class="upload-zone" id="uploadZone"
-             ondragover="event.preventDefault();this.classList.add('drag')"
-             ondragleave="this.classList.remove('drag')"
-             ondrop="handleDrop(event)"
-             onclick="document.getElementById('fileInput').click()">
+        <label class="field-label">Subir Archivo</label>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
           <div class="upload-icon-wrap">
             <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
           </div>
-          <div class="upload-title">Subir Archivos</div>
+          <div class="upload-title" id="uploadTitle">Subir Archivo</div>
           <div class="upload-desc">Videos hasta 50 MB, imágenes hasta 5 MB.<br>Soporta documentos, APK, y más.</div>
-          <button class="upload-sub-btn" onclick="event.stopPropagation();document.getElementById('fileInput').click()">
+          <button class="upload-sub-btn" type="button">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Subir
+            Seleccionar
           </button>
-        </div>
-        <input type="file" id="fileInput" style="display:none" multiple onchange="showToast('Archivo cargado')">
-      </div>
-
-      <div class="field">
-        <label class="field-label">Contenido</label>
-        <textarea class="field-input field-textarea" placeholder="Escribe el contenido de tu publicacion..."></textarea>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <div class="field">
-        <label class="field-label">Etiquetas</label>
-        <div class="tags-wrap" id="tagsWrap" onclick="document.getElementById('tagInput').focus()">
-          <div class="tag-chip">diseño <button onclick="event.stopPropagation();this.parentElement.remove()">×</button></div>
-          <input class="tag-input" id="tagInput" placeholder="Escribe y presiona Enter para agregar..." onkeydown="addTag(event)">
+          <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
         </div>
       </div>
       <div class="field">
-        <label class="field-label">Autor</label>
-        <input class="field-input" type="text" placeholder="Nombre del autor" value="">
-      </div>
-      <div class="field">
-        <label class="field-label">Categoría</label>
-        <select class="field-select">
-          <option value="">Seleccionar categoría</option>
-          <option>Diseño</option>
-          <option>Tecnología</option>
-          <option>Negocios</option>
-          <option>Marketing</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="field-label">Estado</label>
-        <select class="field-select">
-          <option selected>Publicado</option>
-          <option>Borrador</option>
-        </select>
+        <label class="field-label">Descripción</label>
+        <textarea class="field-input field-textarea" id="pubDesc" placeholder="Describe tu publicación..."></textarea>
       </div>
     </div>
-
     <div class="publish-bar">
-      <button class="btn btn-primary" onclick="handlePublish()">
+      <button class="btn btn-primary" style="width:100%;justify-content:center" id="pubBtn2" onclick="handlePublish()">
         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Publicar
+        Publicar ahora
       </button>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: TODAS LAS PUBLICACIONES ── -->
-  <section class="page" id="page-todas" aria-label="Publicaciones">
-    <div class="nueva-toolbar sec-toolbar" id="tb-todas">
+  <!-- ── TODAS LAS PUBLICACIONES ── -->
+  <section class="page" id="page-todas">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="tb-title">Publicaciones</span>
       </div>
       <button class="btn btn-primary btn-sm" onclick="goPage('nueva')">
@@ -342,959 +259,386 @@
         Nueva
       </button>
     </div>
-
-    <search class="search-bar" role="search">
+    <div class="search-bar">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <label for="searchInput" class="sr-only">Buscar publicaciones</label><input class="search-input" id="searchInput" type="search" placeholder="Buscar publicaciones..." autocomplete="off">
+      <input class="search-input" id="searchInput" type="search" placeholder="Buscar archivos...">
     </div>
-
-    <div id="todasPubsWrap" class="stagger">
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        </div>
-        <div class="empty-title">Sin publicaciones todavía</div>
-        <div class="empty-desc">Aún no has creado ninguna publicación.<br>¡Empieza ahora!</div>
-        <button class="btn btn-primary" onclick="goPage('nueva')">Crear publicación</button>
+    <div id="allFilesList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="list-empty-title">Sin archivos</div>
+        <div class="list-empty-sub">Aún no has subido ningún archivo.</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: CATEGORIAS ── -->
-  <section class="page" id="page-categorias" aria-label="Categorías">
-    <div class="nueva-toolbar sec-toolbar" id="tb-categorias">
+  <!-- ── CATEGORÍAS ── -->
+  <section class="page" id="page-categorias">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="tb-title">Categorías</span>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="addCategory()">
+      <button class="btn btn-primary btn-sm" onclick="showToast('Próximamente')">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nueva
       </button>
     </div>
-
-    <div id="catList"></div>
-
-    <div class="empty-state" id="catEmpty">
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-      </div>
-      <div class="empty-title">No hay categorías</div>
-      <div class="empty-desc">Crea tu primera categoría para organizar<br>mejor tus publicaciones.</div>
-      <button class="btn btn-primary" onclick="addCategory()">Crear primera categoría</button>
+    <div class="list-empty">
+      <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
+      <div class="list-empty-title">Sin categorías</div>
+      <div class="list-empty-sub">Organiza tu contenido creando tu primera categoría.</div>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: ANALYTICS ── -->
-  <section class="page" id="page-analytics" aria-label="Analytics">
-    <div class="nueva-toolbar sec-toolbar" id="tb-analytics">
+  <!-- ── ANALYTICS ── -->
+  <section class="page" id="page-analytics">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <div>
           <span class="tb-title">Analytics</span>
           <div style="display:flex;align-items:center;gap:5px;margin-top:1px">
             <span class="ana2-live"></span>
-            <span style="font-size:10.5px;color:rgba(0,0,0,0.3);font-weight:500">Sin actividad todavía</span>
+            <span style="font-size:10.5px;color:rgba(0,0,0,.3);font-weight:500">Actualizado hace 5 min</span>
           </div>
         </div>
       </div>
     </div>
-
-    <div class="stagger" style="padding:14px;display:flex;flex-direction:column;gap:12px">
-
-      <!-- Tabs -->
+    <div style="display:flex;flex-direction:column;gap:12px">
       <div class="ana2-tabs-bar">
-        <button class="ana2-tab ana2-tab-on" onclick="ana2Tab(this,'general')">General</button>
-        <button class="ana2-tab" onclick="ana2Tab(this,'contenido')">Contenido</button>
-        <button class="ana2-tab" onclick="ana2Tab(this,'actividad')">Actividad</button>
+        <button class="ana2-tab ana2-tab-on" onclick="ana2Tab(this)">General</button>
+        <button class="ana2-tab" onclick="ana2Tab(this)">Contenido</button>
+        <button class="ana2-tab" onclick="ana2Tab(this)">Actividad</button>
       </div>
-
-      <!-- Hero card: métrica principal + gráfica -->
       <div class="ana2-hero-card">
         <div class="ana2-hero-glow"></div>
-
         <div class="ana2-hero-top">
           <div class="ana2-hero-label">RESUMEN DE RENDIMIENTO</div>
-          <div class="ana2-badge"><span class="ana2-live"></span> Sin crecimiento todavía</div>
+          <div class="ana2-badge"><span class="ana2-live"></span> Live</div>
         </div>
-
-        <div class="ana2-big-num">0</div>
-        <div class="ana2-big-sub">Vistas totales</div>
-        <div class="ana2-big-desc">Todavía no hay vistas registradas. Cuando tus publicaciones reciban visitas, aquí verás el crecimiento.</div>
-
-        <!-- Periodo pills -->
+        <div class="ana2-big-num" id="anaActivity">0</div>
+        <div class="ana2-big-sub">Acciones recientes</div>
+        <div class="ana2-big-desc">Actividad registrada en tu cuenta de Nubifly.</div>
         <div class="ana2-pills" style="margin-bottom:14px">
           <button class="ana2-pill ana2-pill-on" onclick="ana2Period(this)">24h</button>
           <button class="ana2-pill" onclick="ana2Period(this)">7d</button>
           <button class="ana2-pill" onclick="ana2Period(this)">30d</button>
           <button class="ana2-pill" onclick="ana2Period(this)">90d</button>
         </div>
-
-        <!-- Gráfica SVG vacía -->
         <div style="margin:0 -6px">
-          <svg viewBox="0 0 360 90" width="100%" height="90" style="display:block;overflow:visible">
+          <svg viewBox="0 0 360 90" width="100%" height="90">
             <defs>
-              <linearGradient id="ana2grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgba(0,0,0,0.07)"/>
-                <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+              <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(12,12,14,0.12)"/>
+                <stop offset="100%" stop-color="rgba(12,12,14,0)"/>
               </linearGradient>
             </defs>
-            <!-- Líneas de cuadrícula horizontales -->
-            <line x1="0" y1="22" x2="360" y2="22" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-            <line x1="0" y1="44" x2="360" y2="44" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-            <line x1="0" y1="66" x2="360" y2="66" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-            <!-- Área plana (sin datos) -->
-            <path d="M0,75 L360,75 L360,90 L0,90 Z" fill="url(#ana2grad)"/>
-            <path d="M0,75 L360,75" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" stroke-dasharray="4 3"/>
-            <!-- Etiquetas de días -->
-            <text x="0"   y="88" style="font-size:8.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">L</text>
-            <text x="51"  y="88" style="font-size:8.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">M</text>
-            <text x="102" y="88" style="font-size:8.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">X</text>
-            <text x="153" y="88" style="font-size:8.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">J</text>
-            <text x="204" y="88" style="font-size:8.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">V</text>
-            <text x="255" y="88" style="font-size:8.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">S</text>
-            <text x="306" y="88" style="font-size:8.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">D</text>
+            <line x1="0" y1="22" x2="360" y2="22" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
+            <line x1="0" y1="44" x2="360" y2="44" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
+            <line x1="0" y1="66" x2="360" y2="66" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
+            <path d="M0,72 C40,65 80,50 120,42 C160,34 200,55 240,38 C280,22 320,30 360,18 L360,88 L0,88 Z" fill="url(#ag)"/>
+            <path d="M0,72 C40,65 80,50 120,42 C160,34 200,55 240,38 C280,22 320,30 360,18" fill="none" stroke="rgba(12,12,14,.7)" stroke-width="1.8" stroke-linecap="round"/>
+            <text x="0" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">L</text>
+            <text x="51" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">M</text>
+            <text x="102" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">X</text>
+            <text x="153" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">J</text>
+            <text x="204" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">V</text>
+            <text x="255" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">S</text>
+            <text x="306" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">D</text>
           </svg>
         </div>
-        <div style="text-align:center;font-size:10.5px;color:rgba(0,0,0,0.18);margin-top:6px;font-family:'DM Mono',monospace">— Los datos aparecerán cuando registres actividad —</div>
       </div>
-
-      <!-- Grid 2×2 de stats -->
-      <div class="ana2-stat-grid">
-        <div class="ana2-stat-card">
-          <div class="ana2-stat-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-          <div class="ana2-stat-lbl">VISTAS TOTALES</div>
-          <div class="ana2-stat-val">0</div>
-          <div class="ana2-stat-sub">Últimos 30 días</div>
-        </div>
-        <div class="ana2-stat-card">
-          <div class="ana2-stat-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          </div>
-          <div class="ana2-stat-lbl">POST POPULAR</div>
-          <div class="ana2-stat-val">—</div>
-          <div class="ana2-stat-sub">Sin datos todavía</div>
-        </div>
-        <div class="ana2-stat-card">
-          <div class="ana2-stat-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          </div>
-          <div class="ana2-stat-lbl">CATEGORÍAS</div>
-          <div class="ana2-stat-val">0</div>
-          <div class="ana2-stat-sub">Sin categorías activas</div>
-        </div>
-        <div class="ana2-stat-card">
-          <div class="ana2-stat-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          </div>
-          <div class="ana2-stat-lbl">ACTIVIDAD</div>
-          <div class="ana2-stat-val">0</div>
-          <div class="ana2-stat-sub">Sin movimiento reciente</div>
-        </div>
+      <div class="ana2-stat-grid" id="anaStatGrid">
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="ana2-stat-lbl">ARCHIVOS</div><div class="ana2-stat-val" id="ana-files">0</div><div class="ana2-stat-sub">Total subidos</div></div>
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div class="ana2-stat-lbl">PROYECTOS</div><div class="ana2-stat-val" id="ana-projects">0</div><div class="ana2-stat-sub">Activos</div></div>
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div><div class="ana2-stat-lbl">CLAVES API</div><div class="ana2-stat-val" id="ana-apikeys">0</div><div class="ana2-stat-sub">Activas</div></div>
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div><div class="ana2-stat-lbl">ALMACENAMIENTO</div><div class="ana2-stat-val" id="ana-storage" style="font-size:18px;margin-top:4px">0 B</div><div class="ana2-stat-sub">Usado</div></div>
       </div>
-
-      <!-- Publicaciones más vistas -->
-      <div class="ana2-card">
-        <div class="ana2-card-head">
-          <span class="ana2-card-title">Publicaciones Más Vistas</span>
-          <span class="ana2-card-link">Ver todo
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </span>
-        </div>
-        <div class="ana2-empty">
-          <div class="ana2-empty-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div class="ana2-empty-title">No hay publicaciones vistas todavía</div>
-          <div class="ana2-empty-desc">Cuando un archivo reciba visitas, aparecerá aquí con su ranking.</div>
-        </div>
-        <button class="ana2-upload-btn" onclick="goPage('nueva')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-          Subir publicación
-        </button>
-      </div>
-
-      <!-- Rendimiento por categoría -->
-      <div class="ana2-card">
-        <div class="ana2-card-head">
-          <span class="ana2-card-title">Rendimiento por Categoría</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
-          <span class="ana2-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Imágenes <span style="color:rgba(0,0,0,0.22)">0</span></span>
-          <span class="ana2-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Documentos <span style="color:rgba(0,0,0,0.22)">0</span></span>
-          <span class="ana2-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg> Video <span style="color:rgba(0,0,0,0.22)">0</span></span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-              <span style="font-size:12.5px;color:rgba(0,0,0,0.45);font-weight:500">Imágenes</span>
-              <span style="font-size:11px;color:rgba(0,0,0,0.25);font-family:'DM Mono',monospace">0%</span>
-            </div>
-            <div class="ana2-bar-track"><div class="ana2-bar-fill" style="width:0%"></div></div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-              <span style="font-size:12.5px;color:rgba(0,0,0,0.45);font-weight:500">Documentos</span>
-              <span style="font-size:11px;color:rgba(0,0,0,0.25);font-family:'DM Mono',monospace">0%</span>
-            </div>
-            <div class="ana2-bar-track"><div class="ana2-bar-fill" style="width:0%"></div></div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-              <span style="font-size:12.5px;color:rgba(0,0,0,0.45);font-weight:500">Video</span>
-              <span style="font-size:11px;color:rgba(0,0,0,0.25);font-family:'DM Mono',monospace">0%</span>
-            </div>
-            <div class="ana2-bar-track"><div class="ana2-bar-fill" style="width:0%"></div></div>
-          </div>
-        </div>
-        <div style="font-size:12px;color:rgba(0,0,0,0.28);line-height:1.6">
-          Todavía no hay categorías activas. Cuando subas archivos, el contenido se clasificará automáticamente.
-        </div>
-      </div>
-
-      <!-- Actividad reciente -->
-      <div class="ana2-card">
-        <div class="ana2-card-head">
-          <span class="ana2-card-title">Actividad Reciente</span>
-          <div style="display:flex;align-items:center;gap:5px">
-            <span class="ana2-live"></span>
-            <span style="font-size:10px;color:rgba(0,0,0,0.3);font-weight:700;letter-spacing:0.08em">LIVE</span>
-          </div>
-        </div>
-        <div class="ana2-empty">
-          <div class="ana2-empty-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </div>
-          <div class="ana2-empty-title">Sin actividad todavía</div>
-          <div class="ana2-empty-desc">Aquí aparecerán vistas, publicaciones, descargas y movimientos recientes.</div>
-        </div>
-      </div>
-
-      <!-- CTA Banner -->
-      <div class="ana2-cta">
-        <div class="ana2-cta-title">Empieza a crecer</div>
-        <div class="ana2-cta-desc">Sube tu primera publicación para empezar a registrar métricas y ver el crecimiento en tiempo real.</div>
-        <div style="display:flex;gap:8px">
-          <button class="ana2-upload-btn" style="flex:1" onclick="goPage('nueva')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-            Subir publicación
-          </button>
-          <button class="ana2-ghost-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Sugerencias rápidas -->
       <div style="display:flex;gap:8px">
-        <div class="ana2-sug" onclick="goPage('nueva')">
-          <div class="ana2-sug-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-          </div>
-          <div class="ana2-sug-label">Subir</div>
-          <div class="ana2-sug-sub">primera pub.</div>
-        </div>
-        <div class="ana2-sug">
-          <div class="ana2-sug-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          </div>
-          <div class="ana2-sug-label">Compartir</div>
-          <div class="ana2-sug-sub">tus enlaces</div>
-        </div>
-        <div class="ana2-sug">
-          <div class="ana2-sug-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <div class="ana2-sug-label">Ver</div>
-          <div class="ana2-sug-sub">crecimiento</div>
-        </div>
+        <div class="ana2-sug" onclick="goPage('nueva')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg></div><div class="ana2-sug-label">Subir</div><div class="ana2-sug-sub">nueva pub.</div></div>
+        <div class="ana2-sug" onclick="goPage('apikeys')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div><div class="ana2-sug-label">API Keys</div><div class="ana2-sug-sub">gestionar</div></div>
+        <div class="ana2-sug" onclick="goPage('log')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="ana2-sug-label">Log</div><div class="ana2-sug-sub">actividad</div></div>
       </div>
-
       <div style="height:20px"></div>
     </div>
   </section>
 
-  <script>
-    function ana2Tab(btn, tab) {
-      document.querySelectorAll('.ana2-tab').forEach(b => b.classList.remove('ana2-tab-on'));
-      btn.classList.add('ana2-tab-on');
-    }
-    function ana2Period(btn) {
-      document.querySelectorAll('.ana2-pill').forEach(b => b.classList.remove('ana2-pill-on'));
-      btn.classList.add('ana2-pill-on');
-    }
-  </script>
-
-  <!-- ── PAGE: CLAVES API ── -->
-  <section class="page" id="page-apikeys" aria-label="Claves API">
-    <div class="nueva-toolbar sec-toolbar" id="tb-apikeys">
+  <!-- ── CLAVES API ── -->
+  <section class="page" id="page-apikeys">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="tb-title">Claves API</span>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="openApiModal()">
+      <button class="btn btn-primary btn-sm" onclick="openCreateKeyDialog()">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nueva
       </button>
     </div>
-
-    <!-- Lista de claves (se rellena por JS) -->
-    <div id="apiKeyList"></div>
-
-    <!-- Empty state -->
-    <div class="empty-state" id="apiKeyEmpty">
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+    <div class="api-empty" id="apiEmptyState">
+      <div class="api-empty-orb">
+        <div class="api-empty-orb-bg">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><line x1="12" y1="15" x2="12" y2="17"/></svg>
+        </div>
+        <div class="api-empty-dot">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
       </div>
-      <div class="empty-title">Sin claves API</div>
-      <div class="empty-desc">Crea tu primera clave API para<br>integrar servicios externos.</div>
-      <button class="btn btn-primary" onclick="openApiModal()">Crear clave API</button>
+      <div class="api-empty-title">Sin claves API</div>
+      <div class="api-empty-sub">Crea tu primera clave para conectar tu app y empezar a consumir la API de Nubifly.</div>
     </div>
-
-    <!-- Sección de análisis (renderizado dinámicamente por home-api.js) -->
+    <div id="apiKeysList"></div>
     <div class="usage-section" id="apiUsageSection" style="display:none">
       <div class="section-head ana-head">
         <div>
           <div class="section-title">Uso de Claves</div>
-          <div class="ana-sub" id="apiAnaSub">Esperando actividad</div>
+          <div class="ana-sub">Actividad acumulada</div>
         </div>
-        <div class="ana-period" id="apiAnaPeriod">Sin datos</div>
+        <div class="ana-period">Histórico</div>
       </div>
-      <div id="apiUsageBody"></div>
+      <div class="usage-card">
+        <div class="usage-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="usage-label">TOTAL DE LLAMADAS</div>
+        <div class="usage-num" id="totalCalls">0</div>
+        <div class="usage-sub">solicitudes registradas</div>
+        <div class="usage-change">— Sin cambios recientes</div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: PAPELERA ── -->
-  <section class="page" id="page-papelera" aria-label="Papelera">
-    <div class="nueva-toolbar sec-toolbar" id="tb-papelera">
+  <!-- ── PAPELERA ── -->
+  <section class="page" id="page-papelera">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="tb-title">Papelera</span>
       </div>
-      <button class="btn btn-ghost btn-sm" id="trashEmptyBtn" onclick="emptyTrash()" style="display:none">
+      <button class="btn btn-ghost btn-sm" id="emptyTrashBtn" onclick="handleEmptyTrash()" style="display:none">
         <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
         Vaciar
       </button>
     </div>
-
-    <!-- Lista (JS) -->
-    <div id="trashList"></div>
-
-    <!-- Empty state -->
-    <div class="trash-empty-wrap" id="trashEmpty">
-      <div class="trash-empty-inner">
-        <div class="trash-empty-icon">
-          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </div>
-        <div class="trash-empty-title">Todo despejado</div>
-        <div class="trash-empty-sub">Los elementos que elimines aparecerán<br>aquí antes de ser borrados definitivamente.</div>
+    <div id="trashList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></div>
+        <div class="list-empty-title">Papelera vacía</div>
+        <div class="list-empty-sub">Los elementos eliminados aparecerán aquí.</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: NOTIFICACIONES ── -->
+  <!-- ── NOTIFICACIONES ── -->
   <section class="page" id="page-notificaciones">
-    <div class="nueva-toolbar sec-toolbar" id="tb-notificaciones">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="tb-title">Notificaciones</span>
       </div>
     </div>
-
-    <div id="notifWrap" class="stagger">
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-        </div>
-        <div class="empty-title">Sin notificaciones</div>
-        <div class="empty-desc">Aquí aparecerán las novedades de la plataforma.</div>
+    <div id="notifList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+        <div class="list-empty-title">Sin notificaciones</div>
+        <div class="list-empty-sub">Te avisaremos cuando haya actividad en tu cuenta.</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: LOG ── -->
+  <!-- ── LOG DE ACTIVIDAD ── -->
   <section class="page" id="page-log">
-    <div class="nueva-toolbar sec-toolbar" id="tb-log">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <span class="tb-title">Log</span>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Log de Actividad</span>
       </div>
     </div>
-
-    <div id="actWrap" class="stagger">
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        </div>
-        <div class="empty-title">Sin actividad todavía</div>
-        <div class="empty-desc">Tus solicitudes a la API aparecerán aquí.</div>
+    <div id="activityList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="list-empty-title">Sin actividad</div>
+        <div class="list-empty-sub">Tu actividad de API aparecerá aquí.</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ── PAGE: PROYECTOS ── -->
+  <!-- ── PROYECTOS ── -->
   <section class="page" id="page-proyectos">
-    <div class="nueva-toolbar sec-toolbar" id="tb-proyectos">
+    <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="back-btn" onclick="goPage('panel')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span class="tb-title">Proyectos</span>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="openProjModal()">
+      <button class="btn btn-primary btn-sm" onclick="goPage('nuevo-proyecto')">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nuevo
       </button>
     </div>
-    <div id="projList"></div>
-    <div class="empty-state" id="projEmpty">
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-      </div>
-      <div class="empty-title">Sin proyectos todavía</div>
-      <div class="empty-desc">Crea tu primer proyecto para empezar<br>a organizar tu trabajo.</div>
-      <button class="btn btn-primary" onclick="openProjModal()">Crear proyecto</button>
-    </div>
-  </div>
-
-  <!-- ── PAGE: DETALLE DE PROYECTO ── -->
-  <section class="page" id="page-proj-detail">
-    <div class="proj-detail-header">
-      <button class="back-btn" onclick="goPage('proyectos')">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="proj-detail-title" id="detailTitle">Proyecto</div>
-      <button class="proj-more-btn" onclick="toggleProjMenu()" id="projMenuBtn">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
-      </button>
-      <div class="proj-dropdown" id="projDropdown">
-        <button class="proj-drop-item" onclick="shareProjAction()">
-          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Compartir proyecto
-        </button>
-        <button class="proj-drop-item" onclick="copyProjApi()">
-          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copiar clave API
-        </button>
-        <div class="proj-drop-sep"></div>
-        <button class="proj-drop-item danger" onclick="deleteProjAction()">
-          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-          Eliminar proyecto
-        </button>
+    <div id="projectsList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+        <div class="list-empty-title">Sin proyectos</div>
+        <div class="list-empty-sub">Crea tu primer proyecto para empezar.</div>
       </div>
     </div>
+  </section>
 
-    <!-- Info card -->
-    <div class="proj-info-card" id="detailInfoCard">
-      <div class="proj-info-top">
-        <div class="proj-avatar" id="detailAvatar">D</div>
-        <div class="proj-info-meta">
-          <div class="proj-info-name" id="detailName">—</div>
-          <div class="proj-info-date" id="detailDate">—</div>
-        </div>
-        <span class="proj-access-badge" id="detailAccess">—</span>
-      </div>
-      <div class="proj-info-desc" id="detailDesc">—</div>
-      <div class="proj-tags-row" id="detailTags"></div>
-    </div>
-
-    <!-- Project ID + API Key -->
-    <div class="pdm-card">
-      <!-- Project ID row -->
-      <div class="pdm-row">
-        <div class="pdm-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A96" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/>
-            <line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>
-          </svg>
-        </div>
-        <div class="pdm-body">
-          <div class="pdm-label">Project ID</div>
-          <div class="pdm-val" id="detailProjectId">—</div>
-        </div>
-        <button class="pdm-btn" onclick="copyProjectId()" title="Copiar Project ID">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-          </svg>
-        </button>
-      </div>
-      <div class="pdm-sep"></div>
-      <!-- API Key row -->
-      <div class="pdm-row">
-        <div class="pdm-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A96" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="8" cy="15" r="4"/><path d="M12 15h8"/><path d="M19 12v6"/>
-          </svg>
-        </div>
-        <div class="pdm-body">
-          <div class="pdm-label">API Key</div>
-          <div class="pdm-val" id="detailApiKey">Sin clave asignada</div>
-        </div>
-        <button class="pdm-btn" onclick="copyApiKeyFromDetail()" id="btnCopyApiKey" title="Copiar API Key">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Archivos del proyecto -->
-    <div class="section-head" style="margin-top:24px">
-      <div class="section-title">Archivos publicados</div>
-      <button class="section-link" onclick="document.getElementById('projFileInput').click()">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Subir
-      </button>
-    </div>
-    <input type="file" id="projFileInput" style="display:none" multiple onchange="handleProjFiles(this.files)">
-
-    <!-- Empty state archivos -->
-    <div class="proj-files-empty" id="projFilesEmpty">
-      <div class="proj-files-empty-icon">
-        <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
-      </div>
-      <div class="proj-files-empty-title">Sin archivos publicados todavía</div>
-      <div class="proj-files-empty-sub">Sube imágenes, videos, documentos o APK<br>para compartirlos en este proyecto.</div>
-      <button class="upload-sub-btn" style="margin-top:16px" onclick="document.getElementById('projFileInput').click()">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Subir primer archivo
-      </button>
-    </div>
-
-    <!-- Lista de archivos -->
-    <div id="projFileList"></div>
-  </div>
-
-  <!-- ── PAGE: NUEVO PROYECTO ── -->
+  <!-- ── NUEVO PROYECTO ── -->
   <section class="page" id="page-nuevo-proyecto">
-    <div class="page-head nueva-toolbar" id="nuevoProjToolbar">
+    <div class="nueva-toolbar">
       <div style="display:flex;align-items:center;gap:12px">
         <button class="back-btn" onclick="goPage('proyectos')">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div class="page-head-info">
-          <h1 class="page-h1" style="font-size:18px;line-height:1.2">Nuevo Proyecto</h1>
-        </div>
+        <h1 class="page-h1" style="font-size:22px">Nuevo<br>Proyecto</h1>
       </div>
-      <div class="page-head-actions">
-        <button class="btn btn-primary btn-sm" onclick="saveProject()">
-          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Guardar
-        </button>
+      <button class="btn btn-primary btn-sm" id="createProjBtn" onclick="handleCreateProject()">Crear</button>
+    </div>
+    <div class="form-card">
+      <div class="form-card-head">Información del proyecto</div>
+      <div class="form-card-sub">Un proyecto agrupa tus archivos y tiene su propia API key.</div>
+      <div class="field">
+        <label class="field-label">Nombre del proyecto</label>
+        <input class="field-input" id="projName" type="text" placeholder="Mi App, Portfolio, Blog…" maxlength="60">
+      </div>
+      <div class="field">
+        <label class="field-label">Descripción <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+        <textarea class="field-input field-textarea" id="projDesc" placeholder="¿De qué trata este proyecto?" style="min-height:80px"></textarea>
       </div>
     </div>
+    <div class="publish-bar">
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="handleCreateProject()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Crear proyecto
+      </button>
+    </div>
+  </section>
 
-    <div class="form-card">
-      <div class="form-card-head">¿Cuál es tu nuevo proyecto?</div>
-      <div class="form-card-sub">Completa la información para crear y organizar tu proyecto.</div>
-
-      <!-- Nombre + Fecha -->
-      <div class="field">
-        <label class="field-label">Nombre <span style="color:var(--danger)">*</span></label>
-        <input class="field-input" id="projName" type="text" placeholder="Mi proyecto..." maxlength="60" autocomplete="off">
+  <!-- ── DETALLE DE PROYECTO ── -->
+  <section class="page" id="page-proj-detail">
+    <div class="proj-detail-header">
+      <button class="back-btn" onclick="goPage('proyectos')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="proj-detail-title" id="projDetailTitle">Proyecto</div>
+      <button class="back-btn" onclick="showToast('Opciones del proyecto')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div id="projDetailContent">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/></svg></div>
+        <div class="list-empty-title">Cargando...</div>
       </div>
-      <div class="field">
-        <label class="field-label">Fecha límite</label>
-        <input class="field-input" id="projDate" type="date">
-      </div>
+    </div>
+  </section>
 
-      <!-- Descripción -->
-      <div class="field">
-        <label class="field-label">Descripción <span style="color:var(--danger)">*</span></label>
-        <textarea class="field-input field-textarea" id="projDesc" placeholder="Describe el objetivo y alcance del proyecto..." rows="3" style="min-height:90px;resize:none"></textarea>
-      </div>
+</main>
 
-      <!-- Etiquetas -->
-      <div class="field">
-        <label class="field-label">Etiquetas</label>
-        <div class="proj-tags-input-wrap" id="projTagsWrap">
-          <input class="proj-tags-input" id="projTagInput" type="text"
-            placeholder="Escribe y presiona Enter..."
-            onkeydown="addProjTag(event)">
-          <button class="proj-tags-add" onclick="addProjTagBtn()">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<!-- ══ CREATE API KEY DIALOG ══ -->
+<div class="ckey-backdrop" id="ckeyBackdrop" onclick="closeCkeyDialog(event)">
+  <div class="ckey-sheet" id="ckeySheet">
+    <div class="ckey-pill"></div>
+    <div class="ckey-step" id="ckeyStep1">
+      <div class="ckey-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </div>
+      <div class="ckey-title">Nueva Clave API</div>
+      <div class="ckey-desc">Asigna un nombre a tu clave y define los permisos de acceso.</div>
+      <div class="ckey-body">
+        <label class="ckey-field-label">Nombre de la clave</label>
+        <input class="ckey-input" id="ckeyNameInput" type="text" placeholder="Ej: App Android, Producción…" maxlength="40" autocomplete="off">
+        <span class="ckey-perm-label">Permisos</span>
+        <div class="ckey-perm-grid">
+          <label class="ckey-perm-opt selected" id="ckey-perm-all" onclick="selectCkeyPerm(this,'all')">
+            <input type="radio" name="ckeyPerm" value="all" checked>
+            <div class="ckey-perm-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div class="ckey-perm-name">Acceso total</div>
+            <div class="ckey-perm-desc">Lee y escribe en toda la API</div>
+          </label>
+          <label class="ckey-perm-opt" id="ckey-perm-read" onclick="selectCkeyPerm(this,'read')">
+            <input type="radio" name="ckeyPerm" value="read">
+            <div class="ckey-perm-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div class="ckey-perm-name">Solo lectura</div>
+            <div class="ckey-perm-desc">Solo puede leer datos</div>
+          </label>
+        </div>
+        <div class="ckey-info">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>La clave solo se mostrará una vez. Cópiala antes de cerrar.</span>
+        </div>
+      </div>
+      <div class="ckey-actions">
+        <button class="ckey-btn-create" id="ckeyCreateBtn" onclick="confirmCreateKey()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Crear clave API
+        </button>
+        <button class="ckey-btn-cancel" onclick="closeCkeyDialog()">Cancelar</button>
+      </div>
+    </div>
+    <div class="ckey-step hidden" id="ckeyStep2">
+      <div class="ckey-icon-wrap" style="background:#e8f5ee">
+        <svg viewBox="0 0 24 24" style="stroke:var(--success)"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="ckey-title">¡Clave creada!</div>
+      <div class="ckey-desc">Copia tu clave ahora. No se volverá a mostrar completa.</div>
+      <div style="height:14px"></div>
+      <div class="ckey-reveal-wrap">
+        <div class="ckey-reveal-label">Tu nueva API key</div>
+        <div class="ckey-reveal-box">
+          <div class="ckey-reveal-key" id="ckeyRevealText">—</div>
+          <button class="ckey-copy-btn" onclick="copyRevealKey()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </button>
         </div>
-        <div class="proj-chips-row" id="projChips"></div>
       </div>
-
-    </div>
-
-    <!-- Acceso -->
-    <div class="form-card" style="margin-top:0">
-      <div class="form-card-head" style="font-size:15px;margin-bottom:4px">Acceso al proyecto</div>
-      <div class="form-card-sub" style="margin-bottom:18px">Define quién puede ver y usar este proyecto.</div>
-      <div class="access-grid" id="accessGrid">
-        <label class="access-opt selected" onclick="selectAccess(this,'private')">
-          <input type="radio" name="access" value="private" checked>
-          <div class="access-icon">
-            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-          </div>
-          <div class="access-text">
-            <div class="access-name">Privado</div>
-            <div class="access-desc">Solo visible para ti</div>
-          </div>
-        </label>
-        <label class="access-opt" onclick="selectAccess(this,'public')">
-          <input type="radio" name="access" value="public">
-          <div class="access-icon">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-          </div>
-          <div class="access-text">
-            <div class="access-name">Público</div>
-            <div class="access-desc">Comparte tu API con otros</div>
-          </div>
-        </label>
+      <div class="ckey-warn-once">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Guarda esta clave en un lugar seguro. No la compartas ni la publiques en repositorios.</span>
+      </div>
+      <div class="ckey-actions">
+        <button class="ckey-btn-create" style="background:var(--success)" onclick="closeCkeyDialog()">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Listo, ya la copié
+        </button>
       </div>
     </div>
   </div>
+</div>
 
-</div><!-- /page-wrap -->
+<!-- ══ DELETE API KEY DIALOG ══ -->
+<div class="del-backdrop" id="delBackdrop" onclick="closeDelDialog(event)">
+  <div class="del-sheet" id="delSheet">
+    <div class="del-pill"></div>
+    <div class="del-icon-wrap">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+    </div>
+    <div class="del-title">Eliminar clave API</div>
+    <div class="del-desc">Esta acción no se puede deshacer fácilmente. La clave se moverá a la papelera.</div>
+    <div class="del-key-pill">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <span id="delKeyName">—</span>
+    </div>
+    <div class="del-warn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Cualquier integración que use esta clave dejará de funcionar inmediatamente.</span>
+    </div>
+    <div class="del-actions">
+      <button class="del-btn-delete" id="delConfirmBtn">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Sí, eliminar clave
+      </button>
+      <button class="del-btn-cancel" onclick="closeDelDialog()">Cancelar</button>
+    </div>
+  </div>
+</div>
 
-<!-- Toast -->
+<!-- ══ TOAST ══ -->
 <div class="toast" id="toast"></div>
 
-<!-- ══════════════════════════════════════════
-     MODAL: NUEVA CLAVE API
-══════════════════════════════════════════ -->
-<div class="modal-backdrop" id="apiModal" onclick="handleModalBackdropClick(event)">
-  <div class="modal" id="apiModalBox">
-    <div class="modal-handle"></div>
-
-    <!-- PASO 1: Formulario -->
-    <div id="apiStep1">
-      <div class="modal-header">
-        <div class="modal-title">Nueva Clave API</div>
-        <button class="modal-close" onclick="closeApiModal()">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      <p class="modal-subtitle">Dale un nombre descriptivo y elige qué permisos tendrá esta clave.</p>
-
-      <div class="modal-body">
-        <!-- Nombre -->
-        <div class="field">
-          <label class="field-label">Nombre de la clave</label>
-          <input class="field-input" type="text" id="apiKeyName"
-            placeholder="Ej. Producción, Staging, Mi app..."
-            maxlength="48" autocomplete="off" spellcheck="false">
-        </div>
-
-        <!-- Nivel de permiso general -->
-        <div class="field">
-          <label class="field-label">Nivel de permisos</label>
-          <div class="perm-tabs" id="permTabs">
-            <button class="perm-tab" onclick="setPermLevel('none',this)">Ninguno</button>
-            <button class="perm-tab" onclick="setPermLevel('read',this)">Solo lectura</button>
-            <button class="perm-tab active" onclick="setPermLevel('all',this)">Todo</button>
-            <button class="perm-tab" onclick="setPermLevel('custom',this)">Personalizado</button>
-          </div>
-          <div class="perm-level-desc" id="permLevelDesc">Acceso completo a todos los recursos.</div>
-        </div>
-
-        <!-- Tabla de permisos granulares (visible en modo Personalizado) -->
-        <div class="field" id="granularSection" style="display:none">
-          <label class="field-label">Permisos por recurso</label>
-          <div class="perm-table">
-            <div class="perm-table-head">
-              <span>Recurso</span>
-              <span>Permiso</span>
-            </div>
-
-            <div class="perm-row">
-              <div class="perm-row-info">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-                <div>
-                  <div class="perm-row-name">Publicaciones</div>
-                  <div class="perm-row-sub">Crear, leer y editar posts</div>
-                </div>
-              </div>
-              <select class="perm-row-select" id="gr-posts" onchange="updatePermCount()">
-                <option value="none">Ninguno</option>
-                <option value="read">Lectura</option>
-                <option value="write">Escritura</option>
-                <option value="all" selected>Todo</option>
-              </select>
-            </div>
-
-            <div class="perm-row">
-              <div class="perm-row-info">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                <div>
-                  <div class="perm-row-name">Categorías</div>
-                  <div class="perm-row-sub">Organizar contenido</div>
-                </div>
-              </div>
-              <select class="perm-row-select" id="gr-cats" onchange="updatePermCount()">
-                <option value="none">Ninguno</option>
-                <option value="read">Lectura</option>
-                <option value="write">Escritura</option>
-                <option value="all" selected>Todo</option>
-              </select>
-            </div>
-
-            <div class="perm-row">
-              <div class="perm-row-info">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                <div>
-                  <div class="perm-row-name">Imágenes</div>
-                  <div class="perm-row-sub">Subir y gestionar imágenes</div>
-                </div>
-              </div>
-              <select class="perm-row-select" id="gr-images" onchange="updatePermCount()">
-                <option value="none">Ninguno</option>
-                <option value="read">Lectura</option>
-                <option value="write">Escritura</option>
-                <option value="all" selected>Todo</option>
-              </select>
-            </div>
-
-            <div class="perm-row">
-              <div class="perm-row-info">
-                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                <div>
-                  <div class="perm-row-name">Videos</div>
-                  <div class="perm-row-sub">Subir y reproducir videos</div>
-                </div>
-              </div>
-              <select class="perm-row-select" id="gr-videos" onchange="updatePermCount()">
-                <option value="none">Ninguno</option>
-                <option value="read">Lectura</option>
-                <option value="write">Escritura</option>
-                <option value="all" selected>Todo</option>
-              </select>
-            </div>
-
-            <div class="perm-row">
-              <div class="perm-row-info">
-                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                <div>
-                  <div class="perm-row-name">Archivos</div>
-                  <div class="perm-row-sub">Documentos, APK y otros</div>
-                </div>
-              </div>
-              <select class="perm-row-select" id="gr-files" onchange="updatePermCount()">
-                <option value="none">Ninguno</option>
-                <option value="read">Lectura</option>
-                <option value="write">Escritura</option>
-                <option value="all" selected>Todo</option>
-              </select>
-            </div>
-
-            <div class="perm-row">
-              <div class="perm-row-info">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                <div>
-                  <div class="perm-row-name">Analytics</div>
-                  <div class="perm-row-sub">Ver estadísticas y datos</div>
-                </div>
-              </div>
-              <select class="perm-row-select" id="gr-analytics" onchange="updatePermCount()">
-                <option value="none">Ninguno</option>
-                <option value="read" selected>Lectura</option>
-                <option value="write">Escritura</option>
-                <option value="all">Todo</option>
-              </select>
-            </div>
-
-            <div class="perm-row">
-              <div class="perm-row-info">
-                <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-                <div>
-                  <div class="perm-row-name">Proyectos</div>
-                  <div class="perm-row-sub">Gestionar proyectos</div>
-                </div>
-              </div>
-              <select class="perm-row-select" id="gr-projects" onchange="updatePermCount()">
-                <option value="none">Ninguno</option>
-                <option value="read">Lectura</option>
-                <option value="write">Escritura</option>
-                <option value="all" selected>Todo</option>
-              </select>
-            </div>
-
-          </div>
-          <div class="perm-count-row">
-            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <span id="permCountLabel">7 permisos configurados</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeApiModal()">Cancelar</button>
-        <button class="btn btn-primary" onclick="createApiKey()">
-          <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-          Generar clave
-        </button>
-      </div>
-    </div>
-
-    <!-- PASO 2: Clave generada -->
-    <div id="apiStep2" style="display:none">
-      <div class="modal-header">
-        <div class="modal-title">Clave generada</div>
-        <button class="modal-close" onclick="closeApiModal()">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      <p class="modal-subtitle">Copia y guarda tu clave ahora. Por seguridad, <strong>no se mostrará de nuevo</strong>.</p>
-
-      <div class="modal-body">
-        <!-- Key display -->
-        <div class="key-reveal-box">
-          <div class="key-reveal-label">Tu clave secreta</div>
-          <div class="key-reveal-row">
-            <span class="key-value" id="newKeyDisplay"></span>
-            <button class="key-action-btn" id="newKeyToggleBtn" onclick="toggleNewKeyVisibility()" title="Ver / Ocultar">
-              <svg viewBox="0 0 24 24" id="newKeyEyeIcon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-            <button class="key-action-btn" onclick="copyNewKey()" title="Copiar">
-              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Warning -->
-        <div class="key-warn-box">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div class="key-warn-text">Guarda esta clave en un lugar seguro. Una vez cerres este diálogo, no podrás verla completa otra vez.</div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="closeApiModal()">Entendido, ya la guardé</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     MODAL: CONFIRMAR ELIMINACIÓN DE CLAVE
-══════════════════════════════════════════ -->
-<div class="del-backdrop" id="delModal" onclick="handleDelBackdropClick(event)">
-  <div class="del-dialog" id="delDialogBox">
-    <!-- Ícono destructivo -->
-    <div class="del-icon-wrap">
-      <div class="del-icon">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-      </div>
-    </div>
-
-    <!-- Texto -->
-    <div class="del-title">Eliminar clave API</div>
-    <div class="del-body">
-      ¿Estás seguro de que quieres eliminar la clave
-      <span class="del-key-name" id="delKeyName"></span>?
-      <br><br>
-      Cualquier servicio que la esté usando dejará de funcionar de inmediato. <strong>Esta acción no se puede deshacer.</strong>
-    </div>
-
-    <!-- Acciones -->
-    <div class="del-actions">
-      <button class="btn btn-ghost del-cancel" onclick="closeDelModal()">Cancelar</button>
-      <button class="btn del-confirm" onclick="confirmDeleteKey()">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-        Eliminar clave
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal eliminar proyecto (reusa del-backdrop) -->
-<div class="del-backdrop" id="delProjModal" onclick="if(event.target===this)closeDelProjModal()">
-  <div class="del-dialog">
-    <div class="del-icon-wrap">
-      <div class="del-icon">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-      </div>
-    </div>
-    <div class="del-title">Eliminar proyecto</div>
-    <div class="del-body">
-      ¿Eliminar el proyecto <span class="del-key-name" id="delProjName"></span>?<br><br>
-      Se eliminarán todos sus archivos y configuración. <strong>Esta acción no se puede deshacer.</strong>
-    </div>
-    <div class="del-actions">
-      <button class="btn btn-ghost del-cancel" onclick="closeDelProjModal()">Cancelar</button>
-      <button class="btn del-confirm" onclick="confirmDeleteProj()">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-        Eliminar
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     MODAL: NUEVA CATEGORÍA (reemplaza prompt())
-══════════════════════════════════════════ -->
-<div class="modal-backdrop" id="catModal" onclick="if(event.target===this)closeCatModal()">
-  <div class="modal" id="catModalBox" style="max-width:420px">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title">Nueva categoría</div>
-      <button class="modal-close" onclick="closeCatModal()" aria-label="Cerrar">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <p class="modal-subtitle">Crea una categoría personalizada para organizar tus publicaciones.</p>
-    <div class="modal-body">
-      <div class="field">
-        <label class="field-label" for="catNameInput">Nombre de la categoría</label>
-        <input class="field-input" type="text" id="catNameInput"
-          placeholder="Ej. Tutoriales, Recursos, Diseño…"
-          maxlength="48" autocomplete="off" spellcheck="false"
-          onkeydown="if(event.key==='Enter')confirmAddCategory()">
-        <div class="field-hint" id="catNameErr" style="color:var(--danger);display:none;margin-top:4px;font-size:12px">Escribe un nombre para continuar.</div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeCatModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmAddCategory()">
-        <svg viewBox="0 0 24 24" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Crear categoría
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete file confirmation dialog -->
-<div class="del-backdrop" id="delFileModal" onclick="if(event.target===this)closeDelFileModal()">
-  <div class="del-dialog">
-    <div class="del-icon-wrap">
-      <div class="del-icon">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-      </div>
-    </div>
-    <div class="del-title">Eliminar archivo</div>
-    <div class="del-body">
-      ¿Eliminar <span class="del-key-name" id="delFileName"></span>?<br><br>
-      <strong>Esta acción no se puede deshacer.</strong>
-    </div>
-    <div class="del-actions">
-      <button class="btn btn-ghost del-cancel" onclick="closeDelFileModal()">Cancelar</button>
-      <button class="btn del-confirm" onclick="confirmDeleteFile()">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-        Eliminar
-      </button>
-    </div>
-  </div>
-</div>
-  <script src="js/api.js?v=20260509"></script>
-  <script src="js/home.js?v=20260509b"></script>
-  <script src="js/home-api.js?v=20260509"></script>
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ -->
+<script src="js/home.js?v=20260510"></script>
 </body>
 </html>
