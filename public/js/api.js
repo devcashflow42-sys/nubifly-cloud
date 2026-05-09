@@ -808,9 +808,6 @@ async function testConnection() {
   }
 }
 
-/* ────────────────────────────────────────────────────────────────
-   EXPORT GLOBAL
-──────────────────────────────────────────────────────────────── */
 
 window.NubiflyAPI = {
   config: NUBIFLY_CONFIG,
