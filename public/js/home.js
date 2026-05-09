@@ -1270,7 +1270,6 @@ Object.assign(window, {
   },
 
   // Detalle de proyecto
-  openProjDetail: (id) => openProjDetail(id),
   copyProjectId:  () => {
     const val = el('detailProjectId')?.dataset?.val || el('detailProjectId')?.textContent || '';
     if (val && val !== '—') navigator.clipboard.writeText(val).then(() => Toast.show('Project ID copiado'));

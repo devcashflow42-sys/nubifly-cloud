@@ -75,12 +75,11 @@ body{
    OVERLAY — Sin fondo oscuro
 ══════════════════════════════════════════ */
 .overlay{
-  position:fixed;inset:0;
+  position:fixed;top:var(--topbar-h);left:0;right:0;bottom:0;
   background:transparent;
   z-index:300;pointer-events:none;
   transition:background .35s var(--ease);
 }
-/* Overlay completamente transparente cuando el drawer está abierto */
 .overlay.on{
   background:transparent;
   pointer-events:auto;
