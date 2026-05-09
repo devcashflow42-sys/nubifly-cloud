@@ -1337,9 +1337,10 @@ function setGreeting() {
 
 function updateUserUI(user) {
   if (!user) return;
-  const name = user.name || user.username || 'Usuario';
-  const email = user.email || '';
+  const name   = user.name || user.username || 'Usuario';
+  const email  = user.email || '';
   const letter = avatarLetter(name);
+  const color  = avatarColor(name);
 
   const el = document.getElementById('greetingName');
   if (el) el.textContent = name.split(' ')[0];
@@ -1347,8 +1348,19 @@ function updateUserUI(user) {
   if (uName) uName.textContent = name;
   const uEmail = document.getElementById('uEmail');
   if (uEmail) uEmail.textContent = email;
+
   const uAvatar = document.getElementById('uAvatar');
-  if (uAvatar) uAvatar.textContent = letter;
+  if (uAvatar) {
+    const photoUrl = user.avatar || user.picture || '';
+    if (photoUrl) {
+      uAvatar.innerHTML = `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(letter)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+      uAvatar.style.background = 'transparent';
+    } else {
+      uAvatar.innerHTML = '';
+      uAvatar.textContent = letter;
+      uAvatar.style.background = color;
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
