@@ -225,6 +225,12 @@ function maskKey(key) {
   return key.slice(0, 18) + '••••••••••••••••••';
 }
 
+function partialMaskKey(key) {
+  if (!key) return '—';
+  const show = Math.min(8, key.length);
+  return key.slice(0, show) + '•'.repeat(Math.max(0, key.length - show));
+}
+
 function emptyListHTML(icon, title, sub) {
   return `<div class="list-empty">
     <div class="list-empty-icon">${icon}</div>
@@ -1223,7 +1229,7 @@ async function createApiKey() {
     _apiNewKey    = rawKey;
     _apiKeyVisible = false;
     const display = document.getElementById('newKeyDisplay');
-    if (display) display.textContent = rawKey.replace(/./g, '•');
+    if (display) display.textContent = partialMaskKey(rawKey);
     document.getElementById('apiStep1').style.display = 'none';
     document.getElementById('apiStep2').style.display = '';
 
@@ -1239,7 +1245,7 @@ function toggleNewKeyVisibility() {
   _apiKeyVisible = !_apiKeyVisible;
   const display = document.getElementById('newKeyDisplay');
   const icon    = document.getElementById('newKeyEyeIcon');
-  if (display) display.textContent = _apiKeyVisible ? _apiNewKey : _apiNewKey.replace(/./g, '•');
+  if (display) display.textContent = _apiKeyVisible ? _apiNewKey : partialMaskKey(_apiNewKey);
   if (icon) {
     icon.innerHTML = _apiKeyVisible
       ? `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
@@ -1370,13 +1376,33 @@ async function init() {
   setGreeting();
   initKeyboardShortcuts();
 
+  // Handle JWT delivered via URL query param (Google OAuth callback: /home?token=...)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken  = urlParams.get('token');
+  if (urlToken) {
+    Auth.setToken(urlToken);
+    history.replaceState({}, '', window.location.pathname);
+  }
+
   if (!Auth.isLoggedIn()) {
     window.location.href = '/login';
     return;
   }
 
+  // If we just arrived via OAuth (no user cached), fetch profile once
   const user = Auth.getUser();
-  if (user) updateUserUI(user);
+  if (user) {
+    updateUserUI(user);
+  } else if (urlToken) {
+    try {
+      const res = await API.request('GET', '/api/user/profile');
+      if (res?.data) {
+        Auth.setUser(res.data);
+        updateUserUI(res.data);
+      }
+    } catch { /* non-fatal — dashboard will still load */ }
+  }
+
   await loadDashboard();
 }
 
