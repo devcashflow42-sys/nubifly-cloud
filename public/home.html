@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260516">
+  <link rel="stylesheet" href="css/home.css?v=20260517">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -363,28 +363,24 @@
       <!-- 4-stat grid -->
       <div class="ana3-stat-grid">
         <div class="ana3-stat">
-          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-          <div class="ana3-stat-lbl">ARCHIVOS</div>
+          <div class="ana3-stat-icon" style="background:#0C0C0E"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
           <div class="ana3-stat-val" id="ana-files">0</div>
-          <div class="ana3-stat-sub">Total subidos</div>
+          <div class="ana3-stat-lbl">Archivos</div>
         </div>
         <div class="ana3-stat">
-          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
-          <div class="ana3-stat-lbl">PROYECTOS</div>
+          <div class="ana3-stat-icon" style="background:var(--teal-bg)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
           <div class="ana3-stat-val" id="ana-projects">0</div>
-          <div class="ana3-stat-sub">Activos</div>
+          <div class="ana3-stat-lbl">Proyectos</div>
         </div>
         <div class="ana3-stat">
-          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
-          <div class="ana3-stat-lbl">CLAVES API</div>
+          <div class="ana3-stat-icon" style="background:var(--orange-bg)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5"/></svg></div>
           <div class="ana3-stat-val" id="ana-apikeys">0</div>
-          <div class="ana3-stat-sub">Activas</div>
+          <div class="ana3-stat-lbl">Claves API</div>
         </div>
         <div class="ana3-stat">
-          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div>
-          <div class="ana3-stat-lbl">ALMACENAMIENTO</div>
+          <div class="ana3-stat-icon" style="background:var(--blue-bg)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div>
           <div class="ana3-stat-val ana3-stat-val-sm" id="ana-storage">0 B</div>
-          <div class="ana3-stat-sub">Usado</div>
+          <div class="ana3-stat-lbl">Almacenamiento</div>
         </div>
       </div>
 
@@ -531,27 +527,27 @@
       <!-- ── Stats 2×2 ── -->
       <div class="anu-stats-grid">
         <div class="anu-stat">
-          <div class="anu-stat-dot" style="background:#2563eb"></div>
-          <div class="anu-stat-lbl">PROMEDIO</div>
+          <div class="anu-stat-icon" style="background:#eff6ff"><svg viewBox="0 0 24 24" stroke="#2563eb"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
           <div class="anu-stat-num" id="anuAvg">0</div>
+          <div class="anu-stat-lbl">Promedio</div>
           <div class="anu-stat-sub">por día activo</div>
         </div>
         <div class="anu-stat">
-          <div class="anu-stat-dot" style="background:#16a34a"></div>
-          <div class="anu-stat-lbl">PICO</div>
+          <div class="anu-stat-icon" style="background:#f0fdf4"><svg viewBox="0 0 24 24" stroke="#16a34a"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
           <div class="anu-stat-num" id="anuPeak">0</div>
+          <div class="anu-stat-lbl">Pico</div>
           <div class="anu-stat-sub" id="anuPeakDate">—</div>
         </div>
         <div class="anu-stat">
-          <div class="anu-stat-dot" style="background:#7c3aed"></div>
-          <div class="anu-stat-lbl">CLAVES</div>
+          <div class="anu-stat-icon" style="background:#faf5ff"><svg viewBox="0 0 24 24" stroke="#7c3aed"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
           <div class="anu-stat-num" id="anuKeysRatio">0/0</div>
+          <div class="anu-stat-lbl">Claves</div>
           <div class="anu-stat-sub">en uso</div>
         </div>
         <div class="anu-stat">
-          <div class="anu-stat-dot" style="background:#d97706"></div>
-          <div class="anu-stat-lbl">RASTREO</div>
+          <div class="anu-stat-icon" style="background:#fffbeb"><svg viewBox="0 0 24 24" stroke="#d97706"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <div class="anu-stat-num" id="anuTrack">—</div>
+          <div class="anu-stat-lbl">Rastreo</div>
           <div class="anu-stat-sub">desde la 1ª clave</div>
         </div>
       </div>
@@ -965,6 +961,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260520"></script>
+<script src="js/home.js?v=20260521"></script>
 </body>
 </html>
