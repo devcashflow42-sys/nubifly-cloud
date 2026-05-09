@@ -493,27 +493,83 @@ function fileRowHTML(f) {
     </div>`;
 }
 
-async function handleDeleteFile(fileId, btn) {
+let _fdelFileId = null;
+
+function openFdelDialog(fileId) {
   if (!fileId) return;
-  if (!confirm('¿Eliminar este archivo? Esta acción no se puede deshacer.')) return;
-  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+  _fdelFileId = fileId;
+
+  const f = State.files.find(x => x.id === fileId);
+  const nameEl = document.getElementById('fdelFileName');
+  const sizeEl = document.getElementById('fdelFileSize');
+  const thumbEl = document.getElementById('fdelThumb');
+
+  const fname = f?.fileName || f?.originalName || f?.title || 'Archivo';
+  if (nameEl) nameEl.textContent = fname;
+  if (sizeEl) sizeEl.textContent = formatBytes(f?.fileSize || f?.size || 0);
+
+  if (thumbEl) {
+    const ext = fname.split('.').pop().toLowerCase();
+    const isImg = ['jpg','jpeg','png','gif','webp','avif','svg'].includes(ext);
+    if (isImg && f?.url) {
+      thumbEl.innerHTML = `<img src="${escapeHtml(f.url)}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;display:block">`;
+    } else {
+      thumbEl.innerHTML = `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    }
+  }
+
+  const confirmBtn = document.getElementById('fdelConfirmBtn');
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg> Eliminar archivo`;
+    confirmBtn.onclick = _confirmFdel;
+  }
+
+  document.getElementById('fdelBackdrop').classList.add('show');
+}
+
+function closeFdelDialog(e) {
+  if (e && e.target !== document.getElementById('fdelBackdrop')) return;
+  document.getElementById('fdelBackdrop').classList.remove('show');
+  _fdelFileId = null;
+}
+
+async function _confirmFdel() {
+  if (!_fdelFileId) return;
+  const confirmBtn = document.getElementById('fdelConfirmBtn');
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Eliminando…'; }
+
   try {
-    await API.deleteFile(fileId);
-    State.files = State.files.filter(f => f.id !== fileId);
-    const row = document.getElementById('frow-' + fileId);
-    if (row) row.remove();
+    await API.deleteFile(_fdelFileId);
+    State.files = State.files.filter(f => f.id !== _fdelFileId);
+    const row = document.getElementById('frow-' + _fdelFileId);
+    if (row) { row.style.opacity = '0'; row.style.transform = 'scale(.97)'; row.style.transition = 'opacity .2s,transform .2s'; setTimeout(() => row.remove(), 200); }
     showToast('Archivo eliminado.', 'success');
+    closeFdelDialog();
+    const emptyHtml = emptyListHTML(
+      `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+      'Sin archivos', 'Aún no has subido ningún archivo.'
+    );
     if (!State.files.length) {
       const c = document.getElementById('allFilesList');
-      if (c) c.innerHTML = emptyListHTML(
+      if (c) c.innerHTML = emptyHtml;
+      const r = document.getElementById('recentFilesList');
+      if (r) r.innerHTML = emptyListHTML(
         `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
-        'Sin archivos', 'Aún no has subido ningún archivo.'
+        'Sin archivos aún', 'Crea tu primera publicación y aparecerá aquí.'
       );
     }
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
-    if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg> Eliminar archivo`;
+    }
   }
+}
+
+function handleDeleteFile(fileId) {
+  openFdelDialog(fileId);
 }
 
 async function loadFiles() {

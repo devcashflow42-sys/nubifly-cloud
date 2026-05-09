@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260514">
+  <link rel="stylesheet" href="css/home.css?v=20260515">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -828,12 +828,44 @@
   </div>
 </div>
 
+<!-- ══ DELETE FILE DIALOG ══ -->
+<div class="del-backdrop" id="fdelBackdrop" onclick="closeFdelDialog(event)">
+  <div class="del-sheet" id="fdelSheet">
+    <div class="del-pill"></div>
+    <div class="del-icon-wrap">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+    </div>
+    <div class="del-title">Eliminar archivo</div>
+    <div class="del-desc">Esta acción no se puede deshacer. El archivo se eliminará permanentemente de tu cuenta.</div>
+    <div class="fdel-file-row" id="fdelFileRow">
+      <div class="fdel-thumb" id="fdelThumb">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="fdel-info">
+        <div class="fdel-name" id="fdelFileName">—</div>
+        <div class="fdel-size" id="fdelFileSize">—</div>
+      </div>
+    </div>
+    <div class="del-warn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>El archivo dejará de estar disponible para cualquier integración que lo use.</span>
+    </div>
+    <div class="del-actions">
+      <button class="del-btn-delete" id="fdelConfirmBtn">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Eliminar archivo
+      </button>
+      <button class="del-btn-cancel" onclick="closeFdelDialog()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ TOAST ══ -->
 <div class="toast" id="toast"></div>
 
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260518"></script>
+<script src="js/home.js?v=20260519"></script>
 </body>
 </html>

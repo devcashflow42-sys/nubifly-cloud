@@ -594,6 +594,13 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .del-btn-cancel{width:100%;padding:14px;border-radius:14px;background:var(--surface-sm);color:var(--ink);font-size:15px;font-weight:600;letter-spacing:-.2px;transition:background .15s,transform .15s var(--spring)}
 .del-btn-cancel:hover{background:var(--smoke-3)}
 .del-btn-cancel:active{transform:scale(.97)}
+/* File delete row */
+.fdel-file-row{display:flex;align-items:center;gap:12px;background:var(--surface-sm);border:1px solid var(--smoke-3);border-radius:12px;padding:12px 14px;margin:18px 20px 0}
+.fdel-thumb{width:44px;height:44px;border-radius:10px;background:var(--smoke-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.fdel-thumb svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round}
+.fdel-info{flex:1;min-width:0}
+.fdel-name{font-size:13px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.fdel-size{font-size:11.5px;color:var(--muted)}
 
 /* ═══════════════════════ API KEY MODAL ═══════════════════════════ */
 .modal-backdrop{
