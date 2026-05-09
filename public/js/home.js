@@ -148,6 +148,10 @@ const API = {
 
   createProject(name, description, extra = {}) {
     return this.request('POST', '/api/projects', { name, description, ...extra });
+  },
+
+  deleteFile(id) {
+    return this.request('DELETE', `/api/files/${id}`);
   }
 };
 
@@ -448,66 +452,90 @@ async function loadRecentFiles() {
         'Crea tu primera publicación y aparecerá aquí.'
       );
     } else {
-      container.innerHTML = recent.map(f => `
-        <div class="pub-row">
-          <div class="pub-thumb">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div class="pub-info">
-            <div class="pub-title">${escapeHtml(f.fileName || f.originalName || 'Sin nombre')}</div>
-            <div class="pub-meta">
-              <span class="pub-badge badge-pub">Publicado</span>
-              ${formatDate(f.createdAt)}
-            </div>
-          </div>
-          <div class="pub-row-right">
-            <span class="pub-views">${formatBytes(f.fileSize || f.size || 0)}</span>
-          </div>
-        </div>
-      `).join('');
+      container.innerHTML = recent.map(fileRowHTML).join('');
     }
   } catch (e) {
     console.warn('[loadRecentFiles]', e.message);
   }
 }
 
+function fileRowHTML(f) {
+  const ext = (f.fileName || f.originalName || '').split('.').pop().toLowerCase();
+  const isImg = ['jpg','jpeg','png','gif','webp','avif','svg'].includes(ext);
+  const thumb = (isImg && f.url)
+    ? `<img src="${escapeHtml(f.url)}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;display:block">`
+    : `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+  return `
+    <div class="pub-row" id="frow-${escapeHtml(f.id || '')}">
+      <div class="pub-thumb">${thumb}</div>
+      <div class="pub-info">
+        <div class="pub-title">${escapeHtml(f.fileName || f.originalName || 'Sin nombre')}</div>
+        <div class="pub-meta">
+          <span class="pub-badge badge-pub">Publicado</span>
+          ${formatDate(f.createdAt || f.uploadedAt)}
+          · ${formatBytes(f.fileSize || f.size || 0)}
+        </div>
+      </div>
+      <div class="pub-row-right">
+        <button class="file-del-btn" onclick="handleDeleteFile('${escapeHtml(f.id || '')}',this)" aria-label="Eliminar archivo">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+          </svg>
+        </button>
+      </div>
+    </div>`;
+}
+
+async function handleDeleteFile(fileId, btn) {
+  if (!fileId) return;
+  if (!confirm('¿Eliminar este archivo? Esta acción no se puede deshacer.')) return;
+  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+  try {
+    await API.deleteFile(fileId);
+    State.files = State.files.filter(f => f.id !== fileId);
+    const row = document.getElementById('frow-' + fileId);
+    if (row) row.remove();
+    showToast('Archivo eliminado.', 'success');
+    if (!State.files.length) {
+      const c = document.getElementById('allFilesList');
+      if (c) c.innerHTML = emptyListHTML(
+        `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+        'Sin archivos', 'Aún no has subido ningún archivo.'
+      );
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+  }
+}
+
 async function loadFiles() {
+  const container   = document.getElementById('allFilesList');
+  const searchInput = document.getElementById('searchInput');
+
+  if (container) container.innerHTML = `<div class="list-loading"><div class="auth-spinner"></div></div>`;
+
   try {
     const res = await API.getFiles();
     State.files = res?.data?.files || [];
-    const container = document.getElementById('allFilesList');
-    const searchInput = document.getElementById('searchInput');
 
     function renderFiles(files) {
+      if (!container) return;
       if (files.length === 0) {
         container.innerHTML = emptyListHTML(
           `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
           'Sin archivos', 'Aún no has subido ningún archivo.'
         );
       } else {
-        container.innerHTML = files.map(f => `
-          <div class="pub-row">
-            <div class="pub-thumb">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <div class="pub-info">
-              <div class="pub-title">${escapeHtml(f.fileName || f.originalName || 'Sin nombre')}</div>
-              <div class="pub-meta">
-                <span class="pub-badge badge-pub">Publicado</span>
-                ${formatDate(f.createdAt)}
-              </div>
-            </div>
-            <div class="pub-row-right">
-              <span class="pub-views">${formatBytes(f.fileSize || f.size || 0)}</span>
-            </div>
-          </div>
-        `).join('');
+        container.innerHTML = files.map(fileRowHTML).join('');
       }
     }
 
     renderFiles(State.files);
 
-    // Search filter
     if (searchInput) {
       searchInput.oninput = () => {
         const q = searchInput.value.toLowerCase();
@@ -518,6 +546,10 @@ async function loadFiles() {
       };
     }
   } catch (e) {
+    if (container) container.innerHTML = emptyListHTML(
+      `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+      'Sin archivos', 'Aún no has subido ningún archivo.'
+    );
     console.warn('[loadFiles]', e.message);
   }
 }

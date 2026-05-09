@@ -240,6 +240,9 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .badge-draft{background:var(--warn-bg);color:var(--warn)}
 .pub-row-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .pub-views{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+.file-del-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:transparent;border:none;cursor:pointer;color:var(--muted);transition:background .15s,color .15s}
+.file-del-btn:hover{background:rgba(229,72,77,.1);color:#e5484d}
+.list-loading{display:flex;align-items:center;justify-content:center;padding:48px 0}
 
 /* ═══════════════════════ EMPTY STATE ═══════════════════════ */
 .empty-state{text-align:center;padding:52px 20px}
