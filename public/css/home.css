@@ -290,9 +290,8 @@ body{
   display:none;
   padding:22px 18px 40px;
   max-width:520px;margin:0 auto;
-  animation:fadeUp .32s var(--ease) both;
 }
-.page.active{display:block}
+.page.active{display:block;animation:fadeUp .28s var(--ease) both}
 
 @keyframes fadeUp{
   from{opacity:0;transform:translateY(14px)}
@@ -2297,10 +2296,7 @@ body{
 .akc-icon-btn:hover { background: var(--smoke-3); color: var(--ink); }
 .akc-icon-btn svg   { width: 14px; height: 14px; }
 
-/* ── Smooth page transition ──────────────────────────────────── */
-.page.active {
-  animation: fadeUp 0.28s var(--ease) both;
-}
+/* ── Smooth page transition — see .page.active above ───────── */
 
 /* ── Section head refinada ───────────────────────────────────── */
 .section-head { margin-bottom: 16px; }

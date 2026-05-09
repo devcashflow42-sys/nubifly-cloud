@@ -160,10 +160,10 @@ const Nav = {
     const pg = el(`page-${id}`);
     if (pg) {
       pg.classList.add('active');
-      // Re-trigger animación
-      pg.style.animation = 'none';
-      pg.offsetHeight; // reflow
-      pg.style.animation = '';
+      // Re-trigger animación (mobile-safe: animationName + offsetWidth)
+      pg.style.animationName = 'none';
+      void pg.offsetWidth;
+      pg.style.animationName = '';
     }
 
     // 3. Reset nav items al estado base
