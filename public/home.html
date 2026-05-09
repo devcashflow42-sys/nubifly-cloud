@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Nubifly — Dashboard</title>
+  <meta name="description" content="Panel de control Nubifly: gestiona publicaciones, proyectos y archivos en la nube.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/icons/icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css?v=20260506f">
+  <link rel="stylesheet" href="css/home.css?v=20260512">
+<style>
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+  </style>
+</head>
+<body>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-title" id="topbarTitle">Inicio</div>
+  </div>
+</header>
+
+<!-- ══ OVERLAY ══ -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- ══ DRAWER ══ -->
+<aside class="drawer" id="drawer">
+  <button class="drawer-x" id="drawerX" onclick="closeDrawer()">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="drawer-logo">
+    <div class="logo-mark">
+      <svg class="logo-icon" viewBox="0 0 36 36" fill="none">
+        <path d="M8 24C8 16 14 10 18 10C22 10 28 16 28 24" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M13 22C13 18 15.5 14 18 14C20.5 14 23 18 23 22" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <circle cx="18" cy="22" r="2.5" fill="white"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-name">Nubifly</div>
+      <div class="logo-sub">Gestión de contenido</div>
+    </div>
+  </div>
+  <nav class="drawer-nav">
+    <p class="nav-label">Menú</p>
+    <div class="nav-item active" id="nav-panel" onclick="goPage('panel')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <span class="n-text">Inicio</span>
+    </div>
+    <div class="nav-item plain" id="nav-proyectos" onclick="goPage('proyectos')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></svg></div>
+      <span class="n-text">Proyectos</span>
+      <span class="n-badge" id="badge-proyectos" style="display:none">0</span>
+    </div>
+    <div class="nav-group">
+      <div class="nav-item" id="nav-pubs" onclick="toggleSub()">
+        <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <span class="n-text">Gestionar Publicaciones</span>
+        <div class="n-chev" id="pubChev"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="nav-sub" id="pubSub">
+        <div class="nav-sub-item" id="nav-nueva" onclick="goPage('nueva')">
+          <div class="sub-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          Nueva Publicación
+        </div>
+        <div class="nav-sub-item" id="nav-todas" onclick="goPage('todas')">
+          <div class="sub-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/></svg></div>
+          Todas las Publicaciones
+        </div>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-item plain" id="nav-categorias" onclick="goPage('categorias')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
+      <span class="n-text">Categorías</span>
+    </div>
+    <div class="nav-item plain" id="nav-analytics" onclick="goPage('analytics')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+      <span class="n-text">Analytics</span>
+    </div>
+    <div class="nav-item plain" id="nav-apikeys" onclick="goPage('apikeys')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
+      <span class="n-text">Claves API</span>
+    </div>
+    <div class="nav-item plain" id="nav-papelera" onclick="goPage('papelera')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+      <span class="n-text">Papelera</span>
+      <span class="n-badge" id="badge-papelera" style="display:none">0</span>
+    </div>
+    <div class="nav-item plain" id="nav-notificaciones" onclick="goPage('notificaciones')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+      <span class="n-text">Notificaciones</span>
+      <span class="n-badge" id="badge-notif" style="display:none">0</span>
+    </div>
+    <div class="nav-item plain" id="nav-log" onclick="goPage('log')">
+      <div class="n-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></div>
+      <span class="n-text">Log de Actividad</span>
+    </div>
+  </nav>
+  <div class="drawer-bottom">
+    <div class="user-card">
+      <div class="u-avatar" id="uAvatar">?</div>
+      <div style="flex:1;min-width:0">
+        <div class="u-name" id="uName">—</div>
+        <div class="u-email" id="uEmail">—</div>
+      </div>
+      <div class="u-dots">
+        <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:#8A8A96;fill:none;stroke-width:2">
+          <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
+        </svg>
+      </div>
+    </div>
+    <button class="sign-out-btn" onclick="handleLogout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<!-- ══ PAGES ══ -->
+<main class="page-wrap" id="pageWrap">
+
+  <!-- ── PANEL / INICIO ── -->
+  <section class="page active" id="page-panel">
+    <div class="page-head">
+      <div class="greeting-wrap">
+        <div class="greeting-eyebrow" id="greetingTime">Bienvenido</div>
+        <h1 class="greeting-name">Hola, <span id="greetingName">—</span> 👋</h1>
+        <p class="greeting-sub">Bienvenido de nuevo a tu panel.</p>
+      </div>
+      <div class="page-head-actions">
+        <button class="btn btn-primary" onclick="goPage('nueva')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva
+        </button>
+      </div>
+    </div>
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#0C0C0E">
+          <svg viewBox="0 0 24 24" style="stroke:#fff"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="stat-val" id="sv-files">—</div>
+        <div class="stat-lbl">Archivos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--teal-bg)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--teal)"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <div class="stat-val" id="sv-projects">—</div>
+        <div class="stat-lbl">Proyectos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--orange-bg)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--orange)"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5"/></svg>
+        </div>
+        <div class="stat-val" id="sv-apikeys">—</div>
+        <div class="stat-lbl">Claves API</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--blue-bg)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--blue)"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </div>
+        <div class="stat-val" id="sv-storage">—</div>
+        <div class="stat-lbl">Almacenamiento</div>
+      </div>
+      <div class="stat-card full">
+        <div class="stat-icon" style="background:var(--purple-bg)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--purple)"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div class="stat-val" id="sv-activity">—</div>
+        <div class="stat-lbl">Actividad reciente</div>
+      </div>
+    </div>
+    <div class="section-head">
+      <div class="section-title">Archivos Recientes</div>
+      <button class="section-link" onclick="goPage('todas')">
+        Ver todos <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    <div id="recentFilesList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="list-empty-title">Sin archivos aún</div>
+        <div class="list-empty-sub">Crea tu primera publicación y aparecerá aquí.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── NUEVA PUBLICACIÓN ── -->
+  <section class="page" id="page-nueva">
+    <div class="nueva-toolbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="back-btn" onclick="goPage('panel')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div>
+          <h1 class="page-h1" style="font-size:22px">Nueva<br>Publicación</h1>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="pubBtn" onclick="handlePublish()">Publicar</button>
+    </div>
+    <div class="form-card">
+      <div class="form-card-head">¿Cuál es tu nueva publicación?</div>
+      <div class="form-card-sub">Sube tu contenido. La primera imagen será la miniatura.</div>
+      <div class="field">
+        <label class="field-label">Título</label>
+        <input class="field-input" id="pubTitle" type="text" placeholder="Escribe el título de tu publicación">
+      </div>
+      <div class="field">
+        <label class="field-label">Subir Archivo</label>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-icon-wrap">
+            <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+          </div>
+          <div class="upload-title" id="uploadTitle">Subir Archivo</div>
+          <div class="upload-desc">Videos hasta 50 MB, imágenes hasta 5 MB.<br>Soporta documentos, APK, y más.</div>
+          <button class="upload-sub-btn" type="button">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Seleccionar
+          </button>
+          <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Descripción</label>
+        <textarea class="field-input field-textarea" id="pubDesc" placeholder="Describe tu publicación..."></textarea>
+      </div>
+    </div>
+    <div class="publish-bar">
+      <button class="btn btn-primary" style="width:100%;justify-content:center" id="pubBtn2" onclick="handlePublish()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Publicar ahora
+      </button>
+    </div>
+  </section>
+
+  <!-- ── TODAS LAS PUBLICACIONES ── -->
+  <section class="page" id="page-todas">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Publicaciones</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="back-btn" onclick="loadFiles()" aria-label="Recargar lista" title="Recargar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="goPage('nueva')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva
+        </button>
+      </div>
+    </div>
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" id="searchInput" type="search" placeholder="Buscar archivos...">
+    </div>
+    <div id="allFilesList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="list-empty-title">Sin archivos</div>
+        <div class="list-empty-sub">Aún no has subido ningún archivo.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CATEGORÍAS ── -->
+  <section class="page" id="page-categorias">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Categorías</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showToast('Próximamente')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva
+      </button>
+    </div>
+    <div class="list-empty">
+      <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
+      <div class="list-empty-title">Sin categorías</div>
+      <div class="list-empty-sub">Organiza tu contenido creando tu primera categoría.</div>
+    </div>
+  </section>
+
+  <!-- ── ANALYTICS ── -->
+  <section class="page" id="page-analytics">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div>
+          <span class="tb-title">Analytics</span>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:1px">
+            <span class="ana2-live"></span>
+            <span style="font-size:10.5px;color:rgba(0,0,0,.3);font-weight:500">Actualizado hace 5 min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="ana2-tabs-bar">
+        <button class="ana2-tab ana2-tab-on" onclick="ana2Tab(this)">General</button>
+        <button class="ana2-tab" onclick="ana2Tab(this)">Contenido</button>
+        <button class="ana2-tab" onclick="ana2Tab(this)">Actividad</button>
+      </div>
+      <div class="ana2-hero-card">
+        <div class="ana2-hero-glow"></div>
+        <div class="ana2-hero-top">
+          <div class="ana2-hero-label">RESUMEN DE RENDIMIENTO</div>
+          <div class="ana2-badge"><span class="ana2-live"></span> Live</div>
+        </div>
+        <div class="ana2-big-num" id="anaActivity">0</div>
+        <div class="ana2-big-sub">Acciones recientes</div>
+        <div class="ana2-big-desc">Actividad registrada en tu cuenta de Nubifly.</div>
+        <div class="ana2-pills" style="margin-bottom:14px">
+          <button class="ana2-pill ana2-pill-on" onclick="ana2Period(this)">24h</button>
+          <button class="ana2-pill" onclick="ana2Period(this)">7d</button>
+          <button class="ana2-pill" onclick="ana2Period(this)">30d</button>
+          <button class="ana2-pill" onclick="ana2Period(this)">90d</button>
+        </div>
+        <div style="margin:0 -6px">
+          <svg viewBox="0 0 360 90" width="100%" height="90">
+            <defs>
+              <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(12,12,14,0.12)"/>
+                <stop offset="100%" stop-color="rgba(12,12,14,0)"/>
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="22" x2="360" y2="22" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
+            <line x1="0" y1="44" x2="360" y2="44" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
+            <line x1="0" y1="66" x2="360" y2="66" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
+            <path d="M0,72 C40,65 80,50 120,42 C160,34 200,55 240,38 C280,22 320,30 360,18 L360,88 L0,88 Z" fill="url(#ag)"/>
+            <path d="M0,72 C40,65 80,50 120,42 C160,34 200,55 240,38 C280,22 320,30 360,18" fill="none" stroke="rgba(12,12,14,.7)" stroke-width="1.8" stroke-linecap="round"/>
+            <text x="0" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">L</text>
+            <text x="51" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">M</text>
+            <text x="102" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">X</text>
+            <text x="153" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">J</text>
+            <text x="204" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">V</text>
+            <text x="255" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">S</text>
+            <text x="306" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">D</text>
+          </svg>
+        </div>
+      </div>
+      <div class="ana2-stat-grid" id="anaStatGrid">
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="ana2-stat-lbl">ARCHIVOS</div><div class="ana2-stat-val" id="ana-files">0</div><div class="ana2-stat-sub">Total subidos</div></div>
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div class="ana2-stat-lbl">PROYECTOS</div><div class="ana2-stat-val" id="ana-projects">0</div><div class="ana2-stat-sub">Activos</div></div>
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div><div class="ana2-stat-lbl">CLAVES API</div><div class="ana2-stat-val" id="ana-apikeys">0</div><div class="ana2-stat-sub">Activas</div></div>
+        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div><div class="ana2-stat-lbl">ALMACENAMIENTO</div><div class="ana2-stat-val" id="ana-storage" style="font-size:18px;margin-top:4px">0 B</div><div class="ana2-stat-sub">Usado</div></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="ana2-sug" onclick="goPage('nueva')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg></div><div class="ana2-sug-label">Subir</div><div class="ana2-sug-sub">nueva pub.</div></div>
+        <div class="ana2-sug" onclick="goPage('apikeys')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div><div class="ana2-sug-label">API Keys</div><div class="ana2-sug-sub">gestionar</div></div>
+        <div class="ana2-sug" onclick="goPage('log')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="ana2-sug-label">Log</div><div class="ana2-sug-sub">actividad</div></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ── CLAVES API ── -->
+  <section class="page" id="page-apikeys">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Claves API</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openCreateKeyDialog()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva
+      </button>
+    </div>
+    <div class="api-empty" id="apiEmptyState">
+      <div class="api-empty-orb">
+        <div class="api-empty-orb-bg">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><line x1="12" y1="15" x2="12" y2="17"/></svg>
+        </div>
+        <div class="api-empty-dot">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </div>
+      <div class="api-empty-title">Sin claves API</div>
+      <div class="api-empty-sub">Crea tu primera clave para conectar tu app y empezar a consumir la API de Nubifly.</div>
+    </div>
+    <div id="apiKeysList"></div>
+    <div class="usage-section" id="apiUsageSection" style="display:none">
+      <div class="section-head ana-head">
+        <div>
+          <div class="section-title">Uso de Claves</div>
+          <div class="ana-sub">Actividad acumulada</div>
+        </div>
+        <div class="ana-period">Histórico</div>
+      </div>
+      <div class="usage-card">
+        <div class="usage-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="usage-label">TOTAL DE LLAMADAS</div>
+        <div class="usage-num" id="totalCalls">0</div>
+        <div class="usage-sub">solicitudes registradas</div>
+        <div class="usage-change">— Sin cambios recientes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PAPELERA ── -->
+  <section class="page" id="page-papelera">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Papelera</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="emptyTrashBtn" onclick="handleEmptyTrash()" style="display:none">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Vaciar
+      </button>
+    </div>
+    <div id="trashList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></div>
+        <div class="list-empty-title">Papelera vacía</div>
+        <div class="list-empty-sub">Los elementos eliminados aparecerán aquí.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── NOTIFICACIONES ── -->
+  <section class="page" id="page-notificaciones">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Notificaciones</span>
+      </div>
+    </div>
+    <div id="notifList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+        <div class="list-empty-title">Sin notificaciones</div>
+        <div class="list-empty-sub">Te avisaremos cuando haya actividad en tu cuenta.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LOG DE ACTIVIDAD ── -->
+  <section class="page" id="page-log">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Log de Actividad</span>
+      </div>
+    </div>
+    <div id="activityList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="list-empty-title">Sin actividad</div>
+        <div class="list-empty-sub">Tu actividad de API aparecerá aquí.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROYECTOS ── -->
+  <section class="page" id="page-proyectos">
+    <div class="sec-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="tb-title">Proyectos</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="goPage('nuevo-proyecto')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo
+      </button>
+    </div>
+    <div id="projectsList">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+        <div class="list-empty-title">Sin proyectos</div>
+        <div class="list-empty-sub">Crea tu primer proyecto para empezar.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── NUEVO PROYECTO ── -->
+  <section class="page" id="page-nuevo-proyecto">
+    <div class="np-toolbar">
+      <button class="back-btn" onclick="goPage('proyectos')">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="np-toolbar-title">Nuevo Proyecto</span>
+      <button class="btn btn-primary btn-sm np-save-btn" id="createProjBtn" onclick="handleCreateProject()">
+        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar
+      </button>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-head">¿Cuál es tu nuevo proyecto?</div>
+      <div class="form-card-sub">Completa la información para crear y organizar tu proyecto.</div>
+
+      <div class="field">
+        <label class="field-label">Nombre <span class="req-star">*</span></label>
+        <input class="field-input" id="projName" type="text" maxlength="60" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Fecha límite</label>
+        <div class="np-date-wrap">
+          <input class="field-input np-date-input" id="projDeadline" type="date">
+          <svg class="np-date-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Descripción <span class="req-star">*</span></label>
+        <textarea class="field-input field-textarea" id="projDesc" style="min-height:90px"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Etiquetas</label>
+        <div class="tags-wrap" id="tagsWrap" onclick="document.getElementById('tagInput').focus()">
+          <input class="tag-input" id="tagInput" type="text" placeholder="Escribe y presiona Enter o coma…"
+                 onkeydown="handleTagKeydown(event)" oninput="handleTagInput(event)">
+        </div>
+        <div class="field-hint-text">Presiona Enter o coma para agregar · Toca × para eliminar</div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-head">Acceso al proyecto</div>
+      <div class="form-card-sub">Define quién puede ver y usar este proyecto.</div>
+      <div class="access-grid">
+        <div class="access-opt selected" id="accessPrivado" onclick="selectAccess(this,'private')">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div class="access-opt-name">Privado</div>
+          <div class="access-opt-sub">Solo visible para ti</div>
+        </div>
+        <div class="access-opt" id="accessPublico" onclick="selectAccess(this,'public')">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <div class="access-opt-name">Público</div>
+          <div class="access-opt-sub">Comparte tu API</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── DETALLE DE PROYECTO ── -->
+  <section class="page" id="page-proj-detail">
+    <div class="proj-detail-header">
+      <button class="back-btn" onclick="goPage('proyectos')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="proj-detail-title" id="projDetailTitle">Proyecto</div>
+      <button class="back-btn" onclick="showToast('Opciones del proyecto')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div id="projDetailContent">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/></svg></div>
+        <div class="list-empty-title">Cargando...</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ CREATE API KEY DIALOG ══ -->
+<div class="ckey-backdrop" id="ckeyBackdrop" onclick="closeCkeyDialog(event)">
+  <div class="ckey-sheet" id="ckeySheet">
+    <div class="ckey-pill"></div>
+    <div class="ckey-step" id="ckeyStep1">
+      <div class="ckey-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </div>
+      <div class="ckey-title">Nueva Clave API</div>
+      <div class="ckey-desc">Asigna un nombre a tu clave y define los permisos de acceso.</div>
+      <div class="ckey-body">
+        <label class="ckey-field-label">Nombre de la clave</label>
+        <input class="ckey-input" id="ckeyNameInput" type="text" placeholder="Ej: App Android, Producción…" maxlength="40" autocomplete="off">
+        <span class="ckey-perm-label">Permisos</span>
+        <div class="ckey-perm-grid">
+          <label class="ckey-perm-opt selected" id="ckey-perm-all" onclick="selectCkeyPerm(this,'all')">
+            <input type="radio" name="ckeyPerm" value="all" checked>
+            <div class="ckey-perm-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div class="ckey-perm-name">Acceso total</div>
+            <div class="ckey-perm-desc">Lee y escribe en toda la API</div>
+          </label>
+          <label class="ckey-perm-opt" id="ckey-perm-read" onclick="selectCkeyPerm(this,'read')">
+            <input type="radio" name="ckeyPerm" value="read">
+            <div class="ckey-perm-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div class="ckey-perm-name">Solo lectura</div>
+            <div class="ckey-perm-desc">Solo puede leer datos</div>
+          </label>
+        </div>
+        <div class="ckey-info">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>La clave solo se mostrará una vez. Cópiala antes de cerrar.</span>
+        </div>
+      </div>
+      <div class="ckey-actions">
+        <button class="ckey-btn-create" id="ckeyCreateBtn" onclick="confirmCreateKey()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Crear clave API
+        </button>
+        <button class="ckey-btn-cancel" onclick="closeCkeyDialog()">Cancelar</button>
+      </div>
+    </div>
+    <div class="ckey-step hidden" id="ckeyStep2">
+      <div class="ckey-icon-wrap" style="background:#e8f5ee">
+        <svg viewBox="0 0 24 24" style="stroke:var(--success)"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="ckey-title">¡Clave creada!</div>
+      <div class="ckey-desc">Copia tu clave ahora. No se volverá a mostrar completa.</div>
+      <div style="height:14px"></div>
+      <div class="ckey-reveal-wrap">
+        <div class="ckey-reveal-label">Tu nueva API key</div>
+        <div class="ckey-reveal-box">
+          <div class="ckey-reveal-key" id="ckeyRevealText">—</div>
+          <button class="ckey-copy-btn" onclick="copyRevealKey()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="ckey-warn-once">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Guarda esta clave en un lugar seguro. No la compartas ni la publiques en repositorios.</span>
+      </div>
+      <div class="ckey-actions">
+        <button class="ckey-btn-create" style="background:var(--success)" onclick="closeCkeyDialog()">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Listo, ya la copié
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELETE API KEY DIALOG ══ -->
+<div class="del-backdrop" id="delBackdrop" onclick="closeDelDialog(event)">
+  <div class="del-sheet" id="delSheet">
+    <div class="del-pill"></div>
+    <div class="del-icon-wrap">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+    </div>
+    <div class="del-title">Eliminar clave API</div>
+    <div class="del-desc">Esta acción no se puede deshacer fácilmente. La clave se moverá a la papelera.</div>
+    <div class="del-key-pill">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <span id="delKeyName">—</span>
+    </div>
+    <div class="del-warn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Cualquier integración que use esta clave dejará de funcionar inmediatamente.</span>
+    </div>
+    <div class="del-actions">
+      <button class="del-btn-delete" id="delConfirmBtn">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Sí, eliminar clave
+      </button>
+      <button class="del-btn-cancel" onclick="closeDelDialog()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ -->
+<script src="js/home.js?v=20260512"></script>
+</body>
+</html>
