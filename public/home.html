@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260518">
+  <link rel="stylesheet" href="css/home.css?v=20260519">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -723,9 +723,29 @@
     <div class="proj-detail-header">
       <button class="back-btn" onclick="goPage('proyectos')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
       <div class="proj-detail-title" id="projDetailTitle">Proyecto</div>
-      <button class="back-btn" onclick="showToast('Opciones del proyecto')">
+      <button class="back-btn" id="projMenuBtn" onclick="openProjMenu(event)">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
       </button>
+      <!-- Popup menu -->
+      <div class="proj-menu" id="projMenu">
+        <button class="proj-menu-item" onclick="handleProjShare()">
+          <div class="proj-menu-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
+          Compartir proyecto
+        </button>
+        <button class="proj-menu-item" onclick="handleProjCopyId()">
+          <div class="proj-menu-icon"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></div>
+          Copiar ID
+        </button>
+        <button class="proj-menu-item" onclick="handleProjCopyKey()">
+          <div class="proj-menu-icon"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
+          Copiar API Key
+        </button>
+        <div class="proj-menu-sep"></div>
+        <button class="proj-menu-item proj-menu-danger" onclick="handleProjDeleteOpen()">
+          <div class="proj-menu-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+          Eliminar proyecto
+        </button>
+      </div>
     </div>
     <div id="projDetailContent">
       <div class="list-empty">
@@ -734,6 +754,28 @@
       </div>
     </div>
   </section>
+
+  <!-- ── PROJECT DELETE DIALOG ── -->
+  <div class="pdel-backdrop" id="pdelBackdrop" onclick="handlePdelBackdrop(event)">
+    <div class="pdel-sheet">
+      <div class="pdel-handle"></div>
+      <div class="pdel-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+      <div class="pdel-title">Eliminar proyecto</div>
+      <div class="pdel-sub">Esta acción no se puede deshacer. Se eliminará el proyecto y todos sus archivos asociados.</div>
+      <div class="pdel-proj-row">
+        <div class="pdel-proj-avatar" id="pdelAvatar"></div>
+        <div>
+          <div class="pdel-proj-name" id="pdelName">—</div>
+          <div class="pdel-proj-date" id="pdelDate">—</div>
+        </div>
+      </div>
+      <div class="pdel-warn">⚠ Los archivos publicados dentro de este proyecto también serán eliminados permanentemente.</div>
+      <div class="pdel-actions">
+        <button class="pdel-confirm-btn" id="pdelConfirmBtn" onclick="confirmProjDelete()">Eliminar proyecto</button>
+        <button class="pdel-cancel-btn" onclick="closePdelDialog()">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
 </main>
 
@@ -965,6 +1007,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260521"></script>
+<script src="js/home.js?v=20260522"></script>
 </body>
 </html>

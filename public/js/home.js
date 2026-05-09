@@ -1131,6 +1131,85 @@ function openProjectDetail(projectId) {
   goPage('proj-detail');
 }
 
+// ─── Project options popup ───────────────────────────────────
+function openProjMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('projMenu');
+  const isOpen = menu.classList.contains('open');
+  closeProjMenu();
+  if (!isOpen) {
+    menu.classList.add('open');
+    setTimeout(() => document.addEventListener('click', closeProjMenu, { once: true }), 0);
+  }
+}
+function closeProjMenu() {
+  document.getElementById('projMenu')?.classList.remove('open');
+}
+function handleProjShare() {
+  closeProjMenu();
+  const proj = State.selectedProject;
+  if (!proj) return;
+  const url = `${location.origin}/p/${proj.projectId || proj.id}`;
+  if (navigator.share) {
+    navigator.share({ title: proj.name, url }).catch(() => {});
+  } else {
+    copyToClipboard(url);
+    showToast('Enlace copiado al portapapeles', 'success');
+  }
+}
+function handleProjCopyId() {
+  closeProjMenu();
+  const proj = State.selectedProject;
+  if (!proj) return;
+  copyToClipboard(proj.projectId || proj.id);
+  showToast('ID del proyecto copiado', 'success');
+}
+function handleProjCopyKey() {
+  closeProjMenu();
+  const proj = State.selectedProject;
+  if (!proj || !proj.apiKey) { showToast('Sin API Key asignada', 'error'); return; }
+  copyToClipboard(proj.apiKey);
+  showToast('API Key copiada', 'success');
+}
+function handleProjDeleteOpen() {
+  closeProjMenu();
+  const proj = State.selectedProject;
+  if (!proj) return;
+  const letter = avatarLetter(proj.name);
+  const color  = avatarColor(proj.projectId || proj.id || proj.name);
+  const av = document.getElementById('pdelAvatar');
+  av.textContent = letter;
+  av.style.background = color;
+  document.getElementById('pdelName').textContent = proj.name;
+  document.getElementById('pdelDate').textContent = 'Creado el ' + formatDate(proj.createdAt);
+  document.getElementById('pdelBackdrop').classList.add('show');
+}
+function closePdelDialog() {
+  document.getElementById('pdelBackdrop').classList.remove('show');
+}
+function handlePdelBackdrop(e) {
+  if (e.target === document.getElementById('pdelBackdrop')) closePdelDialog();
+}
+async function confirmProjDelete() {
+  const proj = State.selectedProject;
+  if (!proj) return;
+  const btn = document.getElementById('pdelConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Eliminando...';
+  try {
+    await API.req(`/api/projects/${proj.projectId || proj.id}`, { method: 'DELETE' });
+    closePdelDialog();
+    showToast('Proyecto eliminado', 'success');
+    State.selectedProject = null;
+    await loadProjects();
+    goPage('proyectos');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Eliminar proyecto';
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // ║  TRASH ACTIONS
 // ═══════════════════════════════════════════════════════════════
