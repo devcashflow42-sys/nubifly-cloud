@@ -327,10 +327,12 @@ export async function v1PublicationUpload(request, access, tok, db, env) {
   };
 
   const updates = {
-    [`recentPublications/${publicationId}`]:                       publication,
-    [`recent_publications/${publicationId}`]:                      publication,
-    [`userRecentPublications/${access.ownerId}/${publicationId}`]: publication,
-    [`user_recent_publications/${access.ownerId}/${publicationId}`]: publication
+    [`files/${publicationId}`]:                                            publication,
+    [`userFiles/${access.ownerId}/${publicationId}`]:                      publication,
+    [`recentPublications/${publicationId}`]:                               publication,
+    [`recent_publications/${publicationId}`]:                              publication,
+    [`userRecentPublications/${access.ownerId}/${publicationId}`]:         publication,
+    [`user_recent_publications/${access.ownerId}/${publicationId}`]:       publication
   };
   if (projectId) {
     updates[`projectRecentPublications/${projectId}/${publicationId}`]   = publication;

@@ -59,13 +59,17 @@ export async function onRequestDelete(context) {
   const { tok, db } = context.data;
 
   const fileId = context.params.id;
-  const file = await fbGet(`files/${fileId}`, tok, db);
-  if (!file) return jsonRes(fail('Archivo no encontrado.', 'NOT_FOUND'), 404);
-  if (file.ownerId && file.ownerId !== user.uid) return jsonRes(fail('Acceso denegado.', 'FORBIDDEN'), 403);
-  if (!file.ownerId && file.projectId) {
-    const proj = await fbGet(`projects/${file.projectId}`, tok, db).catch(() => null);
-    if (proj && proj.ownerId !== user.uid) return jsonRes(fail('Acceso denegado.', 'FORBIDDEN'), 403);
+
+  // Look up file metadata — try global index first, then user-scoped publication paths
+  let file = await fbGet(`files/${fileId}`, tok, db).catch(() => null);
+  if (!file) {
+    file = await fbGet(`userRecentPublications/${user.uid}/${fileId}`, tok, db).catch(() => null)
+        || await fbGet(`user_recent_publications/${user.uid}/${fileId}`, tok, db).catch(() => null)
+        || await fbGet(`userFiles/${user.uid}/${fileId}`, tok, db).catch(() => null);
   }
+  if (!file) return jsonRes(fail('Archivo no encontrado.', 'NOT_FOUND'), 404);
+  const ownerId = file.ownerId || file.userId || '';
+  if (ownerId && ownerId !== user.uid) return jsonRes(fail('Acceso denegado.', 'FORBIDDEN'), 403);
 
   const cur = (await fbGet(`projects/${file.projectId}/storageUsed`, tok, db)) || 0;
   const now = Date.now();
