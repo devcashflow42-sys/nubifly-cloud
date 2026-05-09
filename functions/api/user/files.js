@@ -16,11 +16,29 @@ export async function onRequestGet(context) {
   if (errorResponse) return errorResponse;
   const { tok, db } = context.data;
 
-  const data = await fbGet(`userFiles/${user.uid}`, tok, db);
   const toTs = f => f.createdAt ? new Date(f.createdAt).getTime() : (f.uploadedAt || 0);
-  const files = data
-    ? Object.entries(data).map(([id, f]) => ({ id, ...f })).sort((a, b) => toTs(b) - toTs(a))
-    : [];
+  const collected = new Map();
+
+  // Read from all paths where files/publications can be stored
+  const paths = [
+    `userFiles/${user.uid}`,
+    `userRecentPublications/${user.uid}`,
+    `user_recent_publications/${user.uid}`
+  ];
+  await Promise.all(paths.map(async path => {
+    try {
+      const data = await fbGet(path, tok, db);
+      if (data && typeof data === 'object') {
+        for (const [id, f] of Object.entries(data)) {
+          if (!collected.has(id) && f && typeof f === 'object') {
+            collected.set(id, { id, ...f });
+          }
+        }
+      }
+    } catch { /* ignore missing paths */ }
+  }));
+
+  const files = Array.from(collected.values()).sort((a, b) => toTs(b) - toTs(a)).slice(0, 200);
   return jsonRes(ok({ files }));
 }
 
