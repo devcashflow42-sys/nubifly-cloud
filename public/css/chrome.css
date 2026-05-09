@@ -1,0 +1,176 @@
+/* ═══════════════════════════════════════
+   chrome.css — StatusBar & NavigationBar
+   Estilo glassmorphism / Telegram
+   ═══════════════════════════════════════ */
+
+/* ─── Status Bar ───────────────────────── */
+.status-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 300;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(245, 245, 245, 0);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  transition: background .35s ease;
+  pointer-events: none;
+}
+
+.status-bar.scrolled {
+  background: rgba(245, 245, 245, 0.72);
+}
+
+.sb-time {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.sb-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sb-icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .75;
+}
+
+/* Signal bars — filled rects */
+.sb-signal {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 12px;
+  opacity: .75;
+}
+.sb-signal span {
+  display: block;
+  width: 3px;
+  background: var(--text);
+  border-radius: 1px;
+}
+.sb-signal span:nth-child(1) { height: 4px; }
+.sb-signal span:nth-child(2) { height: 7px; }
+.sb-signal span:nth-child(3) { height: 10px; }
+.sb-signal span:nth-child(4) { height: 12px; }
+
+/* Battery */
+.sb-battery {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  opacity: .75;
+}
+.sb-battery-body {
+  width: 20px;
+  height: 11px;
+  border: 1.5px solid var(--text);
+  border-radius: 3px;
+  padding: 1.5px;
+  display: flex;
+  align-items: stretch;
+}
+.sb-battery-fill {
+  width: 75%;
+  background: var(--text);
+  border-radius: 1px;
+}
+.sb-battery-cap {
+  width: 2px;
+  height: 5px;
+  background: var(--text);
+  border-radius: 0 1px 1px 0;
+}
+
+/* ─── Navigation Bar ───────────────────── */
+.nav-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 300;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 40px;
+  background: rgba(245, 245, 245, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-top: 1px solid rgba(208, 215, 222, 0.45);
+}
+
+.nb-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  opacity: .6;
+  transition: opacity .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.nb-btn:hover  { opacity: 1; }
+.nb-btn:active { opacity: .4; }
+
+/* Back chevron */
+.nb-back-icon {
+  width: 20px;
+  height: 20px;
+  stroke: var(--text);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* Home circle */
+.nb-home-circle {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--text);
+  border-radius: 50%;
+}
+
+/* Recents square */
+.nb-recent-square {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text);
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 -1px transparent,
+              3px 3px 0 1px var(--text);
+}
+
+/* ─── Offset existing fixed elements ─── */
+/* Shift navbar/toolbar below the 28px status bar */
+.navbar  { top: 28px !important; }
+.toolbar { top: 28px !important; }
+
+/* Body bottom padding so content clears the nav bar */
+body { padding-bottom: 44px; }
+
+/* ─── Responsive: hide on desktop ──────── */
+@media (min-width: 768px) {
+  .status-bar,
+  .nav-bar { display: none; }
+  .navbar  { top: 0 !important; }
+  .toolbar { top: 0 !important; }
+  body { padding-bottom: 0; }
+}

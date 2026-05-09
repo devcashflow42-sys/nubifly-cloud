@@ -1,0 +1,13 @@
+# Trailing-slash normalization — strip the slash so the Function handles it
+/home/      /home     301
+/login/     /login    301
+/register/  /register 301
+/apilab/    /apilab   301
+
+# API Lab test page (no Function for this one, use rewrite)
+/apilab     /apilab.html    200
+
+# API routes are handled by Cloudflare Pages Functions — no rewrite needed here
+
+# SPA fallback: unmatched routes get the landing page
+/*          /index.html     200
