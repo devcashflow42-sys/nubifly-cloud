@@ -764,3 +764,84 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .anu-key-bar-fill{height:4px;border-radius:99px;background:#2563eb;transition:width .4s var(--spring)}
 .anu-key-calls{font-size:13px;font-weight:700;color:var(--ink);text-align:right;min-width:32px;flex-shrink:0}
 
+/* ═══════════════════════ ANALYTICS v3 ═══════════════════════ */
+.ana3-body{padding:16px 14px;display:flex;flex-direction:column;gap:14px}
+.ana3-tabbar{display:flex;gap:3px;background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:3px}
+.ana3-tab{flex:1;padding:7px 4px;border:1px solid transparent;cursor:pointer;background:transparent;border-radius:10px;font-size:12.5px;font-weight:500;color:rgba(0,0,0,.28);transition:all .2s;font-family:inherit}
+.ana3-tab.ana3-tab-on{background:rgba(0,0,0,.07);color:rgba(0,0,0,.88);border-color:rgba(0,0,0,.09)}
+.ana3-tab:hover:not(.ana3-tab-on){color:rgba(0,0,0,.5)}
+/* Hero card */
+.ana3-hero-card{background:rgba(0,0,0,.025);border:1px solid rgba(0,0,0,.07);border-radius:22px;padding:22px 18px;position:relative;overflow:hidden}
+.ana3-hero-glow{position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(0,0,0,.03) 0%,transparent 65%);pointer-events:none}
+.ana3-hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.ana3-hero-lbl{font-size:10.5px;color:rgba(0,0,0,.28);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.ana3-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:4px 10px;font-size:10.5px;color:rgba(0,0,0,.32);font-weight:600}
+.ana3-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.45);animation:ana3-blink 2.6s ease-in-out infinite;flex-shrink:0}
+.ana3-dot-green{display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;animation:ana3-blink 2s infinite;flex-shrink:0}
+@keyframes ana3-blink{0%,100%{opacity:1}50%{opacity:.25}}
+.ana3-big-num{font-family:'DM Mono',monospace;font-size:56px;font-weight:900;color:#000;letter-spacing:-.04em;line-height:1;margin:10px 0 4px}
+.ana3-big-sub{font-size:13px;color:rgba(0,0,0,.3);margin-bottom:6px}
+.ana3-big-desc{font-size:12px;color:rgba(0,0,0,.22);line-height:1.65;margin-bottom:18px;max-width:260px}
+.ana3-pills{display:flex;gap:3px;margin-bottom:14px}
+.ana3-pill{padding:5px 11px;border:1px solid transparent;cursor:pointer;background:transparent;border-radius:8px;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;color:rgba(0,0,0,.28);transition:all .2s}
+.ana3-pill.ana3-pill-on{background:rgba(0,0,0,.07);color:rgba(0,0,0,.78);border-color:rgba(0,0,0,.1)}
+.ana3-pill:hover:not(.ana3-pill-on){color:rgba(0,0,0,.5)}
+.ana3-chart-wrap{margin:0 -6px}
+.ana3-chart-footer{text-align:center;margin-top:6px;font-size:11px;color:rgba(0,0,0,.15);letter-spacing:.02em}
+/* 4-stat grid */
+.ana3-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ana3-stat{background:rgba(0,0,0,.025);border:1px solid rgba(0,0,0,.07);border-radius:20px;padding:18px 16px;display:flex;flex-direction:column}
+.ana3-stat-icon{width:38px;height:38px;border-radius:11px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.4);margin-bottom:11px;flex-shrink:0}
+.ana3-stat-icon svg{stroke:currentColor;fill:none}
+.ana3-stat-lbl{font-size:10.5px;color:rgba(0,0,0,.28);letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.ana3-stat-val{font-family:'DM Mono',monospace;font-size:28px;font-weight:800;color:#000;line-height:1.1;margin-bottom:3px}
+.ana3-stat-val.ana3-stat-val-sm{font-size:18px;margin-top:2px}
+.ana3-stat-sub{font-size:11.5px;color:rgba(0,0,0,.25)}
+/* Generic card */
+.ana3-card{background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.07);border-radius:22px;padding:18px 16px}
+.ana3-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.ana3-card-title{font-weight:700;font-size:14.5px;color:rgba(0,0,0,.82)}
+.ana3-card-link{display:flex;align-items:center;gap:3px;font-size:11.5px;color:rgba(0,0,0,.28);cursor:pointer;font-weight:500}
+.ana3-card-link svg{stroke:rgba(0,0,0,.28);fill:none}
+/* Empty state */
+.ana3-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:26px 16px;text-align:center;border:1px dashed rgba(0,0,0,.1);border-radius:16px;margin-bottom:12px}
+.ana3-empty-icon{width:50px;height:50px;border-radius:15px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.22);flex-shrink:0}
+.ana3-empty-icon svg{stroke:currentColor;fill:none}
+.ana3-empty-title{font-size:13.5px;font-weight:600;color:rgba(0,0,0,.5)}
+.ana3-empty-desc{font-size:12px;color:rgba(0,0,0,.3);line-height:1.6;max-width:230px}
+/* Upload button */
+.ana3-upload-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.9);border:none;border-radius:14px;color:#fff;font-family:inherit;font-size:13.5px;font-weight:700;padding:13px 20px;cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.ana3-upload-btn:hover{background:#000;transform:translateY(-1px);box-shadow:0 8px 32px rgba(0,0,0,.14)}
+.ana3-upload-btn:active{transform:translateY(0)}
+.ana3-upload-btn svg{stroke:#fff;fill:none;flex-shrink:0}
+/* Category chips */
+.ana3-cat-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.ana3-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.07);font-size:11px;font-weight:500;color:rgba(0,0,0,.38);font-family:'DM Mono',monospace}
+.ana3-chip svg{stroke:rgba(0,0,0,.38);fill:none}
+/* Category bars */
+.ana3-cat-bars{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.ana3-cat-group{display:flex;flex-direction:column;gap:5px}
+.ana3-cat-row{display:flex;justify-content:space-between}
+.ana3-cat-name{font-size:12.5px;color:rgba(0,0,0,.45);font-weight:500}
+.ana3-cat-pct{font-size:11px;color:rgba(0,0,0,.25);font-family:'DM Mono',monospace}
+.ana3-cat-progress{height:4px;background:rgba(0,0,0,.06);border-radius:99px;overflow:hidden}
+.ana3-cat-fill{height:100%;background:rgba(0,0,0,.18);border-radius:99px;transition:width .4s}
+.ana3-cat-note{font-size:12px;color:rgba(0,0,0,.28);line-height:1.6}
+/* CTA banner */
+.ana3-cta{background:rgba(0,0,0,.025);border:1px solid rgba(0,0,0,.07);border-radius:22px;padding:20px 16px}
+.ana3-cta-title{font-size:15px;font-weight:700;color:rgba(0,0,0,.82);margin-bottom:5px}
+.ana3-cta-desc{font-size:12.5px;color:rgba(0,0,0,.3);margin-bottom:16px;line-height:1.65}
+.ana3-cta-actions{display:flex;gap:8px;align-items:stretch}
+.ana3-cta-actions .ana3-upload-btn{flex:1;width:auto}
+.ana3-ghost{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.07);border-radius:14px;color:rgba(0,0,0,.38);cursor:pointer;transition:all .2s}
+.ana3-ghost:hover{background:rgba(0,0,0,.08);color:rgba(0,0,0,.7)}
+.ana3-ghost svg{stroke:currentColor;fill:none}
+/* Quick suggestions */
+.ana3-sugs{display:flex;gap:8px}
+.ana3-sug{flex:1;padding:14px 8px;text-align:center;cursor:pointer;background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.05);border-radius:16px;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ana3-sug:hover{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1)}
+.ana3-sug-icon{width:36px;height:36px;border-radius:11px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.38)}
+.ana3-sug-icon svg{stroke:currentColor;fill:none}
+.ana3-sug-lbl{font-size:12px;font-weight:700;color:rgba(0,0,0,.6)}
+.ana3-sug-sub{font-size:10.5px;color:rgba(0,0,0,.28)}
+

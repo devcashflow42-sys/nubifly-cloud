@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260515">
+  <link rel="stylesheet" href="css/home.css?v=20260516">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -307,68 +307,167 @@
         <div>
           <span class="tb-title">Analytics</span>
           <div style="display:flex;align-items:center;gap:5px;margin-top:1px">
-            <span class="ana2-live"></span>
+            <span class="ana3-dot-green"></span>
             <span style="font-size:10.5px;color:rgba(0,0,0,.3);font-weight:500">Actualizado hace 5 min</span>
           </div>
         </div>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="ana2-tabs-bar">
-        <button class="ana2-tab ana2-tab-on" onclick="ana2Tab(this)">General</button>
-        <button class="ana2-tab" onclick="ana2Tab(this)">Contenido</button>
-        <button class="ana2-tab" onclick="ana2Tab(this)">Actividad</button>
+    <div class="ana3-body">
+
+      <!-- Tabs -->
+      <div class="ana3-tabbar">
+        <button class="ana3-tab ana3-tab-on" onclick="ana2Tab(this)">General</button>
+        <button class="ana3-tab" onclick="ana2Tab(this)">Contenido</button>
+        <button class="ana3-tab" onclick="ana2Tab(this)">Actividad</button>
       </div>
-      <div class="ana2-hero-card">
-        <div class="ana2-hero-glow"></div>
-        <div class="ana2-hero-top">
-          <div class="ana2-hero-label">RESUMEN DE RENDIMIENTO</div>
-          <div class="ana2-badge"><span class="ana2-live"></span> Live</div>
+
+      <!-- Hero card -->
+      <div class="ana3-hero-card">
+        <div class="ana3-hero-glow"></div>
+        <div class="ana3-hero-top">
+          <div class="ana3-hero-lbl">RESUMEN DE RENDIMIENTO</div>
+          <div class="ana3-badge"><span class="ana3-dot"></span> Sin crecimiento todavía</div>
         </div>
-        <div class="ana2-big-num" id="anaActivity">0</div>
-        <div class="ana2-big-sub">Acciones recientes</div>
-        <div class="ana2-big-desc">Actividad registrada en tu cuenta de Nubifly.</div>
-        <div class="ana2-pills" style="margin-bottom:14px">
-          <button class="ana2-pill ana2-pill-on" onclick="ana2Period(this)">24h</button>
-          <button class="ana2-pill" onclick="ana2Period(this)">7d</button>
-          <button class="ana2-pill" onclick="ana2Period(this)">30d</button>
-          <button class="ana2-pill" onclick="ana2Period(this)">90d</button>
+        <div class="ana3-big-num" id="anaActivity">0</div>
+        <div class="ana3-big-sub">Acciones recientes</div>
+        <div class="ana3-big-desc">Actividad registrada en tu cuenta de Nubifly.</div>
+        <div class="ana3-pills">
+          <button class="ana3-pill ana3-pill-on" onclick="ana2Period(this)">24h</button>
+          <button class="ana3-pill" onclick="ana2Period(this)">7d</button>
+          <button class="ana3-pill" onclick="ana2Period(this)">30d</button>
+          <button class="ana3-pill" onclick="ana2Period(this)">90d</button>
         </div>
-        <div style="margin:0 -6px">
-          <svg viewBox="0 0 360 90" width="100%" height="90">
+        <div class="ana3-chart-wrap">
+          <svg viewBox="0 0 440 88" width="100%" height="88" style="display:block;overflow:visible">
             <defs>
-              <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgba(12,12,14,0.12)"/>
-                <stop offset="100%" stop-color="rgba(12,12,14,0)"/>
+              <linearGradient id="ana3g" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(0,0,0,0.1)"/>
+                <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
               </linearGradient>
             </defs>
-            <line x1="0" y1="22" x2="360" y2="22" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-            <line x1="0" y1="44" x2="360" y2="44" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-            <line x1="0" y1="66" x2="360" y2="66" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-            <path d="M0,72 C40,65 80,50 120,42 C160,34 200,55 240,38 C280,22 320,30 360,18 L360,88 L0,88 Z" fill="url(#ag)"/>
-            <path d="M0,72 C40,65 80,50 120,42 C160,34 200,55 240,38 C280,22 320,30 360,18" fill="none" stroke="rgba(12,12,14,.7)" stroke-width="1.8" stroke-linecap="round"/>
-            <text x="0" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">L</text>
-            <text x="51" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">M</text>
-            <text x="102" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">X</text>
-            <text x="153" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">J</text>
-            <text x="204" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">V</text>
-            <text x="255" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">S</text>
-            <text x="306" y="88" style="font-size:8.5px;fill:rgba(0,0,0,.22);font-family:'DM Mono',monospace">D</text>
+            <path d="M0,68 L440,68 L440,68 L0,68 Z" fill="url(#ana3g)"/>
+            <path d="M0,68 L440,68" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1.5" stroke-linecap="round"/>
+            <text x="0"   y="86" style="font-size:9.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">L</text>
+            <text x="63"  y="86" style="font-size:9.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">M</text>
+            <text x="126" y="86" style="font-size:9.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">X</text>
+            <text x="189" y="86" style="font-size:9.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">J</text>
+            <text x="252" y="86" style="font-size:9.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">V</text>
+            <text x="315" y="86" style="font-size:9.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">S</text>
+            <text x="378" y="86" style="font-size:9.5px;fill:rgba(0,0,0,0.22);font-family:'DM Mono',monospace">D</text>
           </svg>
         </div>
+        <div class="ana3-chart-footer">— Los datos aparecerán cuando registres actividad —</div>
       </div>
-      <div class="ana2-stat-grid" id="anaStatGrid">
-        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="ana2-stat-lbl">ARCHIVOS</div><div class="ana2-stat-val" id="ana-files">0</div><div class="ana2-stat-sub">Total subidos</div></div>
-        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div class="ana2-stat-lbl">PROYECTOS</div><div class="ana2-stat-val" id="ana-projects">0</div><div class="ana2-stat-sub">Activos</div></div>
-        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div><div class="ana2-stat-lbl">CLAVES API</div><div class="ana2-stat-val" id="ana-apikeys">0</div><div class="ana2-stat-sub">Activas</div></div>
-        <div class="ana2-stat-card"><div class="ana2-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div><div class="ana2-stat-lbl">ALMACENAMIENTO</div><div class="ana2-stat-val" id="ana-storage" style="font-size:18px;margin-top:4px">0 B</div><div class="ana2-stat-sub">Usado</div></div>
+
+      <!-- 4-stat grid -->
+      <div class="ana3-stat-grid">
+        <div class="ana3-stat">
+          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div class="ana3-stat-lbl">ARCHIVOS</div>
+          <div class="ana3-stat-val" id="ana-files">0</div>
+          <div class="ana3-stat-sub">Total subidos</div>
+        </div>
+        <div class="ana3-stat">
+          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+          <div class="ana3-stat-lbl">PROYECTOS</div>
+          <div class="ana3-stat-val" id="ana-projects">0</div>
+          <div class="ana3-stat-sub">Activos</div>
+        </div>
+        <div class="ana3-stat">
+          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
+          <div class="ana3-stat-lbl">CLAVES API</div>
+          <div class="ana3-stat-val" id="ana-apikeys">0</div>
+          <div class="ana3-stat-sub">Activas</div>
+        </div>
+        <div class="ana3-stat">
+          <div class="ana3-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div>
+          <div class="ana3-stat-lbl">ALMACENAMIENTO</div>
+          <div class="ana3-stat-val ana3-stat-val-sm" id="ana-storage">0 B</div>
+          <div class="ana3-stat-sub">Usado</div>
+        </div>
       </div>
-      <div style="display:flex;gap:8px">
-        <div class="ana2-sug" onclick="goPage('nueva')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg></div><div class="ana2-sug-label">Subir</div><div class="ana2-sug-sub">nueva pub.</div></div>
-        <div class="ana2-sug" onclick="goPage('apikeys')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div><div class="ana2-sug-label">API Keys</div><div class="ana2-sug-sub">gestionar</div></div>
-        <div class="ana2-sug" onclick="goPage('log')"><div class="ana2-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="ana2-sug-label">Log</div><div class="ana2-sug-sub">actividad</div></div>
+
+      <!-- Top publications -->
+      <div class="ana3-card">
+        <div class="ana3-card-head">
+          <span class="ana3-card-title">Publicaciones Más Vistas</span>
+          <div class="ana3-card-link" onclick="goPage('todas')">Ver todo <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="ana3-empty">
+          <div class="ana3-empty-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div class="ana3-empty-title">No hay publicaciones vistas todavía</div>
+          <div class="ana3-empty-desc">Cuando un archivo reciba visitas, aparecerá aquí con su ranking.</div>
+        </div>
+        <button class="ana3-upload-btn" onclick="goPage('nueva')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+          Subir publicación
+        </button>
       </div>
-      <div style="height:20px"></div>
+
+      <!-- Category performance -->
+      <div class="ana3-card">
+        <div class="ana3-card-head"><span class="ana3-card-title">Rendimiento por Categoría</span></div>
+        <div class="ana3-cat-chips">
+          <span class="ana3-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Imágenes <span style="color:rgba(0,0,0,.18)">0</span></span>
+          <span class="ana3-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF <span style="color:rgba(0,0,0,.18)">0</span></span>
+          <span class="ana3-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg> Videos <span style="color:rgba(0,0,0,.18)">0</span></span>
+          <span class="ana3-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg> Docs <span style="color:rgba(0,0,0,.18)">0</span></span>
+          <span class="ana3-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 16 21 8 12 3 3 8 3 16 12 21 21 16"/></svg> Otros <span style="color:rgba(0,0,0,.18)">0</span></span>
+        </div>
+        <div class="ana3-cat-bars">
+          <div class="ana3-cat-group"><div class="ana3-cat-row"><span class="ana3-cat-name">Imágenes</span><span class="ana3-cat-pct">0%</span></div><div class="ana3-cat-progress"><div class="ana3-cat-fill" style="width:0%"></div></div></div>
+          <div class="ana3-cat-group"><div class="ana3-cat-row"><span class="ana3-cat-name">PDF</span><span class="ana3-cat-pct">0%</span></div><div class="ana3-cat-progress"><div class="ana3-cat-fill" style="width:0%"></div></div></div>
+          <div class="ana3-cat-group"><div class="ana3-cat-row"><span class="ana3-cat-name">Videos</span><span class="ana3-cat-pct">0%</span></div><div class="ana3-cat-progress"><div class="ana3-cat-fill" style="width:0%"></div></div></div>
+          <div class="ana3-cat-group"><div class="ana3-cat-row"><span class="ana3-cat-name">Documentos</span><span class="ana3-cat-pct">0%</span></div><div class="ana3-cat-progress"><div class="ana3-cat-fill" style="width:0%"></div></div></div>
+          <div class="ana3-cat-group"><div class="ana3-cat-row"><span class="ana3-cat-name">Otros</span><span class="ana3-cat-pct">0%</span></div><div class="ana3-cat-progress"><div class="ana3-cat-fill" style="width:0%"></div></div></div>
+        </div>
+        <div class="ana3-cat-note">Cuando subas archivos, el contenido se clasificará automáticamente.</div>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="ana3-card">
+        <div class="ana3-card-head">
+          <span class="ana3-card-title">Actividad Reciente</span>
+          <div style="display:flex;align-items:center;gap:5px"><span class="ana3-dot-green"></span><span style="font-size:10px;color:rgba(0,0,0,.3);font-weight:700;letter-spacing:.08em">LIVE</span></div>
+        </div>
+        <div class="ana3-empty" style="margin-bottom:0">
+          <div class="ana3-empty-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+          <div class="ana3-empty-title">Sin actividad todavía</div>
+          <div class="ana3-empty-desc">Aquí aparecerán vistas, publicaciones, descargas y movimientos recientes.</div>
+        </div>
+      </div>
+
+      <!-- CTA banner -->
+      <div class="ana3-cta">
+        <div class="ana3-cta-title">Empieza a crecer</div>
+        <div class="ana3-cta-desc">Sube tu primera publicación para empezar a registrar métricas y ver el crecimiento en tiempo real.</div>
+        <div class="ana3-cta-actions">
+          <button class="ana3-upload-btn" onclick="goPage('nueva')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+            Subir publicación
+          </button>
+          <button class="ana3-ghost" onclick="goPage('todas')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Quick suggestions -->
+      <div class="ana3-sugs">
+        <div class="ana3-sug" onclick="goPage('nueva')">
+          <div class="ana3-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg></div>
+          <div class="ana3-sug-lbl">Subir</div><div class="ana3-sug-sub">nueva pub.</div>
+        </div>
+        <div class="ana3-sug" onclick="goPage('apikeys')">
+          <div class="ana3-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div>
+          <div class="ana3-sug-lbl">API Keys</div><div class="ana3-sug-sub">gestionar</div>
+        </div>
+        <div class="ana3-sug" onclick="goPage('log')">
+          <div class="ana3-sug-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="ana3-sug-lbl">Log</div><div class="ana3-sug-sub">actividad</div>
+        </div>
+      </div>
+
+      <div style="height:24px"></div>
     </div>
   </section>
 
@@ -866,6 +965,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260519"></script>
+<script src="js/home.js?v=20260520"></script>
 </body>
 </html>

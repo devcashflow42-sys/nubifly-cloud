@@ -323,13 +323,13 @@ function toggleSub() {
 }
 
 function ana2Tab(btn) {
-  document.querySelectorAll('.ana2-tab').forEach(b => b.classList.remove('ana2-tab-on'));
-  btn.classList.add('ana2-tab-on');
+  document.querySelectorAll('.ana3-tab').forEach(b => b.classList.remove('ana3-tab-on'));
+  btn.classList.add('ana3-tab-on');
 }
 
 function ana2Period(btn) {
-  document.querySelectorAll('.ana2-pill').forEach(b => b.classList.remove('ana2-pill-on'));
-  btn.classList.add('ana2-pill-on');
+  document.querySelectorAll('.ana3-pill').forEach(b => b.classList.remove('ana3-pill-on'));
+  btn.classList.add('ana3-pill-on');
 }
 
 let _projAccess = 'private';
