@@ -146,8 +146,8 @@ const API = {
     return this.request('GET', '/api/projects');
   },
 
-  createProject(name, description) {
-    return this.request('POST', '/api/projects', { name, description });
+  createProject(name, description, extra = {}) {
+    return this.request('POST', '/api/projects', { name, description, ...extra });
   }
 };
 
@@ -324,9 +324,76 @@ function ana2Period(btn) {
   btn.classList.add('ana2-pill-on');
 }
 
-function selectAccess(el) {
-  document.querySelectorAll('.access-opt').forEach(o => o.classList.remove('selected'));
+let _projAccess = 'private';
+
+function selectAccess(el, value) {
+  document.querySelectorAll('#page-nuevo-proyecto .access-opt').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
+  _projAccess = value || 'private';
+}
+
+// ─── Tag chips ──────────────────────────────────────────────────
+const _projTags = [];
+
+function renderTags() {
+  const wrap = document.getElementById('tagsWrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
+  const input = document.getElementById('tagInput');
+  _projTags.forEach((tag, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${escapeHtml(tag)}<button type="button" onclick="removeTag(${i})" aria-label="Eliminar etiqueta">×</button>`;
+    wrap.insertBefore(chip, input);
+  });
+}
+
+function addTag(raw) {
+  const tag = raw.trim().replace(/,+$/, '').trim();
+  if (!tag || _projTags.includes(tag) || _projTags.length >= 10) return;
+  _projTags.push(tag);
+  renderTags();
+}
+
+function removeTag(i) {
+  _projTags.splice(i, 1);
+  renderTags();
+}
+
+function handleTagKeydown(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    addTag(e.target.value);
+    e.target.value = '';
+  } else if (e.key === 'Backspace' && !e.target.value && _projTags.length) {
+    removeTag(_projTags.length - 1);
+  }
+}
+
+function handleTagInput(e) {
+  if (e.target.value.includes(',')) {
+    const parts = e.target.value.split(',');
+    parts.slice(0, -1).forEach(p => addTag(p));
+    e.target.value = parts[parts.length - 1];
+  }
+}
+
+function resetNewProjectForm() {
+  const name = document.getElementById('projName');
+  const desc = document.getElementById('projDesc');
+  const dl   = document.getElementById('projDeadline');
+  const inp  = document.getElementById('tagInput');
+  if (name) name.value = '';
+  if (desc) desc.value = '';
+  if (dl)   dl.value   = '';
+  if (inp)  inp.value  = '';
+  _projTags.length = 0;
+  renderTags();
+  _projAccess = 'private';
+  const priv = document.getElementById('accessPrivado');
+  const pub  = document.getElementById('accessPublico');
+  if (priv) priv.classList.add('selected');
+  if (pub)  pub.classList.remove('selected');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -742,24 +809,40 @@ async function handlePublish() {
 // ║  PROJECTS — Crear y ver detalle
 // ═══════════════════════════════════════════════════════════════
 async function handleCreateProject() {
-  const name = document.getElementById('projName')?.value.trim();
-  const desc = document.getElementById('projDesc')?.value.trim() || '';
-  const btn  = document.getElementById('createProjBtn');
+  const nameEl = document.getElementById('projName');
+  const descEl = document.getElementById('projDesc');
+  const dlEl   = document.getElementById('projDeadline');
+  const btn    = document.getElementById('createProjBtn');
+
+  const name = nameEl?.value.trim() || '';
+  const desc = descEl?.value.trim() || '';
 
   if (!name) {
-    document.getElementById('projName').focus();
-    document.getElementById('projName').style.boxShadow = '0 0 0 2px rgba(229,72,77,.4)';
-    setTimeout(() => document.getElementById('projName').style.boxShadow = '', 1200);
+    nameEl.focus();
+    nameEl.style.boxShadow = '0 0 0 2px rgba(229,72,77,.4)';
+    setTimeout(() => nameEl.style.boxShadow = '', 1200);
+    showToast('El nombre del proyecto es requerido.', 'error');
+    return;
+  }
+
+  if (!desc) {
+    descEl.focus();
+    descEl.style.boxShadow = '0 0 0 2px rgba(229,72,77,.4)';
+    setTimeout(() => descEl.style.boxShadow = '', 1200);
+    showToast('La descripción es requerida.', 'error');
     return;
   }
 
   setBtnLoading(btn, true);
 
   try {
-    await API.createProject(name, desc);
+    await API.createProject(name, desc, {
+      tags: [..._projTags],
+      deadline: dlEl?.value || null,
+      access: _projAccess
+    });
     showToast('¡Proyecto creado correctamente!', 'success');
-    document.getElementById('projName').value = '';
-    document.getElementById('projDesc').value = '';
+    resetNewProjectForm();
     goPage('proyectos');
   } catch (e) {
     showToast('Error: ' + e.message, 'error');

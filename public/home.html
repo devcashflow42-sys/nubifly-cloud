@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260510">
+  <link rel="stylesheet" href="css/home.css?v=20260511">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -487,33 +487,66 @@
 
   <!-- ── NUEVO PROYECTO ── -->
   <section class="page" id="page-nuevo-proyecto">
-    <div class="nueva-toolbar">
-      <div style="display:flex;align-items:center;gap:12px">
-        <button class="back-btn" onclick="goPage('proyectos')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <h1 class="page-h1" style="font-size:22px">Nuevo<br>Proyecto</h1>
-      </div>
-      <button class="btn btn-primary btn-sm" id="createProjBtn" onclick="handleCreateProject()">Crear</button>
-    </div>
-    <div class="form-card">
-      <div class="form-card-head">Información del proyecto</div>
-      <div class="form-card-sub">Un proyecto agrupa tus archivos y tiene su propia API key.</div>
-      <div class="field">
-        <label class="field-label">Nombre del proyecto</label>
-        <input class="field-input" id="projName" type="text" placeholder="Mi App, Portfolio, Blog…" maxlength="60">
-      </div>
-      <div class="field">
-        <label class="field-label">Descripción <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
-        <textarea class="field-input field-textarea" id="projDesc" placeholder="¿De qué trata este proyecto?" style="min-height:80px"></textarea>
-      </div>
-    </div>
-    <div class="publish-bar">
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="handleCreateProject()">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Crear proyecto
+    <div class="np-toolbar">
+      <button class="back-btn" onclick="goPage('proyectos')">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="np-toolbar-title">Nuevo Proyecto</span>
+      <button class="btn btn-primary btn-sm np-save-btn" id="createProjBtn" onclick="handleCreateProject()">
+        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar
       </button>
     </div>
+
+    <div class="form-card">
+      <div class="form-card-head">¿Cuál es tu nuevo proyecto?</div>
+      <div class="form-card-sub">Completa la información para crear y organizar tu proyecto.</div>
+
+      <div class="field">
+        <label class="field-label">Nombre <span class="req-star">*</span></label>
+        <input class="field-input" id="projName" type="text" maxlength="60" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Fecha límite</label>
+        <div class="np-date-wrap">
+          <input class="field-input np-date-input" id="projDeadline" type="date">
+          <svg class="np-date-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Descripción <span class="req-star">*</span></label>
+        <textarea class="field-input field-textarea" id="projDesc" style="min-height:90px"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Etiquetas</label>
+        <div class="tags-wrap" id="tagsWrap" onclick="document.getElementById('tagInput').focus()">
+          <input class="tag-input" id="tagInput" type="text" placeholder="Escribe y presiona Enter o coma…"
+                 onkeydown="handleTagKeydown(event)" oninput="handleTagInput(event)">
+        </div>
+        <div class="field-hint-text">Presiona Enter o coma para agregar · Toca × para eliminar</div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-head">Acceso al proyecto</div>
+      <div class="form-card-sub">Define quién puede ver y usar este proyecto.</div>
+      <div class="access-grid">
+        <div class="access-opt selected" id="accessPrivado" onclick="selectAccess(this,'private')">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div class="access-opt-name">Privado</div>
+          <div class="access-opt-sub">Solo visible para ti</div>
+        </div>
+        <div class="access-opt" id="accessPublico" onclick="selectAccess(this,'public')">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <div class="access-opt-name">Público</div>
+          <div class="access-opt-sub">Comparte tu API</div>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <!-- ── DETALLE DE PROYECTO ── -->
@@ -639,6 +672,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-  <script src="js/home.js?v=20260506f"></script>
+<script src="js/home.js?v=20260511"></script>
 </body>
 </html>

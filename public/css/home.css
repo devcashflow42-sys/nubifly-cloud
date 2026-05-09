@@ -513,6 +513,34 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
   border-bottom:1px solid var(--smoke-2);
 }
 
+/* ═══════════════════════ NUEVO PROYECTO TOOLBAR ══════════════════ */
+.np-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:sticky;top:0;z-index:100;
+  background:var(--white);
+  margin:0 -18px 20px;padding:14px 18px;
+  border-bottom:1px solid var(--smoke-2);
+}
+.np-toolbar-title{font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--ink);flex:1;margin-left:4px}
+.np-save-btn{border-radius:99px!important;gap:6px}
+
+/* ═══════════════════════ DATE FIELD ══════════════════════════════ */
+.np-date-wrap{position:relative}
+.np-date-input{appearance:none;-webkit-appearance:none;padding-right:36px;cursor:pointer}
+.np-date-chev{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;pointer-events:none}
+
+/* ═══════════════════════ TAGS ════════════════════════════════════ */
+.field-hint-text{font-size:11px;color:var(--muted-2);margin-top:5px}
+
+/* ═══════════════════════ ACCESS OPTIONS ══════════════════════════ */
+.access-opt svg{margin-bottom:8px;color:var(--muted)}
+.access-opt.selected svg{color:var(--ink)}
+.access-opt-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.access-opt-sub{font-size:11px;color:var(--muted)}
+
+/* ═══════════════════════ REQ STAR ═══════════════════════════════ */
+.req-star{color:#e5484d;font-weight:700}
+
 /* ═══════════════════════ SKELETON LOADER ═══════════════════════ */
 @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
 .skel{

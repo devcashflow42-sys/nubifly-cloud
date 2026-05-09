@@ -48,9 +48,15 @@ export async function onRequestPost(context) {
   let body;
   try { body = await context.request.json(); } catch { return jsonRes(fail('JSON inválido.'), 400); }
 
-  const { name, description = '' } = body;
+  const { name, description = '', tags, deadline, access } = body;
   if (!name || !name.trim())          return jsonRes(fail('El nombre del proyecto es requerido.', 'NAME_REQUIRED'), 400);
   if (name.trim().length > 60)         return jsonRes(fail('El nombre no puede superar 60 caracteres.', 'NAME_TOO_LONG'), 400);
+
+  const safeTags = Array.isArray(tags)
+    ? tags.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim().slice(0, 30)).slice(0, 10)
+    : [];
+  const safeDeadline = typeof deadline === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(deadline) ? deadline : null;
+  const safeAccess   = access === 'public' ? 'public' : 'private';
 
   const pid    = crypto.randomUUID().replace(/-/g, '');
   const apiKey = generateApiKey();
@@ -58,6 +64,7 @@ export async function onRequestPost(context) {
   const project = {
     projectId: pid, ownerId: user.uid,
     name: name.trim(), description: description.trim(),
+    tags: safeTags, deadline: safeDeadline, access: safeAccess,
     apiKey, storageUsed: 0, createdAt: now, updatedAt: now
   };
 
