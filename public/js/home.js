@@ -1389,19 +1389,21 @@ async function init() {
     return;
   }
 
-  // If we just arrived via OAuth (no user cached), fetch profile once
-  const user = Auth.getUser();
-  if (user) {
-    updateUserUI(user);
-  } else if (urlToken) {
-    try {
-      const res = await API.request('GET', '/api/user/profile');
-      if (res?.data) {
-        Auth.setUser(res.data);
-        updateUserUI(res.data);
-      }
-    } catch { /* non-fatal — dashboard will still load */ }
-  }
+  // Show cached profile immediately, then always refresh from server
+  const cached = Auth.getUser();
+  // Guard: if stored object is the API wrapper shape { user: {...} }, unwrap it
+  const cachedUser = cached?.name || cached?.username ? cached : (cached?.user || null);
+  if (cachedUser) updateUserUI(cachedUser);
+
+  // Always fetch fresh profile to keep name/email up to date
+  try {
+    const res = await API.request('GET', '/api/user/profile');
+    const profile = res?.data?.user || res?.data || null;
+    if (profile?.name || profile?.username || profile?.email) {
+      Auth.setUser(profile);
+      updateUserUI(profile);
+    }
+  } catch { /* non-fatal */ }
 
   await loadDashboard();
 }
