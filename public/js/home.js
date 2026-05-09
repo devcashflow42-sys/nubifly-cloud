@@ -100,9 +100,7 @@ const API = {
   },
 
   publishFile(formData) {
-    const token = Auth.getToken();
-    if (!token) throw new Error('NO_TOKEN');
-    return this.uploadFile('/api/v1/publications/upload', formData);
+    return this.uploadFile('/api/user/files', formData);
   },
 
   // ── API KEYS ──────────────────────────────────────────────────

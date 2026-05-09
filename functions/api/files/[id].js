@@ -73,11 +73,20 @@ export async function onRequestDelete(context) {
     [`files/${fileId}`]:                                            null,
     [`projectFiles/${file.projectId}/${fileId}`]:                   null,
     [`userFiles/${user.uid}/${fileId}`]:                            null,
-    [`projects/${file.projectId}/storageUsed`]:                     Math.max(0, cur - (file.fileSize || 0)),
-    [`userProjects/${user.uid}/${file.projectId}/storageUsed`]:     Math.max(0, cur - (file.fileSize || 0)),
-    [`projects/${file.projectId}/updatedAt`]:                       now,
-    [`userProjects/${user.uid}/${file.projectId}/updatedAt`]:       now
+    [`recentPublications/${fileId}`]:                               null,
+    [`recent_publications/${fileId}`]:                              null,
+    [`userRecentPublications/${user.uid}/${fileId}`]:               null,
+    [`user_recent_publications/${user.uid}/${fileId}`]:             null,
   };
+  if (file.projectId) {
+    const newUsed = Math.max(0, cur - (file.fileSize || 0));
+    updates[`projects/${file.projectId}/storageUsed`]                   = newUsed;
+    updates[`userProjects/${user.uid}/${file.projectId}/storageUsed`]   = newUsed;
+    updates[`projects/${file.projectId}/updatedAt`]                     = now;
+    updates[`userProjects/${user.uid}/${file.projectId}/updatedAt`]     = now;
+    updates[`projectRecentPublications/${file.projectId}/${fileId}`]    = null;
+    updates[`project_recent_publications/${file.projectId}/${fileId}`]  = null;
+  }
   await fbUpdate(updates, tok, db);
   return jsonRes(ok({}, 'Archivo eliminado correctamente.'));
 }
