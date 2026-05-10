@@ -1095,36 +1095,54 @@ function openProjectDetail(projectId) {
   const color  = avatarColor(proj.projectId || proj.id || proj.name);
   const maskedKey = proj.apiKey ? maskKey(proj.apiKey) : '—';
 
+  const isPublic = proj.visibility === 'public' || proj.public === true;
+  const tags = Array.isArray(proj.tags) && proj.tags.length ? proj.tags : [];
+  const pid = escapeHtml(proj.projectId || proj.id);
+
   document.getElementById('projDetailContent').innerHTML = `
     <div class="proj-info-card">
       <div class="proj-info-top">
-        <div class="proj-avatar" style="background:${color};width:48px;height:48px;border-radius:14px;font-size:20px">${letter}</div>
+        <div class="proj-avatar" style="background:${color};width:52px;height:52px;min-width:52px;border-radius:15px;font-size:22px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">${letter}</div>
         <div class="proj-info-meta">
           <div class="proj-info-name">${escapeHtml(proj.name)}</div>
           <div class="proj-info-date">Creado el ${formatDate(proj.createdAt)}</div>
         </div>
+        <div class="proj-badge${isPublic ? '' : ' private'}">${isPublic ? 'Público' : 'Privado'}</div>
       </div>
       ${proj.description ? `<div class="proj-info-desc">${escapeHtml(proj.description)}</div>` : ''}
+      ${tags.length ? `<div class="proj-tags">${tags.map(t => `<span class="proj-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
     </div>
 
     <div class="pdm-card">
       <div class="pdm-row">
-        <div class="pdm-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A96" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div>
+        <div class="pdm-icon"><svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div>
         <div class="pdm-body">
           <div class="pdm-label">Project ID</div>
-          <div class="pdm-val">${escapeHtml(proj.projectId || proj.id)}</div>
+          <div class="pdm-val">${pid}</div>
         </div>
-        <button class="pdm-btn" onclick="copyToClipboard('${escapeHtml(proj.projectId || proj.id)}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+        <button class="pdm-btn" title="Copiar ID" onclick="copyToClipboard('${pid}');showToast('ID copiado','success')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
       </div>
       <div class="pdm-sep"></div>
       <div class="pdm-row">
-        <div class="pdm-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A96" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778"/></svg></div>
+        <div class="pdm-icon"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5"/></svg></div>
         <div class="pdm-body">
           <div class="pdm-label">API Key del proyecto</div>
           <div class="pdm-val">${maskedKey}</div>
         </div>
-        ${proj.apiKey ? `<button class="pdm-btn" onclick="copyToClipboard('${escapeHtml(proj.apiKey)}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>` : ''}
+        ${proj.apiKey ? `<button class="pdm-btn" title="Copiar API Key" onclick="copyToClipboard('${escapeHtml(proj.apiKey)}');showToast('API Key copiada','success')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>` : '<div style="width:34px"></div>'}
       </div>
+    </div>
+
+    <div class="proj-files-head">
+      <span class="proj-files-title">Archivos publicados</span>
+      <button class="proj-files-upload" onclick="goPage('nueva')">+ Subir</button>
+    </div>
+    <div class="proj-empty-zone">
+      <div class="proj-empty-icon">
+        <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+      </div>
+      <div class="proj-empty-title">Sin archivos publicados todavía</div>
+      <div class="proj-empty-sub">Sube imágenes, videos, documentos o APK para compartirlos en este proyecto.</div>
     </div>
   `;
 
