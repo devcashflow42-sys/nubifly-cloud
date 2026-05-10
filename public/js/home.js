@@ -1215,7 +1215,7 @@ async function confirmProjDelete() {
   btn.disabled = true;
   btn.textContent = 'Eliminando...';
   try {
-    await API.req(`/api/projects/${proj.projectId || proj.id}`, { method: 'DELETE' });
+    await API.request('DELETE', `/api/projects/${proj.projectId || proj.id}`);
     closePdelDialog();
     showToast('Proyecto eliminado', 'success');
     State.selectedProject = null;

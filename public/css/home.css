@@ -490,6 +490,8 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 
 /* ═══════════════════════ PROJ DETAIL ═══════════════════════ */
 .proj-detail-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;position:relative}
+.proj-detail-header .back-btn{border-radius:12px;background:var(--white);border:1px solid var(--smoke-2);box-shadow:var(--sh)}
+.proj-detail-header .back-btn:hover{background:var(--smoke-2)}
 .proj-detail-title{flex:1;font-size:17px;font-weight:700;letter-spacing:-.3px}
 /* Project options popup menu */
 .proj-menu{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);z-index:300;min-width:200px;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-6px) scale(.97);transform-origin:top right;transition:opacity .18s,transform .18s}
