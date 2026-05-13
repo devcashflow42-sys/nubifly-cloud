@@ -38,6 +38,8 @@ const SIGNING_EXEMPT_PATHS = [
   '/api/auth/github',
   '/api/health',
   '/api/health/',
+  '/api/admin',   // protegido por JWT+role admin, no necesita HMAC
+  '/api/users',   // endpoint público de bienvenida y perfiles públicos
 ];
 
 function isExemptFromSigning(pathname) {
