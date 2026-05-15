@@ -1,13 +1,49 @@
 /**
- * GET /api/auth/github/callback
+ * ══════════════════════════════════════════════════════════════════════════
+ *  /api/auth/github/callback.js  —  PATCH para soportar móvil (Custom Tabs)
+ *  Ruta: functions/api/auth/github/callback.js
+ * ══════════════════════════════════════════════════════════════════════════
  *
- * Callback OAuth de GitHub. Intercambia el code, autocrea (o reusa)
- * el usuario en la Realtime Database y redirige a /home con el JWT.
+ *  CAMBIOS respecto a la versión anterior:
+ *    → Decodifica el `state` para recuperar redirect y client state.
+ *    → Si el redirect es un deep link válido, redirige ahí con
+ *      ?token=...&refreshToken=...&state=...&new=1 (cuando es cuenta nueva).
+ *    → Si no, mantiene el comportamiento original (redirect a /home).
+ *    → Los errores también respetan el redirect del cliente.
+ * ══════════════════════════════════════════════════════════════════════════
  */
 import { signJwt }                from '../../../_lib/crypto.js';
 import { fbGet, fbUpdate }        from '../../../_lib/firebase.js';
 import { syncFirebaseAuthUser }   from '../../../_lib/firebase-auth.js';
 import { toEmailKey, toEmailNormal } from '../../../_lib/helpers.js';
+
+const DEFAULT_ALLOWED = ['nubifly://'];
+
+function getAllowedPrefixes(env, origin) {
+  const fromEnv = (env.GITHUB_ALLOWED_REDIRECTS || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  return [...DEFAULT_ALLOWED, ...fromEnv, `${origin}/`];
+}
+
+function isRedirectAllowed(redirect, allowedPrefixes) {
+  if (!redirect) return false;
+  return allowedPrefixes.some(p => redirect.startsWith(p));
+}
+
+function decodeState(stateB64) {
+  try {
+    const b64 = stateB64.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(b64));
+  } catch {
+    return null;
+  }
+}
+
+function buildFinalUrl(base, params) {
+  const sep = base.includes('?') ? '&' : '?';
+  const qs  = new URLSearchParams(params).toString();
+  return `${base}${sep}${qs}`;
+}
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -18,17 +54,29 @@ export async function onRequestGet(context) {
 
   const url    = new URL(request.url);
   const origin = url.origin;
-  const loginErr = (e) => Response.redirect(`${origin}/login?error=${e}`, 302);
+
+  const stateParam   = url.searchParams.get('state') || '';
+  const decodedState = decodeState(stateParam);
+
+  const allowed        = getAllowedPrefixes(env, origin);
+  const requestedRedir = decodedState?.r || `${origin}/home`;
+  const finalRedirect  = isRedirectAllowed(requestedRedir, allowed)
+    ? requestedRedir
+    : `${origin}/home`;
+  const clientState    = decodedState?.c || '';
+
+  const loginErr = (e) => {
+    const params = { error: e };
+    if (clientState) params.state = clientState;
+    return Response.redirect(buildFinalUrl(finalRedirect, params), 302);
+  };
 
   if (!clientId || !clientSecret) return loginErr('github_not_configured');
 
-  const code  = url.searchParams.get('code');
-  const error = url.searchParams.get('error');
-  if (error || !code) return loginErr('github_cancelled');
+  const code    = url.searchParams.get('code');
+  const ghError = url.searchParams.get('error');
+  if (ghError || !code) return loginErr('github_cancelled');
 
-  // Always derive redirect_uri from the incoming request — never rely on
-  // GITHUB_REDIRECT_URI env var unless explicitly overridden, to avoid
-  // mismatch with what GitHub has registered.
   const redirectUri = env.GITHUB_REDIRECT_URI || `${origin}/api/auth/github/callback`;
 
   // ── Exchange code → access_token ──────────────────────────────────────────
@@ -49,7 +97,6 @@ export async function onRequestGet(context) {
     console.error('[GitHubCallback] token exchange fetch failed:', e.message);
     return loginErr('github_token_exchange');
   }
-
   if (!ghAccessToken) return loginErr('github_no_token');
 
   // ── Fetch GitHub profile ──────────────────────────────────────────────────
@@ -89,9 +136,11 @@ export async function onRequestGet(context) {
 
   const now = Date.now();
   let jwtUsername, jwtEmail;
+  let isNewUser = false;
 
   if (!uid) {
     // ── New user (auto-register) ──────────────────────────────────────────
+    isNewUser = true;
     uid = crypto.randomUUID().replace(/-/g, '');
     let baseUser = (ghUser.login || primaryEmail.split('@')[0] || 'user')
       .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16) || 'user';
@@ -142,14 +191,11 @@ export async function onRequestGet(context) {
       ]);
     } catch { return loginErr('db_error'); }
 
-    // Ban / suspension check
-    if (control?.ban?.isBanned)
-      return loginErr('account_banned');
+    if (control?.ban?.isBanned) return loginErr('account_banned');
 
     if (control?.suspension?.isSuspended) {
       const still = control.suspension.until === 0 || control.suspension.until > now;
       if (still) return loginErr('account_suspended');
-      // Suspension expired — lift it silently
       await fbUpdate({
         [`controlUsers/${uid}/accountStatus`]:          'active',
         [`controlUsers/${uid}/suspension/isSuspended`]: false
@@ -167,7 +213,6 @@ export async function onRequestGet(context) {
     }, tok, db).catch(() => {});
 
     if (!user) {
-      // Recover missing user record
       const baseUser = (ghUser.login || primaryEmail.split('@')[0] || 'user')
         .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16) || 'user';
       let recoveredUsername = baseUser;
@@ -214,9 +259,13 @@ export async function onRequestGet(context) {
     return loginErr('token_error');
   }
 
-  // Redirect to /home with both tokens in URL (removed immediately by history.replaceState)
-  return Response.redirect(
-    `${origin}/home?token=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`,
-    302
-  );
+  // ── Build final redirect URL ──────────────────────────────────────────────
+  const successParams = {
+    token:        accessToken,
+    refreshToken: refreshToken
+  };
+  if (clientState) successParams.state = clientState;
+  if (isNewUser)   successParams.new   = '1';
+
+  return Response.redirect(buildFinalUrl(finalRedirect, successParams), 302);
 }
