@@ -5,11 +5,15 @@
  * ══════════════════════════════════════════════════════════════════════════
  *
  *  CAMBIOS respecto a la versión anterior:
- *    → Decodifica el `state` para recuperar redirect y client state.
+ *    → Decodifica el `state` para recuperar:
+ *        - `r` (redirect final pedido por el cliente)
+ *        - `c` (state CSRF del cliente, para devolvérselo)
  *    → Si el redirect es un deep link válido, redirige ahí con
- *      ?token=...&refreshToken=...&state=...&new=1 (cuando es cuenta nueva).
+ *      ?token=...&refreshToken=...&state=...&new=1 (cuando es cuenta nueva)
  *    → Si no, mantiene el comportamiento original (redirect a /home).
  *    → Los errores también respetan el redirect del cliente.
+ *
+ *  Re-valida la lista blanca por seguridad (no confía en el `state`).
  * ══════════════════════════════════════════════════════════════════════════
  */
 import { signJwt }                from '../../../_lib/crypto.js';
@@ -30,6 +34,7 @@ function isRedirectAllowed(redirect, allowedPrefixes) {
   return allowedPrefixes.some(p => redirect.startsWith(p));
 }
 
+/** Decodifica el state base64url que generó index.js. */
 function decodeState(stateB64) {
   try {
     const b64 = stateB64.replace(/-/g, '+').replace(/_/g, '/');
@@ -39,6 +44,7 @@ function decodeState(stateB64) {
   }
 }
 
+/** Construye la URL final añadiendo params sin romper el deep link. */
 function buildFinalUrl(base, params) {
   const sep = base.includes('?') ? '&' : '?';
   const qs  = new URLSearchParams(params).toString();
@@ -55,16 +61,18 @@ export async function onRequestGet(context) {
   const url    = new URL(request.url);
   const origin = url.origin;
 
+  // ── Decodificar state → recuperar redirect y client state ─────────────
   const stateParam   = url.searchParams.get('state') || '';
   const decodedState = decodeState(stateParam);
 
-  const allowed        = getAllowedPrefixes(env, origin);
+  const allowed       = getAllowedPrefixes(env, origin);
   const requestedRedir = decodedState?.r || `${origin}/home`;
   const finalRedirect  = isRedirectAllowed(requestedRedir, allowed)
     ? requestedRedir
     : `${origin}/home`;
   const clientState    = decodedState?.c || '';
 
+  // Helper de error que respeta el redirect del cliente
   const loginErr = (e) => {
     const params = { error: e };
     if (clientState) params.state = clientState;
@@ -73,13 +81,13 @@ export async function onRequestGet(context) {
 
   if (!clientId || !clientSecret) return loginErr('github_not_configured');
 
-  const code    = url.searchParams.get('code');
+  const code   = url.searchParams.get('code');
   const ghError = url.searchParams.get('error');
   if (ghError || !code) return loginErr('github_cancelled');
 
   const redirectUri = env.GITHUB_REDIRECT_URI || `${origin}/api/auth/github/callback`;
 
-  // ── Exchange code → access_token ──────────────────────────────────────────
+  // ── Exchange code → access_token ──────────────────────────────────────
   let ghAccessToken;
   try {
     const r = await fetch('https://github.com/login/oauth/access_token', {
@@ -99,7 +107,7 @@ export async function onRequestGet(context) {
   }
   if (!ghAccessToken) return loginErr('github_no_token');
 
-  // ── Fetch GitHub profile ──────────────────────────────────────────────────
+  // ── Fetch GitHub profile ──────────────────────────────────────────────
   let ghUser;
   try {
     const r = await fetch('https://api.github.com/user', {
@@ -112,7 +120,7 @@ export async function onRequestGet(context) {
     return loginErr('github_userinfo');
   }
 
-  // ── Obtain primary email ──────────────────────────────────────────────────
+  // ── Obtain primary email ──────────────────────────────────────────────
   let primaryEmail = ghUser.email || null;
   if (!primaryEmail) {
     try {
@@ -129,17 +137,17 @@ export async function onRequestGet(context) {
   const emailKey    = toEmailKey(primaryEmail);
   const emailNormal = toEmailNormal(primaryEmail);
 
-  // ── Find or create user ───────────────────────────────────────────────────
+  // ── Find or create user ───────────────────────────────────────────────
   let uid;
   try { uid = await fbGet(`emails/${emailKey}`, tok, db); }
   catch { return loginErr('db_error'); }
 
   const now = Date.now();
   let jwtUsername, jwtEmail;
-  let isNewUser = false;
+  let isNewUser = false;   // ← flag para informar al cliente
 
   if (!uid) {
-    // ── New user (auto-register) ──────────────────────────────────────────
+    // ── New user (auto-register) ──────────────────────────────────────
     isNewUser = true;
     uid = crypto.randomUUID().replace(/-/g, '');
     let baseUser = (ghUser.login || primaryEmail.split('@')[0] || 'user')
@@ -182,7 +190,7 @@ export async function onRequestGet(context) {
     jwtEmail    = emailNormal;
 
   } else {
-    // ── Returning user ────────────────────────────────────────────────────
+    // ── Returning user ────────────────────────────────────────────────
     let user, control;
     try {
       [user, control] = await Promise.all([
@@ -213,6 +221,7 @@ export async function onRequestGet(context) {
     }, tok, db).catch(() => {});
 
     if (!user) {
+      // Recuperar registro de usuario perdido (caso raro)
       const baseUser = (ghUser.login || primaryEmail.split('@')[0] || 'user')
         .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16) || 'user';
       let recoveredUsername = baseUser;
@@ -235,7 +244,7 @@ export async function onRequestGet(context) {
     jwtEmail    = user.email    || emailNormal;
   }
 
-  // ── Best-effort: sync with Firebase Authentication ────────────────────────
+  // ── Best-effort: sync con Firebase Authentication ─────────────────────
   syncFirebaseAuthUser(env, {
     kind: 'github', uid, email: emailNormal,
     githubId: String(ghUser.id || ''),
@@ -244,7 +253,7 @@ export async function onRequestGet(context) {
     emailVerified: true
   }).catch(() => {});
 
-  // ── Sign accessToken (15 min) + refreshToken (30 days) ───────────────────
+  // ── Firmar accessToken (15 min) + refreshToken (30 días) ─────────────
   const tokenPayload   = { uid, username: jwtUsername, email: jwtEmail };
   const REFRESH_SECRET = env.JWT_REFRESH_SECRET || (env.JWT_SECRET + '_refresh');
 
@@ -259,9 +268,11 @@ export async function onRequestGet(context) {
     return loginErr('token_error');
   }
 
-  // ── Build final redirect URL ──────────────────────────────────────────────
+  // ── Redirect FINAL al destino del cliente ─────────────────────────────
+  // Si es deep link → ?token=...&refreshToken=...&state=...&new=1
+  // Si es web /home → mantiene el comportamiento original
   const successParams = {
-    token:        accessToken,
+    token: accessToken,
     refreshToken: refreshToken
   };
   if (clientState) successParams.state = clientState;
