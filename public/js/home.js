@@ -6,33 +6,29 @@
 // ⚙️  Cambia esta URL si tu backend se despliega en otro dominio
 const BASE_URL = '';  // paths ya incluyen /api/
 
-const TOKEN_KEY = 'nf_token';   // debe coincidir con api.js → NUBIFLY_CONFIG.TOKEN_KEY
-const USER_KEY  = 'nf_user';    // debe coincidir con api.js → NUBIFLY_CONFIG.USER_KEY
+const TOKEN_KEY   = 'nf_token';         // debe coincidir con api.js → NUBIFLY_CONFIG.TOKEN_KEY
+const USER_KEY    = 'nf_user';          // debe coincidir con api.js → NUBIFLY_CONFIG.USER_KEY
+const REFRESH_KEY = 'nf_refresh_token'; // debe coincidir con api.js → NUBIFLY_CONFIG.REFRESH_KEY
 
 // ═══════════════════════════════════════════════════════════════
 // ║  AUTH — Gestión de sesión con localStorage
 // ═══════════════════════════════════════════════════════════════
 const Auth = {
-  getToken() {
-    return localStorage.getItem(TOKEN_KEY) || null;
-  },
-  setToken(token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  },
+  getToken()  { return localStorage.getItem(TOKEN_KEY) || null; },
+  setToken(t) { localStorage.setItem(TOKEN_KEY, t); },
+  getRefreshToken()  { return localStorage.getItem(REFRESH_KEY) || null; },
+  setRefreshToken(t) { localStorage.setItem(REFRESH_KEY, t); },
   getUser() {
     try { return JSON.parse(localStorage.getItem(USER_KEY)) || null; }
     catch { return null; }
   },
-  setUser(user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-  },
+  setUser(user) { localStorage.setItem(USER_KEY, JSON.stringify(user)); },
   clear() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(REFRESH_KEY);
   },
-  isLoggedIn() {
-    return !!this.getToken();
-  }
+  isLoggedIn() { return !!this.getToken(); }
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -41,7 +37,7 @@ const Auth = {
 const API = {
 
   /** Realiza una petición autenticada y devuelve el JSON parseado. */
-  async request(method, path, body = null, requireAuth = true) {
+  async request(method, path, body = null, requireAuth = true, _isRetry = false) {
     const headers = { 'Content-Type': 'application/json' };
     if (requireAuth) {
       const token = Auth.getToken();
@@ -54,6 +50,29 @@ const API = {
     const res = await fetch(`${BASE_URL}${path}`, opts);
     const data = await res.json().catch(() => ({}));
 
+    if (res.status === 401 && requireAuth && !_isRetry) {
+      const rt = Auth.getRefreshToken();
+      if (rt) {
+        try {
+          const rr = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken: rt })
+          });
+          if (rr.ok) {
+            const rd = await rr.json().catch(() => ({}));
+            if (rd?.accessToken) {
+              Auth.setToken(rd.accessToken);
+              if (rd.refreshToken) Auth.setRefreshToken(rd.refreshToken);
+              return API.request(method, path, body, requireAuth, true);
+            }
+          }
+        } catch { /* ignore refresh errors */ }
+      }
+      Auth.clear();
+      window.location.href = '/login';
+      throw new Error('UNAUTHORIZED');
+    }
     if (res.status === 401) {
       Auth.clear();
       window.location.href = '/login';
@@ -1680,11 +1699,13 @@ async function init() {
   setGreeting();
   initKeyboardShortcuts();
 
-  // Handle JWT delivered via URL query param (Google OAuth callback: /home?token=...)
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlToken  = urlParams.get('token');
+  // Handle tokens delivered via URL query param (OAuth callbacks: /home?token=...&refreshToken=...)
+  const urlParams      = new URLSearchParams(window.location.search);
+  const urlToken       = urlParams.get('token');
+  const urlRefresh     = urlParams.get('refreshToken');
   if (urlToken) {
     Auth.setToken(urlToken);
+    if (urlRefresh) Auth.setRefreshToken(urlRefresh);
     history.replaceState({}, '', window.location.pathname);
   }
 

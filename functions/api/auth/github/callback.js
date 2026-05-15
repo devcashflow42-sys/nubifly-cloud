@@ -26,64 +26,63 @@ export async function onRequestGet(context) {
   const error = url.searchParams.get('error');
   if (error || !code) return loginErr('github_cancelled');
 
+  // Always derive redirect_uri from the incoming request — never rely on
+  // GITHUB_REDIRECT_URI env var unless explicitly overridden, to avoid
+  // mismatch with what GitHub has registered.
   const redirectUri = env.GITHUB_REDIRECT_URI || `${origin}/api/auth/github/callback`;
 
-  // Exchange code → access_token
-  let accessToken;
+  // ── Exchange code → access_token ──────────────────────────────────────────
+  let ghAccessToken;
   try {
     const r = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
-      headers: {
-        'Content-Type':  'application/x-www-form-urlencoded',
-        'Accept':        'application/json'
-      },
-      body: new URLSearchParams({
-        code,
-        client_id:     clientId,
-        client_secret: clientSecret,
-        redirect_uri:  redirectUri
-      })
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+      body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri })
     });
     const data = await r.json();
-    accessToken = data.access_token;
-  } catch { return loginErr('github_token_exchange'); }
+    if (data.error) {
+      console.error('[GitHubCallback] token exchange error:', data.error, data.error_description);
+      return loginErr('github_token_exchange');
+    }
+    ghAccessToken = data.access_token;
+  } catch (e) {
+    console.error('[GitHubCallback] token exchange fetch failed:', e.message);
+    return loginErr('github_token_exchange');
+  }
 
-  if (!accessToken) return loginErr('github_no_token');
+  if (!ghAccessToken) return loginErr('github_no_token');
 
-  // Fetch GitHub profile
+  // ── Fetch GitHub profile ──────────────────────────────────────────────────
   let ghUser;
   try {
     const r = await fetch('https://api.github.com/user', {
-      headers: {
-        Authorization:  `Bearer ${accessToken}`,
-        'User-Agent':   'Nubifly'
-      }
+      headers: { Authorization: `Bearer ${ghAccessToken}`, 'User-Agent': 'Nubifly' }
     });
+    if (!r.ok) throw new Error(`GitHub API ${r.status}`);
     ghUser = await r.json();
-  } catch { return loginErr('github_userinfo'); }
+  } catch (e) {
+    console.error('[GitHubCallback] user fetch failed:', e.message);
+    return loginErr('github_userinfo');
+  }
 
-  // Obtener email (puede ser null si el usuario lo tiene privado)
+  // ── Obtain primary email ──────────────────────────────────────────────────
   let primaryEmail = ghUser.email || null;
   if (!primaryEmail) {
     try {
       const r = await fetch('https://api.github.com/user/emails', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'User-Agent':  'Nubifly'
-        }
+        headers: { Authorization: `Bearer ${ghAccessToken}`, 'User-Agent': 'Nubifly' }
       });
       const emails = await r.json();
       const primary = emails.find(e => e.primary && e.verified);
       primaryEmail = primary?.email || emails[0]?.email || null;
-    } catch { /* ignorar */ }
+    } catch { /* ignore */ }
   }
-
   if (!primaryEmail) return loginErr('github_no_email');
 
   const emailKey    = toEmailKey(primaryEmail);
   const emailNormal = toEmailNormal(primaryEmail);
 
-  // ¿Usuario existe?
+  // ── Find or create user ───────────────────────────────────────────────────
   let uid;
   try { uid = await fbGet(`emails/${emailKey}`, tok, db); }
   catch { return loginErr('db_error'); }
@@ -92,9 +91,8 @@ export async function onRequestGet(context) {
   let jwtUsername, jwtEmail;
 
   if (!uid) {
-    // Auto-registro
+    // ── New user (auto-register) ──────────────────────────────────────────
     uid = crypto.randomUUID().replace(/-/g, '');
-
     let baseUser = (ghUser.login || primaryEmail.split('@')[0] || 'user')
       .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16) || 'user';
     let usernameKey = baseUser;
@@ -115,7 +113,7 @@ export async function onRequestGet(context) {
       plan:         { type: 'normal', isPremium: false, premiumUntil: 0, startedAt: now },
       permissions:  { canLogin: true, canChat: true, canUploadAvatar: true, canChangeUsername: true, canCreateGroups: false, canSendMedia: true, canSendVoice: true, canSendStickers: true, canSendLinks: true },
       limits:       { maxGroups: 5, maxContacts: 200, maxMediaSizeMB: 10, maxMessageLength: 500, dailyMessages: 500 },
-      security:     { passwordHash: '', loginAttempts: 0, lastFailedAttempt: 0, lastLogin: now, lastIp: '', deviceCount: 0, twoFactorEnabled: false, twoFactorSecret: '' },
+      security:     { loginAttempts: 0, lastFailedAttempt: 0, lastLogin: now, lastIp: '', deviceCount: 0, twoFactorEnabled: false, twoFactorSecret: '' },
       verification: { emailVerified: true, emailVerifiedAt: now, phoneVerified: false, phoneVerifiedAt: 0, identityVerified: false, identityVerifiedAt: 0 },
       moderation:   { warnings: 0, reports: 0, lastWarningAt: 0, lastReportAt: 0, notes: '' },
       authProviders: ['github'], createdAt: now, updatedAt: now
@@ -133,8 +131,34 @@ export async function onRequestGet(context) {
     }
     jwtUsername = usernameKey;
     jwtEmail    = emailNormal;
+
   } else {
-    // Usuario existente
+    // ── Returning user ────────────────────────────────────────────────────
+    let user, control;
+    try {
+      [user, control] = await Promise.all([
+        fbGet(`users/${uid}`, tok, db),
+        fbGet(`controlUsers/${uid}`, tok, db)
+      ]);
+    } catch { return loginErr('db_error'); }
+
+    // Ban / suspension check
+    if (control?.ban?.isBanned)
+      return loginErr('account_banned');
+
+    if (control?.suspension?.isSuspended) {
+      const still = control.suspension.until === 0 || control.suspension.until > now;
+      if (still) return loginErr('account_suspended');
+      // Suspension expired — lift it silently
+      await fbUpdate({
+        [`controlUsers/${uid}/accountStatus`]:          'active',
+        [`controlUsers/${uid}/suspension/isSuspended`]: false
+      }, tok, db).catch(() => {});
+    }
+
+    if (control?.accountStatus && control.accountStatus !== 'active')
+      return loginErr('account_inactive');
+
     await fbUpdate({
       [`users/${uid}/isOnline`]:                  true,
       [`users/${uid}/lastSeen`]:                  now,
@@ -142,54 +166,57 @@ export async function onRequestGet(context) {
       [`controlUsers/${uid}/security/lastLogin`]: now
     }, tok, db).catch(() => {});
 
-    let existingUser = null;
-    try { existingUser = await fbGet(`users/${uid}`, tok, db); } catch { /* ignore */ }
-
-    if (!existingUser) {
+    if (!user) {
+      // Recover missing user record
       const baseUser = (ghUser.login || primaryEmail.split('@')[0] || 'user')
         .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16) || 'user';
       let recoveredUsername = baseUser;
       const conflict = await fbGet(`usernames/${recoveredUsername}`, tok, db).catch(() => null);
       if (conflict && conflict !== uid) recoveredUsername = baseUser + Math.floor(Math.random() * 9000 + 1000);
-      const recoveredName = (ghUser.name || ghUser.login || recoveredUsername).slice(0, 50);
-      existingUser = {
-        name: recoveredName, username: recoveredUsername, email: emailNormal,
+      user = {
+        name: (ghUser.name || ghUser.login || recoveredUsername).slice(0, 50),
+        username: recoveredUsername, email: emailNormal,
         avatar: ghUser.avatar_url || '', bio: ghUser.bio || '',
         isOnline: true, lastSeen: now, createdAt: now, updatedAt: now,
         githubId: String(ghUser.id || '')
       };
       await fbUpdate({
-        [`users/${uid}`]:                   existingUser,
+        [`users/${uid}`]:                   user,
         [`usernames/${recoveredUsername}`]: uid
       }, tok, db).catch(e => console.error('[GitHubCallback] recover user record:', e.message));
     }
 
-    jwtUsername = existingUser.username || '';
-    jwtEmail    = existingUser.email    || emailNormal;
+    jwtUsername = user.username || '';
+    jwtEmail    = user.email    || emailNormal;
   }
 
-  // Best-effort: vincular en Firebase Authentication.
-  const fbAuthGitHub = await syncFirebaseAuthUser(env, {
-    kind:        'github',
-    uid,
-    email:       emailNormal,
-    githubId:    String(ghUser.id || ''),
+  // ── Best-effort: sync with Firebase Authentication ────────────────────────
+  syncFirebaseAuthUser(env, {
+    kind: 'github', uid, email: emailNormal,
+    githubId: String(ghUser.id || ''),
     displayName: ghUser.name || ghUser.login || jwtUsername,
-    photoUrl:    ghUser.avatar_url || '',
+    photoUrl: ghUser.avatar_url || '',
     emailVerified: true
-  }).catch((e) => ({ ok: false, reason: 'sync threw', detail: e.message }));
-  if (!fbAuthGitHub.ok) console.warn('[GitHubCallback] Firebase Auth sync falló:', fbAuthGitHub);
+  }).catch(() => {});
 
-  let jwtToken;
+  // ── Sign accessToken (15 min) + refreshToken (30 days) ───────────────────
+  const tokenPayload   = { uid, username: jwtUsername, email: jwtEmail };
+  const REFRESH_SECRET = env.JWT_REFRESH_SECRET || (env.JWT_SECRET + '_refresh');
+
+  let accessToken, refreshToken;
   try {
-    jwtToken = await signJwt(
-      { uid, username: jwtUsername, email: jwtEmail },
-      env.JWT_SECRET, env.JWT_EXPIRES_IN || '7d'
-    );
+    [accessToken, refreshToken] = await Promise.all([
+      signJwt(tokenPayload, env.JWT_SECRET, '15m'),
+      signJwt({ ...tokenPayload, type: 'refresh' }, REFRESH_SECRET, '30d')
+    ]);
   } catch (e) {
     console.error('[GitHubCallback] signJwt:', e.message);
     return loginErr('token_error');
   }
 
-  return Response.redirect(`${origin}/home?token=${encodeURIComponent(jwtToken)}`, 302);
+  // Redirect to /home with both tokens in URL (removed immediately by history.replaceState)
+  return Response.redirect(
+    `${origin}/home?token=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`,
+    302
+  );
 }

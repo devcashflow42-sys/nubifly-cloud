@@ -23,7 +23,8 @@ const NUBIFLY_CONFIG = {
   UPLOAD_TIMEOUT_MS: 60000,
   TOKEN_KEY: 'nf_token',
   USER_KEY: 'nf_user',
-  UID_KEY: 'nf_uid'
+  UID_KEY: 'nf_uid',
+  REFRESH_KEY: 'nf_refresh_token'
 };
 
 /* ────────────────────────────────────────────────────────────────
@@ -119,20 +120,16 @@ function getUser() {
   return user;
 }
 
-function setSession(token, user, uid) {
-  if (token) {
-    localStorage.setItem(NUBIFLY_CONFIG.TOKEN_KEY, token);
-  }
-
-  if (user && isObject(user)) {
-    localStorage.setItem(NUBIFLY_CONFIG.USER_KEY, JSON.stringify(user));
-  }
-
+function setSession(token, user, uid, refreshToken) {
+  if (token) localStorage.setItem(NUBIFLY_CONFIG.TOKEN_KEY, token);
+  if (refreshToken) localStorage.setItem(NUBIFLY_CONFIG.REFRESH_KEY, refreshToken);
+  if (user && isObject(user)) localStorage.setItem(NUBIFLY_CONFIG.USER_KEY, JSON.stringify(user));
   const finalUid = uid || extractUid({}, user);
+  if (finalUid) localStorage.setItem(NUBIFLY_CONFIG.UID_KEY, finalUid);
+}
 
-  if (finalUid) {
-    localStorage.setItem(NUBIFLY_CONFIG.UID_KEY, finalUid);
-  }
+function getRefreshToken() {
+  return localStorage.getItem(NUBIFLY_CONFIG.REFRESH_KEY) || null;
 }
 
 function updateStoredUser(user) {
@@ -150,6 +147,7 @@ function clearSession() {
   localStorage.removeItem(NUBIFLY_CONFIG.TOKEN_KEY);
   localStorage.removeItem(NUBIFLY_CONFIG.USER_KEY);
   localStorage.removeItem(NUBIFLY_CONFIG.UID_KEY);
+  localStorage.removeItem(NUBIFLY_CONFIG.REFRESH_KEY);
 }
 
 function isLoggedIn() {
@@ -275,6 +273,35 @@ async function apiFetch(endpoint, options = {}) {
   const data = await safeJson(res);
 
   if (!res.ok) {
+    // Auto-refresh on 401 (expired access token)
+    if (res.status === 401 && auth && !options._isRetry) {
+      const rt = getRefreshToken();
+      if (rt) {
+        try {
+          const rr = await fetch(`${NUBIFLY_CONFIG.API_BASE}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken: rt })
+          });
+          if (rr.ok) {
+            const rd = await rr.json().catch(() => ({}));
+            const nt = rd?.accessToken;
+            if (nt) {
+              localStorage.setItem(NUBIFLY_CONFIG.TOKEN_KEY, nt);
+              if (rd.refreshToken) localStorage.setItem(NUBIFLY_CONFIG.REFRESH_KEY, rd.refreshToken);
+              return apiFetch(endpoint, { ...options, _isRetry: true });
+            }
+          }
+        } catch { /* ignore refresh errors */ }
+      }
+      clearSession();
+      window.location.replace('/login');
+      const authErr = new Error('Sesión expirada. Por favor inicia sesión de nuevo.');
+      authErr.code = 'UNAUTHORIZED';
+      authErr.status = 401;
+      throw authErr;
+    }
+
     const err = new Error(normalizeErrorMessage(data, res.status));
     err.code = data?.code || data?.error || `HTTP_${res.status}`;
     err.status = res.status;
@@ -299,11 +326,12 @@ async function registerUser({ name, username, email, password }) {
   const user = extractUser(res);
   const token = extractToken(res);
   const uid = extractUid(res, user);
+  const refreshToken = res?.refreshToken || res?.data?.refreshToken || null;
 
   if (!token) throw new Error('El servidor no devolvió token de sesión.');
   if (!user) throw new Error('El servidor no devolvió los datos del usuario.');
 
-  setSession(token, user, uid);
+  setSession(token, user, uid, refreshToken);
 
   return { ...res, token, user, uid };
 }
@@ -318,11 +346,12 @@ async function loginUser({ email, password }) {
   const user = extractUser(res);
   const token = extractToken(res);
   const uid = extractUid(res, user);
+  const refreshToken = res?.refreshToken || res?.data?.refreshToken || null;
 
   if (!token) throw new Error('El servidor no devolvió token de sesión.');
   if (!user) throw new Error('El servidor no devolvió los datos del usuario.');
 
-  setSession(token, user, uid);
+  setSession(token, user, uid, refreshToken);
 
   return { ...res, token, user, uid };
 }

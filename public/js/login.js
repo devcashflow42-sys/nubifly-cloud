@@ -343,6 +343,11 @@ if (NubiflyAPI.getToken()) {
       github_no_email:        'No se pudo obtener el correo de GitHub. Asegúrate de tener un email público en tu cuenta.',
       github_token_exchange:  'Error al conectar con GitHub. Inténtalo de nuevo.',
       github_no_token:        'GitHub no devolvió un token válido.',
+      github_userinfo:        'No se pudo obtener tu perfil de GitHub. Inténtalo de nuevo.',
+      account_banned:         'Tu cuenta ha sido suspendida permanentemente.',
+      account_suspended:      'Tu cuenta está suspendida temporalmente.',
+      account_inactive:       'Tu cuenta no está activa. Contacta a soporte.',
+      token_error:            'Error al generar la sesión. Inténtalo de nuevo.',
       db_error:               'Error de base de datos. Inténtalo de nuevo.',
       db_write_error:         'Error al registrar tu cuenta. Inténtalo de nuevo.'
     };
