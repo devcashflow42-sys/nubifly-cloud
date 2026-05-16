@@ -1000,83 +1000,20 @@
 <!-- ══ TOAST ══ -->
 <div class="toast" id="toast"></div>
 
-<!-- ══ GUEST PAGES ══ -->
-
-<!-- Inicio del invitado -->
-<section class="page guest-page" id="page-guest-home" style="display:none">
-  <div class="guest-welcome">
-    <div class="guest-avatar-wrap">
-      <div class="guest-avatar-circle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      </div>
-    </div>
-    <h2 class="guest-title">Estás como invitado</h2>
-    <p class="guest-sub">Explora Nubifly sin crear una cuenta. Para usar todas las funciones, crea tu cuenta gratis.</p>
-    <a href="/login" class="guest-cta-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      Crear cuenta gratis
-    </a>
-    <div class="guest-features">
-      <div class="guest-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#6078da" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-        Sube archivos y publicaciones
-      </div>
-      <div class="guest-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#6078da" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-        Gestiona proyectos en la nube
-      </div>
-      <div class="guest-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#6078da" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-        APIs seguras con tus claves
-      </div>
-      <div class="guest-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#6078da" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
-        Almacenamiento ilimitado
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Explorar (vista pública) -->
-<section class="page guest-page" id="page-guest-explore" style="display:none">
-  <div class="sec-toolbar">
-    <span class="tb-title">Explorar</span>
-  </div>
-  <div class="guest-explore-msg">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#a0a0aa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="48" height="48"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <div class="list-empty-title" style="margin-top:14px">Próximamente</div>
-    <div class="list-empty-sub">El explorador de contenido público estará disponible pronto.</div>
-    <a href="/login" class="guest-cta-btn" style="margin-top:22px">Crear cuenta gratis</a>
-  </div>
-</section>
-
-<!-- App / Actualización -->
-<section class="page guest-page" id="page-guest-app" style="display:none">
-  <div class="sec-toolbar">
-    <span class="tb-title">Aplicación</span>
-  </div>
-  <div class="guest-app-card" id="guestAppCard">
-    <div class="gac-loading">
-      <div class="gac-spinner"></div>
-      <span>Verificando versión…</span>
-    </div>
-  </div>
-</section>
-
 <!-- ══ GUEST BOTTOM NAV ══ -->
 <nav class="guest-bottom-nav" id="guestBottomNav" style="display:none" role="navigation" aria-label="Navegación de invitado">
-  <button class="gbn-item active" id="gbn-home"    onclick="guestGoPage('home')">
+  <button class="gbn-item active" id="gbn-home">
     <svg class="gbn-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     <span class="gbn-label">Inicio</span>
   </button>
-  <button class="gbn-item" id="gbn-explore" onclick="guestGoPage('explore')">
+  <a class="gbn-item" href="/login">
     <svg class="gbn-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <span class="gbn-label">Explorar</span>
-  </button>
-  <button class="gbn-item" id="gbn-app" onclick="guestGoPage('app')">
+  </a>
+  <a class="gbn-item" href="/login">
     <svg class="gbn-icon" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5 2.5 2.5-2.5"/></svg>
     <span class="gbn-label">App</span>
-  </button>
+  </a>
   <a class="gbn-item gbn-login" href="/login">
     <svg class="gbn-icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
     <span class="gbn-label">Entrar</span>
@@ -1085,7 +1022,6 @@
 
 <!-- ══ GUEST STYLES ══ -->
 <style>
-/* ── Guest Bottom Nav ───────────────────────────────────────── */
 .guest-bottom-nav{
   position:fixed;bottom:0;left:0;right:0;z-index:200;
   display:flex;align-items:stretch;
@@ -1111,89 +1047,7 @@
 }
 .gbn-item.active .gbn-icon{transform:scale(1.08)}
 .gbn-label{line-height:1}
-
-/* When guest bottom nav is shown, add bottom padding to page-wrap */
-body.guest-mode .page-wrap { padding-bottom: 68px !important; }
-body.guest-mode .topbar    { display: none !important; }
-body.guest-mode .menu-btn  { display: none !important; }
-
-/* ── Guest page sections ────────────────────────────────────── */
-.guest-page.active{display:block !important}
-
-.guest-welcome{
-  display:flex;flex-direction:column;align-items:center;
-  padding:40px 24px 32px;text-align:center;
-}
-.guest-avatar-circle{
-  width:72px;height:72px;border-radius:50%;
-  background:#eef0fc;display:flex;align-items:center;justify-content:center;
-  color:#6078da;margin-bottom:20px;
-}
-.guest-avatar-circle svg{width:36px;height:36px;stroke:#6078da}
-.guest-title{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;color:#18181b;margin-bottom:8px}
-.guest-sub{font-size:14px;color:#71717a;line-height:1.6;max-width:300px;margin-bottom:24px}
-
-.guest-cta-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:13px 28px;border-radius:12px;
-  background:#6078da;color:#fff;
-  font-family:'Sora',sans-serif;font-size:14px;font-weight:600;
-  text-decoration:none;transition:background .18s,transform .15s;
-  -webkit-tap-highlight-color:transparent;
-}
-.guest-cta-btn:hover{background:#4e64c8}
-.guest-cta-btn:active{transform:scale(.97)}
-
-.guest-features{
-  display:flex;flex-direction:column;gap:10px;
-  margin-top:24px;width:100%;max-width:280px;text-align:left;
-}
-.guest-feature{
-  display:flex;align-items:center;gap:10px;
-  font-size:13.5px;color:#52525b;font-weight:500;
-}
-
-/* ── Guest Explore ──────────────────────────────────────────── */
-.guest-explore-msg{
-  display:flex;flex-direction:column;align-items:center;
-  padding:60px 24px;text-align:center;color:#a0a0aa;
-}
-
-/* ── Guest App Card ─────────────────────────────────────────── */
-.guest-app-card{padding:20px}
-
-.gac-loading{display:flex;align-items:center;gap:10px;color:#71717a;font-size:14px}
-.gac-spinner{
-  width:18px;height:18px;border:2px solid #e8e8ec;
-  border-top-color:#6078da;border-radius:50%;animation:gacSpin .7s linear infinite;
-}
-@keyframes gacSpin{to{transform:rotate(360deg)}}
-
-.gac-body{display:flex;flex-direction:column;gap:14px}
-.gac-badge{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
-}
-.gac-badge.updated{background:#dafbe1;color:#1a7f37}
-.gac-badge.outdated{background:#fff3cd;color:#9a6700}
-.gac-version-row{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#18181b}
-.gac-version-lbl{font-size:13px;color:#71717a;font-weight:400}
-.gac-divider{height:1px;background:#f0f0f2;margin:4px 0}
-.gac-stat{display:flex;justify-content:space-between;align-items:center;font-size:14px}
-.gac-stat-lbl{color:#71717a}
-.gac-stat-val{font-weight:600;color:#27272a}
-.gac-download-btn{
-  display:flex;align-items:center;justify-content:center;gap:9px;
-  width:100%;padding:14px;border-radius:12px;
-  background:#6078da;color:#fff;
-  font-family:'Sora',sans-serif;font-size:14px;font-weight:600;
-  text-decoration:none;transition:background .18s;
-  -webkit-tap-highlight-color:transparent;
-  margin-top:4px;
-}
-.gac-download-btn:hover{background:#4e64c8}
-.gac-register-hint{font-size:12.5px;color:#a0a0aa;text-align:center;margin-top:6px}
-.gac-register-hint a{color:#6078da;font-weight:600}
+body.guest-mode .page-wrap{padding-bottom:68px !important}
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════

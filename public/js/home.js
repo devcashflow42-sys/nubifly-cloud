@@ -1720,7 +1720,10 @@ async function init() {
   const isGuest    = cachedUser?.type === 'guest' || cachedUser?.isGuest === true;
 
   if (isGuest) {
-    setupGuestMode(cachedUser);
+    updateUserUI({ name: 'Invitado', type: 'guest' });
+    const nav = document.getElementById('guestBottomNav');
+    if (nav) nav.style.display = 'flex';
+    document.body.classList.add('guest-mode');
     return;
   }
 
@@ -1737,123 +1740,6 @@ async function init() {
   } catch { /* non-fatal */ }
 
   await loadDashboard();
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ║  GUEST MODE
-// ═══════════════════════════════════════════════════════════════
-
-const GUEST_PAGES = ['guest-home', 'guest-explore', 'guest-app'];
-
-function setupGuestMode(guestUser) {
-  // Marcar body para estilos guest
-  document.body.classList.add('guest-mode');
-
-  // Ocultar drawer y topbar (lo hace el CSS con body.guest-mode)
-  const drawer  = document.getElementById('drawer');
-  const overlay = document.getElementById('overlay');
-  if (drawer)  drawer.style.display  = 'none';
-  if (overlay) overlay.style.display = 'none';
-
-  // Mostrar bottom nav del invitado
-  const nav = document.getElementById('guestBottomNav');
-  if (nav) nav.style.display = 'flex';
-
-  // Mostrar la página de inicio de invitado
-  guestGoPage('home');
-
-  // Cargar info de la app en segundo plano
-  loadGuestAppInfo();
-}
-
-function guestGoPage(page) {
-  // Desactivar todas las páginas normales
-  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-
-  // Activar la página de invitado
-  const target = document.getElementById(`page-guest-${page}`);
-  if (target) {
-    target.style.display = 'block';
-    target.classList.add('active');
-    // Ocultar las que no son activas
-    GUEST_PAGES.forEach(p => {
-      if (p !== `guest-${page}`) {
-        const el = document.getElementById(`page-${p}`);
-        if (el) { el.style.display = 'none'; el.classList.remove('active'); }
-      }
-    });
-  }
-
-  // Actualizar estado activo del bottom nav
-  document.querySelectorAll('.gbn-item[id^="gbn-"]').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  const activeBtn = document.getElementById(`gbn-${page}`);
-  if (activeBtn) activeBtn.classList.add('active');
-
-  // Cargar info de la app cuando se navega a esa sección
-  if (page === 'app') loadGuestAppInfo();
-}
-
-async function loadGuestAppInfo() {
-  const card = document.getElementById('guestAppCard');
-  if (!card) return;
-
-  card.innerHTML = `<div class="gac-loading"><div class="gac-spinner"></div><span>Verificando versión…</span></div>`;
-
-  try {
-    const res  = await fetch('/api/app/Update/app');
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      const code = data.code || '';
-      if (code === 'APP_SUSPENDED') {
-        card.innerHTML = buildAppCard({ error: 'La aplicación está suspendida temporalmente.' });
-      } else if (code === 'APP_MAINTENANCE') {
-        card.innerHTML = buildAppCard({ error: 'La aplicación está en mantenimiento. Vuelve pronto.' });
-      } else {
-        card.innerHTML = buildAppCard({ error: data.message || 'Error al consultar la versión.' });
-      }
-      return;
-    }
-
-    card.innerHTML = buildAppCard({ info: data });
-  } catch (e) {
-    card.innerHTML = buildAppCard({ error: 'Error de conexión. Verifica tu internet.' });
-  }
-}
-
-function buildAppCard({ info, error }) {
-  if (error) {
-    return `<div style="text-align:center;padding:32px 16px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#e5484d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="40" height="40" style="margin-bottom:12px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <div class="list-empty-title" style="margin-bottom:6px">No disponible</div>
-      <div class="list-empty-sub">${escapeHtml(error)}</div>
-    </div>`;
-  }
-
-  const d           = info?.data || {};
-  const needsUpdate = info?.updateRequired === true;
-  const badge       = needsUpdate
-    ? `<span class="gac-badge outdated">Actualización disponible</span>`
-    : `<span class="gac-badge updated">Al día</span>`;
-  const downloads   = (d.downloads || 0).toLocaleString('es');
-
-  return `<div class="gac-body">
-    ${badge}
-    <div class="gac-version-row">
-      <span>${escapeHtml(d.version || '—')}</span>
-      <span class="gac-version-lbl">versión actual</span>
-    </div>
-    <div class="gac-divider"></div>
-    <div class="gac-stat"><span class="gac-stat-lbl">Descargas</span><span class="gac-stat-val">${downloads}</span></div>
-    <div class="gac-divider"></div>
-    <a class="gac-download-btn" href="${escapeHtml(d.appUrl || '#')}" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 2a7 7 0 0 1 4.96 11.96L21 18H3l4.04-4.04A7 7 0 0 1 12 2z" style="display:none"/><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M12 12v5"/><path d="m9.5 14.5 2.5 2.5 2.5-2.5"/></svg>
-      Descargar Nubifly
-    </a>
-    <p class="gac-register-hint">¿Quieres más funciones? <a href="/login">Crea tu cuenta</a></p>
-  </div>`;
 }
 
 window.addEventListener('DOMContentLoaded', init);
