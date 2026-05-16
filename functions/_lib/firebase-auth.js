@@ -12,11 +12,12 @@ import { getFirebaseToken } from './firebase.js';
 
 // Sincroniza un usuario con Firebase Authentication.
 //
+// kind === 'guest'    → crea usuario anónimo (sin email) con localId fijo.
 // kind === 'password' → primero intenta signUp con la contraseña en claro,
 //                       si la cuenta ya existe cae a update.
 // kind === 'google'   → vincula el provider google.com.
 //
-// Returns { ok: true, action: 'created' | 'updated' } on success,
+// Returns { ok: true, action: 'created' | 'updated' | 'exists' } on success,
 //         { ok: false, reason, status?, code?, detail? } on failure.
 export async function syncFirebaseAuthUser(env, info) {
   if (!env.FIREBASE_SERVICE_ACCOUNT) {
@@ -41,6 +42,36 @@ export async function syncFirebaseAuthUser(env, info) {
   }
 
   const base = `https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts`;
+
+  // ── Guest: crear usuario anónimo sin email ─────────────────────────────
+  if (info.kind === 'guest') {
+    const guestBody = {
+      localId:     info.uid,
+      displayName: info.displayName || 'Invitado',
+      disabled:    false
+    };
+    let resp;
+    try {
+      resp = await fetch(base, {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify(guestBody)
+      });
+    } catch (e) {
+      return { ok: false, reason: 'Error de red llamando a Identity Toolkit (guest).', detail: e.message };
+    }
+    if (resp.ok) return { ok: true, action: 'created', projectId };
+    const errBody = await resp.json().catch(() => ({}));
+    const code    = errBody?.error?.message || '';
+    if (/DUPLICATE_LOCAL_ID/.test(code)) return { ok: true, action: 'exists', projectId };
+    return {
+      ok: false,
+      reason: 'Guest signUp rechazado por Firebase Authentication.',
+      status: resp.status,
+      code,
+      detail: errBody?.error?.errors?.[0]?.message || ''
+    };
+  }
 
   const baseBody = {
     localId:       info.uid,

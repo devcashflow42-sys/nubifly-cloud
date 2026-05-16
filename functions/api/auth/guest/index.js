@@ -6,9 +6,10 @@
  * Los datos del invitado se guardan en users/{guestId} y
  * la sesión en guestSessions/{guestId} para invalidación remota.
  */
-import { signJwt }              from '../../../_lib/crypto.js';
-import { fbGet, fbUpdate }      from '../../../_lib/firebase.js';
-import { jsonRes, fail }        from '../../../_lib/response.js';
+import { signJwt }                from '../../../_lib/crypto.js';
+import { fbGet, fbUpdate }        from '../../../_lib/firebase.js';
+import { syncFirebaseAuthUser }   from '../../../_lib/firebase-auth.js';
+import { jsonRes, fail }          from '../../../_lib/response.js';
 
 const GUEST_TTL_MS       = 24 * 60 * 60 * 1000; // 24 h
 const RATE_LIMIT_WINDOW  = 60 * 60 * 1000;       // 1 h
@@ -95,6 +96,11 @@ export async function onRequestPost(context) {
     console.error('[guest] fbUpdate:', e.message);
     return jsonRes(fail('Error al guardar sesión.', 'DB_ERROR'), 500);
   }
+
+  // Best-effort sync to Firebase Authentication (no bloquea la respuesta)
+  syncFirebaseAuthUser(env, { kind: 'guest', uid: guestId, displayName: 'Invitado' })
+    .then(r => { if (!r.ok) console.warn('[guest] syncFirebaseAuthUser:', r.reason, r.code || ''); })
+    .catch(e => console.warn('[guest] syncFirebaseAuthUser throw:', e.message));
 
   return jsonRes({
     success:   true,
