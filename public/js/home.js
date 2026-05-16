@@ -1721,9 +1721,6 @@ async function init() {
 
   if (isGuest) {
     updateUserUI({ name: 'Invitado', type: 'guest' });
-    const nav = document.getElementById('guestBottomNav');
-    if (nav) nav.style.display = 'flex';
-    document.body.classList.add('guest-mode');
     return;
   }
 
