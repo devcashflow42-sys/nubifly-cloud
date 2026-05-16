@@ -36,10 +36,12 @@ const SIGNING_EXEMPT_PATHS = [
   '/api/auth/refresh',
   '/api/auth/google',
   '/api/auth/github',
+  '/api/auth/guest',  // sesiones de invitado (create / verify / upgrade)
   '/api/health',
   '/api/health/',
   '/api/admin',   // protegido por JWT+role admin, no necesita HMAC
   '/api/users',   // endpoint público de bienvenida y perfiles públicos
+  '/api/app',     // versión y estado de la aplicación (público)
 ];
 
 function isExemptFromSigning(pathname) {

@@ -277,6 +277,40 @@ el('fTerms').addEventListener('change', function () {
   checkReady();
 });
 
+/* ─── Continuar como invitado ─────────── */
+
+async function handleGuestLogin() {
+  const btn = el('btnGuest');
+  if (!btn || btn.classList.contains('loading')) return;
+
+  btn.classList.add('loading');
+  btn.textContent = 'Creando sesión…';
+
+  try {
+    const res = await fetch('/api/auth/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success || !data.token) {
+      throw new Error(data.message || 'No se pudo crear la sesión de invitado.');
+    }
+
+    // Guardar sesión de invitado usando el mismo sistema de sesión
+    NubiflyAPI.setSession(data.token, data.user, data.guestId, null);
+
+    sessionStorage.removeItem('_nf_home_redir');
+    window.location.replace('/home');
+  } catch (err) {
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> Continuar como invitado`;
+
+    const hint = el('hintEmail');
+    if (hint) {
+      hint.textContent = err.message || 'Error de conexión. Inténtalo de nuevo.';
+      hint.className   = 'field-hint err';
+    }
+  }
+}
+
 /* ─── Submit ─────────────────────────── */
 
 /* ─── Submit — conectado al backend ─────────────────────────────────────── */
