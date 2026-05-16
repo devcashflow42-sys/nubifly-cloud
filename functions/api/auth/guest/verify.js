@@ -6,9 +6,9 @@
  * Verifica: firma JWT, expiración, hash del token en Firebase,
  * expiración de la sesión y estado de suspensión.
  */
-import { verifyJwt }       from '../../../../_lib/crypto.js';
-import { fbGet, fbUpdate } from '../../../../_lib/firebase.js';
-import { jsonRes, fail }   from '../../../../_lib/response.js';
+import { verifyJwt }       from '../../../_lib/crypto.js';
+import { fbGet, fbUpdate } from '../../../_lib/firebase.js';
+import { jsonRes, fail }   from '../../../_lib/response.js';
 
 async function sha256hex(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));

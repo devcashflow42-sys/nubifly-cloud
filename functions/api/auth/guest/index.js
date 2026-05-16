@@ -6,9 +6,9 @@
  * Los datos del invitado se guardan en users/{guestId} y
  * la sesión en guestSessions/{guestId} para invalidación remota.
  */
-import { signJwt }              from '../../../../_lib/crypto.js';
-import { fbGet, fbUpdate }      from '../../../../_lib/firebase.js';
-import { jsonRes, fail }        from '../../../../_lib/response.js';
+import { signJwt }              from '../../../_lib/crypto.js';
+import { fbGet, fbUpdate }      from '../../../_lib/firebase.js';
+import { jsonRes, fail }        from '../../../_lib/response.js';
 
 const GUEST_TTL_MS       = 24 * 60 * 60 * 1000; // 24 h
 const RATE_LIMIT_WINDOW  = 60 * 60 * 1000;       // 1 h

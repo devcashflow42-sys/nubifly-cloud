@@ -11,8 +11,8 @@
  *
  * Auto-crea appConfig en Firebase si no existe (solo la primera vez).
  */
-import { fbGet, fbUpdate } from '../../../../_lib/firebase.js';
-import { jsonRes, fail }   from '../../../../_lib/response.js';
+import { fbGet, fbUpdate } from '../../../_lib/firebase.js';
+import { jsonRes, fail }   from '../../../_lib/response.js';
 
 const DEFAULT_CONFIG = {
   version:     '1.0',

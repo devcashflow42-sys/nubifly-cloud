@@ -7,10 +7,10 @@
  * Convierte el uid del invitado en un usuario real (mismo uid),
  * invalida la sesión de invitado y emite accessToken + refreshToken.
  */
-import { verifyJwt, signJwt, hashPassword } from '../../../../_lib/crypto.js';
-import { fbGet, fbUpdate }                  from '../../../../_lib/firebase.js';
-import { toEmailKey, toEmailNormal }        from '../../../../_lib/helpers.js';
-import { jsonRes, fail }                    from '../../../../_lib/response.js';
+import { verifyJwt, signJwt, hashPassword } from '../../../_lib/crypto.js';
+import { fbGet, fbUpdate }                  from '../../../_lib/firebase.js';
+import { toEmailKey, toEmailNormal }        from '../../../_lib/helpers.js';
+import { jsonRes, fail }                    from '../../../_lib/response.js';
 
 async function sha256hex(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
