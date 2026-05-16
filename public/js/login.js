@@ -279,34 +279,56 @@ el('fTerms').addEventListener('change', function () {
 
 /* ─── Continuar como invitado ─────────── */
 
+const GUEST_BTN_HTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Continuar como invitado`;
+const GUEST_LOADING_HTML = `<span class="guest-spinner"></span>Creando sesión…`;
+
 async function handleGuestLogin() {
   const btn = el('btnGuest');
   if (!btn || btn.classList.contains('loading')) return;
 
+  // Estado de carga
   btn.classList.add('loading');
-  btn.textContent = 'Creando sesión…';
+  btn.innerHTML = GUEST_LOADING_HTML;
 
   try {
-    const res = await fetch('/api/auth/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-    const data = await res.json().catch(() => ({}));
+    const res = await fetch('/api/auth/guest', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    let data = {};
+    try { data = await res.json(); } catch { /* ignore parse error */ }
 
     if (!res.ok || !data.success || !data.token) {
-      throw new Error(data.message || 'No se pudo crear la sesión de invitado.');
+      const msg = data?.message || (res.status === 429
+        ? 'Demasiados intentos. Espera un momento.'
+        : res.status === 503
+          ? 'Servicio no disponible. Inténtalo de nuevo.'
+          : 'No se pudo crear la sesión de invitado.');
+      throw new Error(msg);
     }
 
-    // Guardar sesión de invitado usando el mismo sistema de sesión
-    NubiflyAPI.setSession(data.token, data.user, data.guestId, null);
+    // Guardar sesión en localStorage directamente (defensivo)
+    try {
+      localStorage.setItem('nf_token', data.token);
+      localStorage.setItem('nf_uid',   data.guestId || '');
+      localStorage.setItem('nf_user',  JSON.stringify(data.user || {}));
+      localStorage.removeItem('nf_refresh_token');
+    } catch { /* localStorage puede estar bloqueado en modo privado */ }
 
     sessionStorage.removeItem('_nf_home_redir');
     window.location.replace('/home');
-  } catch (err) {
-    btn.classList.remove('loading');
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> Continuar como invitado`;
 
-    const hint = el('hintEmail');
-    if (hint) {
-      hint.textContent = err.message || 'Error de conexión. Inténtalo de nuevo.';
-      hint.className   = 'field-hint err';
+  } catch (err) {
+    // Restaurar botón
+    btn.classList.remove('loading');
+    btn.innerHTML = GUEST_BTN_HTML;
+
+    // Mostrar error debajo del email (visible sin scroll)
+    const errEl = el('hintEmail') || el('hintPw');
+    if (errEl) {
+      errEl.textContent = err.message;
+      errEl.className   = 'field-hint err';
     }
   }
 }
