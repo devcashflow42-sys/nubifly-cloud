@@ -6,7 +6,7 @@
 .navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:calc(env(safe-area-inset-top, 0px) + 14px) 40px 14px;display:flex;align-items:center;justify-content:space-between;background:transparent;border-bottom:1px solid transparent;max-width:100%;transition:background .35s ease,border-color .35s ease,backdrop-filter .35s ease,-webkit-backdrop-filter .35s ease;backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 .navbar.scrolled{background:rgba(255,255,255,0.85);border-bottom:1px solid rgba(208,215,222,0.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:0 2px 12px rgba(0,0,0,0.04)}
 .nav-inner{width:100%;max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:var(--font-display);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--text)}.logo span{color:var(--accent)}
+.logo{font-family:var(--font-display);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--text);display:flex;align-items:center;gap:8px}
 .nav-links{display:flex;gap:28px;align-items:center}
 .nav-links a{color:var(--text-dim);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .3s}.nav-links a:hover{color:var(--text)}
 .btn-nav{padding:10px 24px;border-radius:50px;border:none;cursor:pointer;font-family:var(--font-body);font-size:.875rem;font-weight:600;transition:all .3s}
@@ -295,7 +295,6 @@ section{padding:100px 24px;background:var(--bg);color-scheme:light}
 .footer-logo-mark{width:44px;height:44px;flex:0 0 44px;border-radius:12px;overflow:hidden;display:block;background:transparent}
 .footer-logo-mark img{width:44px;height:44px;object-fit:cover;display:block;border-radius:12px}
 .footer-logo-text{font-family:var(--font-display);font-size:1.4rem;font-weight:700;letter-spacing:-.03em;line-height:1}
-.footer-logo-text span{color:#6078da}
 .footer-tagline{font-size:.97rem;color:rgba(245,244,240,.6);font-weight:500;text-align:right;max-width:360px;line-height:1.55;margin:0;font-style:italic}
 .footer-main{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:40px;padding:40px 0 32px;border-bottom:1px solid rgba(255,255,255,.07)}
 .footer-col{display:flex;flex-direction:column;gap:10px}
