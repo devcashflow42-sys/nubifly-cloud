@@ -2,482 +2,960 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Nubifly — Impulsando experiencias conectadas</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
-
-  <!-- Color de barras en Android/iOS -->
-  <meta name="theme-color" content="#f5f5f5">
-  <meta name="color-scheme" content="light">
-
-  <!-- Modo app móvil -->
+  <!-- Color base de las barras del sistema (StatusBar / NavigationBar) -->
+  <!-- Cambia SOLO este valor para teñir ambas barras. Para un look claro usa #f9f9f8 -->
+  <meta name="theme-color" content="#fafafa">
+  <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nubifly">
+  <meta name="application-name" content="Nubifly">
 
-  <!-- SEO principal -->
-  <title>Nubifly — Publica documentos y archivos en la nube</title>
-  <meta name="description" content="Nubifly te permite subir, publicar y compartir documentos y archivos en la nube de forma rápida, segura y sencilla.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
-  <!-- Open Graph: WhatsApp, Facebook, Telegram, LinkedIn -->
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Nubifly">
-  <meta property="og:title" content="Nubifly — Publica documentos y archivos">
-  <meta property="og:description" content="Sube, guarda y comparte archivos en la nube con Nubifly. Rápido, seguro y fácil de usar.">
-  <meta property="og:url" content="https://nubifly.com">
-  <meta property="og:image" content="/assets/icons/icon.png">
-  <meta property="og:image:secure_url" content="/assets/icons/icon.png">
-  <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Nubifly — Publica documentos y archivos en la nube">
-
-  <!-- Twitter / X -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Nubifly — Publica documentos y archivos">
-  <meta name="twitter:description" content="Publica y comparte tus archivos en la nube con Nubifly.">
-  <meta name="twitter:image" content="/assets/icons/icon.png">
-
-  <!-- Manifest e iconos -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/assets/icons/icon.png">
-
-  <!-- Fuentes -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,700&display=swap" as="style">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
-
-<style>
-    .skip-link{position:fixed;top:-100%;left:50%;transform:translateX(-50%);z-index:9999;padding:12px 24px;background:#000;color:#fff;border-radius:0 0 12px 12px;font-size:14px;font-weight:600;text-decoration:none;transition:top .2s}
-    .skip-link:focus{top:0;outline:2px solid #6078da;outline-offset:2px}
-  </style>
-  <!-- Estilos -->
-  <link rel="stylesheet" href="css/variables.css">
+  <!-- Styles -->
   <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/bars.css">
 </head>
+<body>
 
-<!-- ═══ NAVBAR ═══ -->
-<a href="#main-content" class="skip-link">Saltar al contenido</a>
-<div id="navbar-root"></div>
+<!-- ─── NAV ─── -->
+<nav id="nav">
+  <div class="nav-top">
+    <a href="#" class="nav-brand">
+      <div class="brand-mark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+          <path fill="white" d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5c0-2.64-2.05-4.78-4.65-4.96z"/>
+        </svg>
+      </div>
+      Nubifly
+    </a>
+    <ul class="nav-links">
+      <li><a href="#plataforma">Plataforma</a></li>
+      <li><a href="#proceso">Funciones</a></li>
+      <li><a href="#api">API</a></li>
+      <li><a href="#precios">Precios</a></li>
+      <li><a href="#faq">Preguntas</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="/login" class="btn-nav-ghost">Iniciar sesión</a>
+      <a href="/register" class="btn-nav-primary">Comenzar</a>
+    </div>
+  </div>
+</nav>
 
-<!-- ═══ HERO ═══ -->
-<main id="main-content">
+<!-- ─── HERO ─── -->
 <section class="hero">
-  <div class="hero-badge"><span class="dot"></span> Plataforma Cloud Activa</div>
+  <canvas id="particles-canvas"></canvas>
+  <div class="hero-deco-circle deco-1"></div>
+  <div class="hero-deco-circle deco-2"></div>
+  <div class="hero-deco-circle deco-3"></div>
 
-  <div class="hero-illustration">
-    <div class="net-card">
-      <svg class="net-svg" viewBox="0 0 560 250" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path class="net-line" d="M84 50 Q160 70 235 120" stroke="#5b4cdb28" stroke-width="1.4" fill="none"/>
-        <path class="net-line" d="M479 50 Q400 70 325 120" stroke="#5b4cdb28" stroke-width="1.4" fill="none" style="animation-delay:.3s"/>
-        <path class="net-line" d="M84 204 Q160 180 235 125" stroke="#5b4cdb28" stroke-width="1.4" fill="none" style="animation-delay:.6s"/>
-        <path class="net-line" d="M479 204 Q400 180 325 125" stroke="#5b4cdb28" stroke-width="1.4" fill="none" style="animation-delay:.9s"/>
-        <line x1="55" y1="122" x2="235" y2="122" stroke="#e2e0da" stroke-width="1"/>
-        <line x1="325" y1="122" x2="505" y2="122" stroke="#e2e0da" stroke-width="1"/>
-        <g class="net-center-wrap">
-          <g class="net-center">
-            <rect x="245" y="88" width="70" height="70" rx="18" fill="#ededfc" stroke="#5b4cdb25" stroke-width="1.2"/>
-            <path d="M280 103 L296 112 L296 130 L280 139 L264 130 L264 112 Z" stroke="#5b4cdb" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-            <path d="M264 112 L280 121 L296 112" stroke="#5b4cdb" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-            <line x1="280" y1="121" x2="280" y2="139" stroke="#5b4cdb" stroke-width="1.8"/>
-          </g>
-        </g>
-        <g class="net-node"><circle cx="80" cy="34" r="4" fill="#5b4cdb" opacity=".15"/></g>
-        <g class="net-node"><circle cx="480" cy="34" r="4" fill="#2ba87e" opacity=".15"/></g>
-        <g class="net-node"><circle cx="480" cy="220" r="4" fill="#5b4cdb" opacity=".15"/></g>
-        <g class="net-node"><circle cx="80" cy="220" r="4" fill="#2ba87e" opacity=".15"/></g>
-        <circle cx="170" cy="90" r="3" fill="#5b4cdb" opacity=".25"/><circle cx="390" cy="90" r="3" fill="#5b4cdb" opacity=".2"/>
-        <circle cx="170" cy="152" r="3" fill="#2ba87e" opacity=".25"/><circle cx="390" cy="152" r="3" fill="#5b4cdb" opacity=".2"/>
-        <g class="tt1"><rect x="28" y="18" width="112" height="32" rx="16" fill="#ffffff" stroke="#e2e0da"/><circle cx="44" cy="34" r="9" fill="#e6f5ef"/><path d="M40 34 L43 37 L49 30" stroke="#2ba87e" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="92" y="38" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10.5" font-weight="700" fill="#5b4cdb">Conectado</text></g>
-        <g class="tt2"><rect x="426" y="18" width="106" height="32" rx="16" fill="#ffffff" stroke="#e2e0da"/><circle cx="442" cy="34" r="9" fill="#e6f5ef"/><circle cx="442" cy="34" r="4" fill="#2ba87e"/><text x="488" y="38" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10.5" font-weight="700" fill="#2ba87e">Activo</text></g>
-        <g class="tt3"><rect x="426" y="204" width="106" height="32" rx="16" fill="#ffffff" stroke="#e2e0da"/><circle cx="442" cy="220" r="9" fill="#ededfc"/><path d="M442 214 L448 217 V221 C448 225 445 227 442 228 C439 227 436 225 436 221 V217 Z" stroke="#5b4cdb" stroke-width="1.6" fill="none" stroke-linejoin="round"/><text x="488" y="224" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10.5" font-weight="700" fill="#5b4cdb">Seguro</text></g>
-        <g class="tt4"><rect x="28" y="204" width="116" height="32" rx="16" fill="#ffffff" stroke="#e2e0da"/><circle cx="44" cy="220" r="9" fill="#e6f5ef"/><path d="M44 214 L49 220 L44 226 L39 220 Z" fill="#2ba87e"/><text x="94" y="224" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10.5" font-weight="700" fill="#2ba87e">Verificado</text></g>
-        <g class="tt5"><rect x="218" y="160" width="124" height="32" rx="16" fill="#ffffff" stroke="#e2e0da"/><circle cx="236" cy="176" r="9" fill="#ededfc"/><path d="M231 176 L235 172 M231 176 L235 180 M241 172 L245 176 M241 180 L245 176" stroke="#5b4cdb" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="292" y="180" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10.5" font-weight="700" fill="#5b4cdb">Nubifly API</text></g>
-        <g class="net-cursor"><g transform="translate(-2,-2)"><path d="M0 0 L0 17 L4.5 12.5 L8.5 19.5 L11 18 L7 11 L13 11 Z" fill="#3d3d3d" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/></g></g>
-      </svg>
-    </div>
+  <!-- Parallax depth layers (JS-driven) -->
+  <div class="nf-orb" style="width:780px;height:780px;bottom:-200px;left:-220px;opacity:0.7;" data-parallax="0.04"></div>
+  <div class="nf-geo-ring" style="width:320px;height:320px;bottom:8%;right:18%;opacity:0.07;" data-parallax="0.09"></div>
+  <div class="nf-geo-ring" style="width:140px;height:140px;top:22%;left:6%;opacity:0.06;" data-parallax="-0.05"></div>
+
+  <!-- SVG flotante izquierda -->
+  <div class="hero-svg-float svg-left">
+    <svg width="160" height="160" viewBox="0 0 160 160" fill="none" opacity="0.18">
+      <circle cx="80" cy="80" r="70" stroke="#1c1c1a" stroke-width="1" stroke-dasharray="4 8"/>
+      <circle cx="80" cy="80" r="45" stroke="#1c1c1a" stroke-width="0.8" stroke-dasharray="2 6"/>
+      <circle cx="80" cy="80" r="18" stroke="#1c1c1a" stroke-width="1.2"/>
+      <circle cx="80" cy="80" r="5" fill="#1c1c1a"/>
+      <line x1="80" y1="10" x2="80" y2="35" stroke="#1c1c1a" stroke-width="0.8"/>
+      <line x1="80" y1="125" x2="80" y2="150" stroke="#1c1c1a" stroke-width="0.8"/>
+      <line x1="10" y1="80" x2="35" y2="80" stroke="#1c1c1a" stroke-width="0.8"/>
+      <line x1="125" y1="80" x2="150" y2="80" stroke="#1c1c1a" stroke-width="0.8"/>
+    </svg>
   </div>
 
-  <h1>
-    <span class="static-line">Tu sitio web en la nube,</span>
-    <span class="rotating-wrap">
-      <span class="rotating-text" id="rotator">
-        <span class="active">rápido.</span>
-        <span>sin límites.</span>
-        <span>seguro.</span>
-        <span>inteligente.</span>
-        <span>optimizado.</span>
-        <span>listo en segundos.</span>
-        <span>ultra veloz.</span>
-        <span>sin complicaciones.</span>
-        <span>moderno.</span>
-        <span>potente.</span>
-      </span>
-    </span>
-  </h1>
-  <p>Crea sitios, sube archivos y controla el acceso con APIs — todo desde una sola plataforma diseñada para crecer contigo.</p>
-  <div class="hero-cta">
-    <button class="btn-hero btn-hero--fill" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">
-      Comenzar Ahora
-      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </button>
-    <button class="btn-hero btn-hero--outline" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Ver Servicios</button>
+  <!-- SVG flotante derecha -->
+  <div class="hero-svg-float svg-right">
+    <svg width="180" height="180" viewBox="0 0 180 180" fill="none" opacity="0.14">
+      <rect x="20" y="20" width="140" height="140" rx="16" stroke="#1c1c1a" stroke-width="1" stroke-dasharray="3 7"/>
+      <rect x="50" y="50" width="80" height="80" rx="10" stroke="#1c1c1a" stroke-width="0.8"/>
+      <rect x="74" y="74" width="32" height="32" rx="6" fill="#1c1c1a" opacity="0.5"/>
+      <line x1="20" y1="90" x2="50" y2="90" stroke="#1c1c1a" stroke-width="0.8"/>
+      <line x1="130" y1="90" x2="160" y2="90" stroke="#1c1c1a" stroke-width="0.8"/>
+      <line x1="90" y1="20" x2="90" y2="50" stroke="#1c1c1a" stroke-width="0.8"/>
+      <line x1="90" y1="130" x2="90" y2="160" stroke="#1c1c1a" stroke-width="0.8"/>
+      <circle cx="20" cy="20" r="3" fill="#1c1c1a" opacity="0.4"/>
+      <circle cx="160" cy="20" r="3" fill="#1c1c1a" opacity="0.4"/>
+      <circle cx="20" cy="160" r="3" fill="#1c1c1a" opacity="0.4"/>
+      <circle cx="160" cy="160" r="3" fill="#1c1c1a" opacity="0.4"/>
+    </svg>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-tag">
+      <div class="tag-pulse"></div>
+      Nueva generación digital
+    </div>
+    <h1 class="hero-type-h1">
+      <span class="hero-type-line" id="hero-type-line"></span><span class="hero-type-cursor">|</span>
+    </h1>
+    <p class="hero-sub">Nubifly reúne innovación, velocidad y tecnología moderna en una plataforma diseñada para ofrecer experiencias fluidas, inteligentes y adaptadas a una nueva era digital.</p>
+    <div class="hero-btns">
+      <a href="/register" class="btn-primary">Comenzar Ahora →</a>
+      <a href="#plataforma" class="btn-secondary">Ver Servicios</a>
+    </div>
+    <div class="hero-note">Tecnología moderna diseñada para evolucionar constantemente.</div>
   </div>
 </section>
 
-<!-- ═══ LOGOS ═══ -->
-<div class="logos">
-  <p>Confiado por empresas innovadoras</p>
-  <div class="logo-track-wrap">
-    <div class="logo-track">
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/></svg>Microsoft</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>GitHub</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 0h11.377v11.372H0zm12.623 0H24v11.372H12.623zM0 12.623h11.377V24H0zm12.623 0H24V24H12.623z"/></svg>Vercel</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>Apple</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>Twitter / X</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>Meta</span>
-      <!-- duplicado para loop -->
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/></svg>Microsoft</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>GitHub</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</span>
-      <span class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 0h11.377v11.372H0zm12.623 0H24v11.372H12.623zM0 12.623h11.377V24H0zm12.623 0H24V24H12.623z"/></svg>Vercel</span>
+<!-- ─── MARQUEE ─── -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <div class="marquee-item">Videos</div>
+    <div class="marquee-item">Música</div>
+    <div class="marquee-item">Cursos</div>
+    <div class="marquee-item">Programación</div>
+    <div class="marquee-item">Biblioteca</div>
+    <div class="marquee-item">Creadores</div>
+    <div class="marquee-item">Tecnología</div>
+    <div class="marquee-item">Innovación</div>
+    <div class="marquee-item">Videos</div>
+    <div class="marquee-item">Música</div>
+    <div class="marquee-item">Cursos</div>
+    <div class="marquee-item">Programación</div>
+    <div class="marquee-item">Biblioteca</div>
+    <div class="marquee-item">Creadores</div>
+    <div class="marquee-item">Tecnología</div>
+    <div class="marquee-item">Innovación</div>
+  </div>
+</div>
+
+<!-- ─── LOGOS MARQUEE ─── -->
+<div class="logos-sec" id="logos-sec">
+  <div class="logos-caption">
+    <span class="logos-cap">Utilizado por creadores e innovadores de todo el mundo</span>
+  </div>
+
+  <!-- Fila 1 — izquierda a derecha -->
+  <div class="marquee-logos">
+    <div class="ml-track ml-track--fwd">
+      <span class="ml-item">Google</span><span class="ml-dot">·</span>
+      <span class="ml-item">Apple</span><span class="ml-dot">·</span>
+      <span class="ml-item">Microsoft</span><span class="ml-dot">·</span>
+      <span class="ml-item">Amazon</span><span class="ml-dot">·</span>
+      <span class="ml-item">Meta</span><span class="ml-dot">·</span>
+      <span class="ml-item">Netflix</span><span class="ml-dot">·</span>
+      <span class="ml-item">Spotify</span><span class="ml-dot">·</span>
+      <span class="ml-item">Estin</span><span class="ml-dot">·</span>
+      <span class="ml-item">Velora</span><span class="ml-dot">·</span>
+      <span class="ml-item">Samsung</span><span class="ml-dot">·</span>
+      <!-- duplicate -->
+      <span class="ml-item">Google</span><span class="ml-dot">·</span>
+      <span class="ml-item">Apple</span><span class="ml-dot">·</span>
+      <span class="ml-item">Microsoft</span><span class="ml-dot">·</span>
+      <span class="ml-item">Amazon</span><span class="ml-dot">·</span>
+      <span class="ml-item">Meta</span><span class="ml-dot">·</span>
+      <span class="ml-item">Netflix</span><span class="ml-dot">·</span>
+      <span class="ml-item">Spotify</span><span class="ml-dot">·</span>
+      <span class="ml-item">Estin</span><span class="ml-dot">·</span>
+      <span class="ml-item">Velora</span><span class="ml-dot">·</span>
+      <span class="ml-item">Samsung</span><span class="ml-dot">·</span>
+    </div>
+  </div>
+
+  <!-- Fila 2 — derecha a izquierda -->
+  <div class="marquee-logos">
+    <div class="ml-track ml-track--rev">
+      <span class="ml-item">CardDef</span><span class="ml-dot">·</span>
+      <span class="ml-item">Tesla</span><span class="ml-dot">·</span>
+      <span class="ml-item">Adobe</span><span class="ml-dot">·</span>
+      <span class="ml-item">haste.</span><span class="ml-dot">·</span>
+      <span class="ml-item">Nvidia</span><span class="ml-dot">·</span>
+      <span class="ml-item">Market_</span><span class="ml-dot">·</span>
+      <span class="ml-item">Shopify</span><span class="ml-dot">·</span>
+      <span class="ml-item">Conform</span><span class="ml-dot">·</span>
+      <span class="ml-item">Airbnb</span><span class="ml-dot">·</span>
+      <span class="ml-item">Stripe</span><span class="ml-dot">·</span>
+      <!-- duplicate -->
+      <span class="ml-item">CardDef</span><span class="ml-dot">·</span>
+      <span class="ml-item">Tesla</span><span class="ml-dot">·</span>
+      <span class="ml-item">Adobe</span><span class="ml-dot">·</span>
+      <span class="ml-item">haste.</span><span class="ml-dot">·</span>
+      <span class="ml-item">Nvidia</span><span class="ml-dot">·</span>
+      <span class="ml-item">Market_</span><span class="ml-dot">·</span>
+      <span class="ml-item">Shopify</span><span class="ml-dot">·</span>
+      <span class="ml-item">Conform</span><span class="ml-dot">·</span>
+      <span class="ml-item">Airbnb</span><span class="ml-dot">·</span>
+      <span class="ml-item">Stripe</span><span class="ml-dot">·</span>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="logos-cta-center">
+    <div class="logos-cta-badge">
+      <div class="pulse-dot"></div>
+      <span>¿Tu empresa aún no está aquí?</span>
+    </div>
+    <a href="/register" class="logos-cta-btn">Únete a la nube sin fallas →</a>
+  </div>
+</div>
+
+<!-- ─── PROCESO ─── -->
+<div class="process-bg section" id="proceso">
+  <!-- Parallax decorations -->
+  <div class="nf-orb" style="width:540px;height:540px;top:-130px;right:-140px;" data-parallax="0.19"></div>
+  <div class="nf-orb" style="width:300px;height:300px;bottom:-90px;left:-60px;" data-parallax="-0.13"></div>
+  <div class="nf-geo-ring" style="width:210px;height:210px;top:60px;left:5%;opacity:0.08;" data-parallax="0.08"></div>
+  <div class="nf-geo-ring" style="width:88px;height:88px;bottom:110px;right:9%;opacity:0.07;" data-parallax="-0.06"></div>
+  <div class="nf-geo-cross" style="top:18%;left:48%;transform:rotate(28deg);"></div>
+  <div class="nf-geo-cross" style="bottom:22%;right:32%;transform:rotate(-14deg);"></div>
+  <div class="sec-wrap">
+    <div class="reveal">
+      <div class="sec-label">Lo que puedes hacer</div>
+      <h2 class="sec-h">Todo lo que puedes <em>hacer</em> en Nubifly</h2>
+      <p class="sec-p">Nubifly te da las herramientas para publicar, organizar y compartir tu contenido digital de forma rápida, simple y segura.</p>
+    </div>
+    <div class="steps-row reveal rd1">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-arrow">→</div>
+        <div class="step-title">Publicar archivos</div>
+        <div class="step-desc">Sube fotos, videos, documentos y cualquier tipo de archivo directamente desde tu dispositivo. Nubifly admite múltiples formatos con almacenamiento rápido y seguro en la nube.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-arrow">→</div>
+        <div class="step-title">Crear proyectos</div>
+        <div class="step-desc">Organiza todo tu contenido en proyectos personalizados. Agrupa archivos, videos, imágenes y documentos en espacios de trabajo ordenados y fáciles de gestionar.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-title">Compartir fácilmente</div>
+        <div class="step-desc">Comparte archivos, carpetas o enlaces directos con otros usuarios sin complicaciones. Controla quién puede ver, descargar o colaborar en cada elemento de tu biblioteca.</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ═══ STATS ═══ -->
-<div class="stats reveal">
-  <div class="stats-grid">
-    <div class="stat-item"><div class="stat-num" data-target="2500">0</div><div class="stat-label">Sitios Creados</div></div>
-    <div class="stat-item"><div class="stat-num" data-target="99.9">0</div><div class="stat-label">% Uptime</div></div>
-    <div class="stat-item"><div class="stat-num" data-target="180">0</div><div class="stat-label">Países</div></div>
-    <div class="stat-item"><div class="stat-num" data-target="50">0</div><div class="stat-label">TB Almacenados</div></div>
+<!-- ─── PLATAFORMA / CARACTERÍSTICAS ─── -->
+<div class="section" id="plataforma">
+  <div class="sec-wrap">
+    <div class="reveal">
+      <div class="sec-label">La plataforma</div>
+      <h2 class="sec-h">Todo lo que necesitas <em>en un solo lugar</em></h2>
+      <p class="sec-p">Nubifly centraliza herramientas, contenido y experiencias digitales en un ecosistema unificado, rápido y diseñado para el futuro.</p>
+    </div>
+    <div class="features-grid reveal rd1">
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e2e2c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="feat-title">Contenido sin límites</div>
+        <div class="feat-desc">Accede a videos, música, cursos y recursos de programación desde una sola interfaz rápida, limpia y optimizada para cualquier dispositivo.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e2e2c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+        </div>
+        <div class="feat-title">Velocidad en tiempo real</div>
+        <div class="feat-desc">Infraestructura de alto rendimiento que garantiza tiempos de carga mínimos, transmisión fluida y una experiencia sin interrupciones en todo momento.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e2e2c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="feat-title">Plataforma inteligente</div>
+        <div class="feat-desc">Algoritmos adaptativos que personalizan la experiencia de cada usuario basándose en sus preferencias, hábitos y objetivos de aprendizaje y creación.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e2e2c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <div class="feat-title">Comunidad de creadores</div>
+        <div class="feat-desc">Conecta con una comunidad global de creadores, desarrolladores y aprendices que comparten conocimiento, proyectos e ideas en un entorno colaborativo.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e2e2c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="feat-title">Seguridad avanzada</div>
+        <div class="feat-desc">Protección de datos de nivel empresarial con cifrado de extremo a extremo, autenticación segura y controles de privacidad totalmente personalizables.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e2e2c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <div class="feat-title">Analítica profunda</div>
+        <div class="feat-desc">Paneles de control detallados con métricas de consumo, crecimiento de audiencia e indicadores de rendimiento para optimizar tu presencia digital.</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ═══ HOW IT WORKS ═══ -->
-<section class="steps" id="steps">
-  <div class="section-label"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Cómo Funciona</div>
-  <div class="section-title" style="margin:0 auto">Listo en 3 simples pasos.</div>
-  <div class="section-sub" style="margin:14px auto 0">Desde la idea hasta tu sitio en producción, en minutos.</div>
-  <div class="steps-grid">
-    <div class="step-card reveal">
-      <div class="step-connector"></div>
-      <div class="step-num">1</div>
-      <h3>Crea tu Cuenta</h3>
-      <p>Regístrate gratis y accede al panel de control. Sin tarjeta de crédito requerida.</p>
+<!-- ─── API SECTION ─── -->
+<div class="api-sec section" id="api">
+  <div class="sec-wrap">
+    <div class="reveal">
+      <div class="sec-label">Documentación</div>
+      <h2 class="sec-h">Nubifly <em>para desarrolladores</em></h2>
+      <p class="sec-p">Integra Nubifly en tus aplicaciones con nuestra API moderna. Accede a publicaciones, usuarios y contenido de forma segura mediante tu clave personal.</p>
     </div>
-    <div class="step-card reveal reveal-delay-1">
-      <div class="step-connector"></div>
-      <div class="step-num">2</div>
-      <h3>Sube tu Proyecto</h3>
-      <p>Arrastra tus archivos o usa nuestro constructor visual para crear tu sitio al instante.</p>
-    </div>
-    <div class="step-card reveal reveal-delay-2">
-      <div class="step-num">3</div>
-      <h3>Despliega y Escala</h3>
-      <p>Tu sitio está en vivo. Usa las APIs para controlar acceso y escalar sin límites.</p>
+    <div class="api-layout">
+
+      <!-- Info columna izquierda -->
+      <div class="api-info reveal rd1">
+        <div class="api-endpoint-box">
+          <span class="api-method">GET</span>
+          <span class="api-url">https://nubifly.com/api/user/publications</span>
+        </div>
+        <div class="api-steps">
+          <div class="api-step">
+            <div class="api-step-num">1</div>
+            <div>
+              <div class="api-step-title">Obtén tu API Key</div>
+              <div class="api-step-desc">Regístrate en Nubifly y genera tu clave única desde el panel de configuración. Cada usuario recibe una clave personal e intransferible.</div>
+            </div>
+          </div>
+          <div class="api-step">
+            <div class="api-step-num">2</div>
+            <div>
+              <div class="api-step-title">Incluye la clave en el encabezado</div>
+              <div class="api-step-desc">Envía tu API Key en cada solicitud usando el header <code style="font-size:12px;background:var(--gray-50);padding:2px 7px;border-radius:5px;border:1.5px solid var(--border-md)">Authorization: Bearer TU_API_KEY</code> para autenticarte.</div>
+            </div>
+          </div>
+          <div class="api-step">
+            <div class="api-step-num">3</div>
+            <div>
+              <div class="api-step-title">Consulta las publicaciones</div>
+              <div class="api-step-desc">Realiza una solicitud GET al endpoint y recibirás en JSON la lista completa de publicaciones del usuario con todos sus metadatos.</div>
+            </div>
+          </div>
+          <div class="api-step">
+            <div class="api-step-num">4</div>
+            <div>
+              <div class="api-step-title">Sin clave: acceso denegado</div>
+              <div class="api-step-desc">Si no incluyes una API Key válida, recibirás un error <code style="font-size:12px;background:#fff1f2;padding:2px 7px;border-radius:5px;border:1.5px solid #fecdd3;color:#dc2626">401 Unauthorized</code> con un mensaje indicando cómo obtener acceso.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal columna derecha -->
+      <div class="reveal rd2">
+        <div class="terminal">
+          <div class="term-bar">
+            <div class="term-dots">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <div class="term-title">nubifly — api terminal</div>
+          </div>
+          <div class="term-tabs">
+            <div class="term-tab active" onclick="showTab('nokey',this)">Sin API Key</div>
+            <div class="term-tab" onclick="showTab('withkey',this)">Con API Key</div>
+          </div>
+
+          <!-- Panel: Sin API Key -->
+          <div class="term-body" id="tab-nokey">
+            <div class="nokey-banner">
+              <div class="nokey-icon">⚠</div>
+              <div class="nokey-text">
+                <strong>API Key no encontrada</strong>
+                Para usar esta API necesitas autenticarte con una clave válida. Regístrate en nubifly.com para obtener la tuya.
+              </div>
+            </div>
+            <div class="term-line">
+              <span class="term-prompt">$</span>
+              <span class="term-cmd">curl https://nubifly.com/api/user/publications</span>
+            </div>
+            <div style="height:10px"></div>
+            <div class="term-response-box">
+              <div class="term-response-header">
+                <span class="term-error" style="font-weight:700;font-size:11px;letter-spacing:.06em">401 UNAUTHORIZED</span>
+              </div>
+              <div class="term-response-body">
+                <div class="term-line"><span class="term-dim">{</span></div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"status"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"error"</span><span class="term-dim">,</span>
+                </div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"code"</span><span class="term-dim">:</span>&nbsp;<span class="term-num">401</span><span class="term-dim">,</span>
+                </div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"message"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"API Key requerida para acceder a este recurso."</span><span class="term-dim">,</span>
+                </div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"hint"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"Añade tu clave en el header Authorization."</span><span class="term-dim">,</span>
+                </div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"docs"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"https://nubifly.com/docs/auth"</span>
+                </div>
+                <div class="term-line"><span class="term-dim">}</span></div>
+              </div>
+            </div>
+            <div style="height:14px"></div>
+            <div class="term-line">
+              <span class="term-prompt">$</span>
+              <span class="term-cursor"></span>
+            </div>
+          </div>
+
+          <!-- Panel: Con API Key -->
+          <div class="term-body" id="tab-withkey" style="display:none">
+            <div class="term-line">
+              <span class="term-comment"># Solicitud con autenticación</span>
+            </div>
+            <div class="term-line">
+              <span class="term-prompt">$</span>
+              <span class="term-cmd">curl https://nubifly.com/api/user/publications \</span>
+            </div>
+            <div class="term-line" style="padding-left:20px">
+              <span class="term-cmd">-H <span class="term-str">"Authorization: Bearer nf_sk_a1b2c3d4e5f6..."</span></span>
+            </div>
+            <div style="height:10px"></div>
+            <div class="term-response-box">
+              <div class="term-response-header">
+                <span class="term-status-ok">200 OK</span>
+                <span class="term-dim" style="font-size:11px;margin-left:auto">application/json</span>
+              </div>
+              <div class="term-response-body">
+                <div class="term-line"><span class="term-dim">{</span></div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"status"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"success"</span><span class="term-dim">,</span>
+                </div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"total"</span><span class="term-dim">:</span>&nbsp;<span class="term-num">3</span><span class="term-dim">,</span>
+                </div>
+                <div class="term-line term-json-line">
+                  <span class="term-key">"publications"</span><span class="term-dim">: [</span>
+                </div>
+                <div class="term-line" style="padding-left:40px">
+                  <span class="term-dim">{ </span><span class="term-key">"id"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"pub_001"</span><span class="term-dim">, </span><span class="term-key">"type"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"video"</span><span class="term-dim">, </span><span class="term-key">"size"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"48MB"</span><span class="term-dim"> },</span>
+                </div>
+                <div class="term-line" style="padding-left:40px">
+                  <span class="term-dim">{ </span><span class="term-key">"id"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"pub_002"</span><span class="term-dim">, </span><span class="term-key">"type"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"image"</span><span class="term-dim">, </span><span class="term-key">"size"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"3.2MB"</span><span class="term-dim"> },</span>
+                </div>
+                <div class="term-line" style="padding-left:40px">
+                  <span class="term-dim">{ </span><span class="term-key">"id"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"pub_003"</span><span class="term-dim">, </span><span class="term-key">"type"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"document"</span><span class="term-dim">, </span><span class="term-key">"size"</span><span class="term-dim">:</span>&nbsp;<span class="term-str">"1.1MB"</span><span class="term-dim"> }</span>
+                </div>
+                <div class="term-line term-json-line"><span class="term-dim">]</span></div>
+                <div class="term-line"><span class="term-dim">}</span></div>
+              </div>
+            </div>
+            <div style="height:14px"></div>
+            <div class="term-line">
+              <span class="term-success">✓ Autenticación exitosa</span>
+            </div>
+            <div class="term-line">
+              <span class="term-prompt">$</span>
+              <span class="term-cursor"></span>
+            </div>
+          </div>
+
+        </div><!-- /terminal -->
+      </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ═══ FEATURES ═══ -->
-<section class="features" id="features">
-  <div class="section-label"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Servicios</div>
-  <div class="section-title" style="margin:0 auto">Todo lo que necesitas<br>en un solo lugar.</div>
-  <div class="section-sub" style="margin:14px auto 0">Herramientas poderosas para construir, desplegar y escalar tus proyectos digitales.</div>
-  <div class="features-grid">
-    <div class="feat-card reveal">
-      <div class="feat-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4M7 8h3M7 11h5"/></svg></div>
-      <h3>Crea Sitios Fácil y Rápido</h3>
-      <p>Diseña y publica tu página web en minutos con nuestro constructor intuitivo. Sin necesidad de código, con plantillas profesionales listas para usar.</p>
+<!-- ─── PROYECTOS ─── -->
+<div class="projects-bg section" id="proyectos">
+  <!-- Parallax decorations -->
+  <div class="nf-orb" style="width:480px;height:480px;top:-100px;left:-120px;opacity:0.85;" data-parallax="0.22"></div>
+  <div class="nf-orb" style="width:340px;height:340px;bottom:-80px;right:-90px;opacity:0.70;" data-parallax="-0.11"></div>
+  <div class="nf-geo-ring" style="width:270px;height:270px;bottom:50px;right:4%;opacity:0.12;" data-parallax="0.15"></div>
+  <div class="nf-geo-ring" style="width:110px;height:110px;top:80px;right:22%;opacity:0.10;" data-parallax="-0.07"></div>
+  <div class="nf-geo-cross" style="top:14%;right:10%;transform:rotate(45deg);"></div>
+  <div class="sec-wrap">
+    <div class="proj-head reveal">
+      <div>
+        <div class="sec-label">Nuestros proyectos</div>
+        <h2 class="sec-h">Experiencias que hemos <em>construido</em></h2>
+      </div>
+      <a href="#" class="btn-secondary" style="margin-bottom:20px">Ver todos los proyectos →</a>
     </div>
-    <div class="feat-card reveal reveal-delay-1">
-      <div class="feat-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M12 13v5M9.5 15.5 12 18l2.5-2.5"/></svg></div>
-      <h3>Sube a la Nube al Instante</h3>
-      <p>Arrastra, suelta y listo. Sube tus archivos, imágenes y recursos a nuestra nube ultrarrápida con almacenamiento seguro y disponible 24/7.</p>
-    </div>
-    <div class="feat-card reveal reveal-delay-2">
-      <div class="feat-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M8 11l3 3 5-5"/></svg></div>
-      <h3>API para Control de Acceso</h3>
-      <p>Crea y administra APIs personalizadas para controlar quién accede a tus servicios. Autenticación segura, tokens y permisos granulares.</p>
+    <div class="proj-grid reveal rd1">
+      <div class="proj-card hero-card">
+        <div style="flex:1">
+          <div class="proj-tags">
+            <span class="proj-tag feat">Destacado</span>
+            <span class="proj-tag">App Móvil</span>
+            <span class="proj-tag">Plataforma Digital</span>
+          </div>
+          <div class="proj-name">Nubifly Stream</div>
+          <div class="proj-desc">Plataforma de transmisión en tiempo real que permite a creadores compartir contenido multimedia de alta calidad con comunidades globales de forma instantánea.</div>
+          <div class="proj-stats">
+            <div><div class="stat-n" id="c1">0K</div><div class="stat-l">Usuarios activos</div></div>
+            <div><div class="stat-n" id="c2">0s</div><div class="stat-l">Latencia promedio</div></div>
+            <div><div class="stat-n" id="c3">0</div><div class="stat-l">Países alcanzados</div></div>
+          </div>
+          <a href="#" class="proj-link" style="margin-top:16px;display:inline-flex">Ver caso de estudio →</a>
+        </div>
+        <div class="proj-visual">
+          <svg width="120" height="80" viewBox="0 0 120 80" fill="none" opacity="0.4">
+            <rect x="10" y="10" width="100" height="60" rx="8" stroke="#8a8a87" stroke-width="1.5"/>
+            <circle cx="60" cy="40" r="14" stroke="#8a8a87" stroke-width="1.5"/>
+            <polygon points="55,33 55,47 68,40" fill="#8a8a87" opacity="0.5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="proj-card">
+        <div class="proj-tags"><span class="proj-tag">Educación</span><span class="proj-tag">Tecnología</span></div>
+        <div class="proj-name">Nubifly Learn</div>
+        <div class="proj-desc">Plataforma educativa interactiva con cursos de programación, diseño y tecnología, impartidos por expertos de la industria en formato moderno y adaptativo.</div>
+        <a href="#" class="proj-link">Ver caso de estudio →</a>
+      </div>
+      <div class="proj-card">
+        <div class="proj-tags"><span class="proj-tag">Música</span><span class="proj-tag">Creadores</span></div>
+        <div class="proj-name">Nubifly Sound</div>
+        <div class="proj-desc">Ecosistema musical que conecta artistas independientes con oyentes globales, ofreciendo herramientas de distribución, análisis y monetización avanzada.</div>
+        <a href="#" class="proj-link">Ver caso de estudio →</a>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ═══ API DASHBOARD ═══ -->
-<section class="api-section" id="api">
-  <div class="api-inner">
-    <div class="api-left reveal">
-      <div class="section-label">
-        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        API en Vivo
-      </div>
-      <div class="section-title">Integra con cualquier sistema.</div>
-      <div class="section-sub">Conecta Nubifly a tus plataformas favoritas con simples llamadas REST. Tokens seguros, respuestas en milisegundos.</div>
+<!-- ─── COMPARATIVA ─── -->
+<div class="section">
+  <div class="sec-wrap">
+    <div class="reveal">
+      <div class="sec-label">Por qué Nubifly</div>
+      <h2 class="sec-h">Ahorra tiempo, recursos<br><em>y atención</em></h2>
+      <p class="sec-p">Hemos diseñado un modelo que elimina las fricciones más comunes al construir y escalar plataformas digitales modernas.</p>
     </div>
-
-    <div class="api-dashboard reveal reveal-delay-1">
-      <div class="dash-topbar">
-        <div class="dash-dots"><span class="dash-dot"></span><span class="dash-dot"></span><span class="dash-dot"></span></div>
-        <span class="dash-title" id="dash-title">POST /v1/storage/upload</span>
-        <div class="dash-status">Live</div>
+    <div class="comp-grid reveal rd1">
+      <div class="comp-col">
+        <div class="comp-h"><div class="comp-title">Soluciones tradicionales</div></div>
+        <ul class="comp-list">
+          <li class="comp-item"><div class="chk bad"></div>Costos de desarrollo elevados</li>
+          <li class="comp-item"><div class="chk bad"></div>Tiempos de entrega largos</li>
+          <li class="comp-item"><div class="chk bad"></div>Proceso sin estructura clara</li>
+          <li class="comp-item"><div class="chk bad"></div>Sin enfoque en experiencia digital</li>
+          <li class="comp-item"><div class="chk bad"></div>Sin estrategia de escalabilidad</li>
+        </ul>
       </div>
-      <div class="dash-tabs">
-        <button class="dash-tab active" onclick="switchTab(0,this)">Request</button>
-        <button class="dash-tab" onclick="switchTab(1,this)">Response</button>
-        <button class="dash-tab" onclick="switchTab(2,this)">cURL</button>
+      <div class="comp-col">
+        <div class="comp-h"><div class="comp-title">Agencias convencionales</div></div>
+        <ul class="comp-list">
+          <li class="comp-item"><div class="chk bad"></div>Presupuestos muy elevados</li>
+          <li class="comp-item"><div class="chk bad"></div>Proceso rígido y lento</li>
+          <li class="comp-item"><div class="chk bad"></div>Poca adaptabilidad</li>
+          <li class="comp-item"><div class="chk bad"></div>Sin visión de producto digital</li>
+          <li class="comp-item"><div class="chk bad"></div>No centradas en el usuario final</li>
+        </ul>
       </div>
-      <div class="dash-body">
-        <div class="dash-req" id="dash-panel-req">
-          <div class="dash-panel-label">Request Body</div>
-          <code id="dash-code"></code>
+      <div class="comp-col">
+        <div class="comp-h">
+          <div class="comp-title">Nubifly</div>
+          <div class="comp-badge">Mejor opción</div>
         </div>
-        <div class="dash-res" id="dash-panel-res">
-          <div class="res-header">
-            <span class="res-badge">200 OK</span>
-            <span class="res-time">48ms</span>
-          </div>
-          <div class="dash-panel-label">Response</div>
-          <code id="dash-response"></code>
-        </div>
-        <div class="dash-req" id="dash-panel-curl" style="display:none;grid-column:1/-1">
-          <div class="dash-panel-label">cURL</div>
-          <code id="dash-curl"></code>
-        </div>
-        
+        <ul class="comp-list">
+          <li class="comp-item"><div class="chk ok"></div>Valor excepcional y transparente</li>
+          <li class="comp-item"><div class="chk ok"></div>Entrega ágil en 6 semanas</li>
+          <li class="comp-item"><div class="chk ok"></div>Proceso optimizado y claro</li>
+          <li class="comp-item"><div class="chk ok"></div>Foco en experiencia digital</li>
+          <li class="comp-item"><div class="chk ok"></div>Estrategia de crecimiento incluida</li>
+        </ul>
       </div>
-      <div class="dash-metrics">
-        <div class="dash-metric"><span class="metric-val" id="m-latency">48ms</span><span class="metric-label">Latencia</span></div>
-        <div class="dash-metric"><span class="metric-val" id="m-uptime">99.9%</span><span class="metric-label">Uptime</span></div>
-        <div class="dash-metric"><span class="metric-val" id="m-rate">10K/s</span><span class="metric-label">Rate limit</span></div>
-        <div class="dash-metric"><span class="metric-val">TLS 1.3</span><span class="metric-label">Seguridad</span></div>
-      </div>      
-    </div>
-    
-    <div class="api-systems reveal reveal-delay-2">
-      <button class="api-sys-btn active" onclick="switchApi(0,this)">
-        <div class="api-sys-icon" style="background:#e0f4ff"><svg fill="none" stroke="#0ea5e9" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg></div>
-        <div><div class="sys-name">Almacenamiento Cloud</div><div class="sys-desc">Subir y listar archivos en tu bucket</div></div>
-      </button>
-      <button class="api-sys-btn" onclick="switchApi(1,this)">
-        <div class="api-sys-icon" style="background:#e6f5ef"><svg fill="none" stroke="#2ba87e" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></div>
-        <div><div class="sys-name">Control de Acceso</div><div class="sys-desc">Crear tokens y permisos granulares</div></div>
-      </button>
-      <button class="api-sys-btn" onclick="switchApi(2,this)">
-        <div class="api-sys-icon" style="background:#fff0e6"><svg fill="none" stroke="#f97316" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-        <div><div class="sys-name">Deploy de Sitio</div><div class="sys-desc">Publicar y versionar tu sitio web</div></div>
-      </button>
-      <button class="api-sys-btn" onclick="switchApi(3,this)">
-        <div class="api-sys-icon" style="background:#f5f0ff"><svg fill="none" stroke="#8b5cf6" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
-        <div><div class="sys-name">Métricas y Analytics</div><div class="sys-desc">Consultar uso, tráfico y uptime</div></div>
-      </button>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ═══ PRICING ═══ -->
-<section class="pricing" id="pricing">
-  <div class="section-label"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6M2 9h20"/></svg> Planes</div>
-  <div class="section-title" style="margin:0 auto">Planes para cada etapa.</div>
-  <div class="section-sub" style="margin:14px auto 0">Elige el plan ideal y escala cuando lo necesites. Sin contratos.</div>
-  <div class="pricing-cards">
-    <div class="price-card reveal" onclick="selectPlan(this)">
-      <div class="plan-badge">Gratis</div>
-      <div class="plan-name">Starter</div>
-      <div class="plan-price"><span class="free-tag">$0</span></div>
-      <div class="plan-duration">por 3 meses</div>
-      <p class="plan-desc">Ideal para explorar la plataforma y proyectos personales pequeños.</p>
-      <div class="plan-features-label">Incluye:</div>
-      <ul class="plan-features">
-        <li><span class="ic-check"></span>128 GB de almacenamiento</li>
-        <li><span class="ic-check"></span>API básica incluida</li>
-        <li><span class="ic-check"></span>Soporte por email</li>
-      </ul>
-      <button class="btn-plan">Empezar Gratis</button>
+<!-- ─── TIMELINE ─── -->
+<div class="process-bg section">
+  <div class="sec-wrap">
+    <div class="reveal">
+      <div class="sec-label">Nuestro flujo de trabajo</div>
+      <h2 class="sec-h">Simple, rápido y<br><em>completamente efectivo</em></h2>
+      <p class="sec-p">Tres fases claramente definidas, sin ambigüedad, sin retrasos y sin sorpresas durante todo el proceso.</p>
     </div>
-    <div class="price-card reveal reveal-delay-1" onclick="selectPlan(this)">
-      <div class="plan-badge">Básico</div>
-      <div class="plan-name">Basic</div>
-      <div class="plan-price"><span class="currency">$</span>250</div>
-      <div class="plan-duration">por 5 meses</div>
-      <p class="plan-desc">Para equipos pequeños que necesitan más espacio y mayor capacidad de API.</p>
-      <div class="plan-features-label">Incluye:</div>
-      <ul class="plan-features">
-        <li><span class="ic-check"></span>270 GB de almacenamiento</li>
-        <li><span class="ic-check"></span>Más solicitudes de API</li>
-        <li><span class="ic-check"></span>Acceso a cloud sin límites</li>
-        <li><span class="ic-check"></span>Soporte por email</li>
-      </ul>
-      <button class="btn-plan">Elegir Básico</button>
-    </div>
-    <div class="price-card popular reveal reveal-delay-2" onclick="selectPlan(this)">
-      <div class="plan-badge">Más Popular</div>
-      <div class="plan-name">Pro</div>
-      <div class="plan-price"><span class="currency">$</span>450</div>
-      <div class="plan-duration">por 6 meses</div>
-      <p class="plan-desc">La opción preferida para empresas y proyectos en crecimiento acelerado.</p>
-      <div class="plan-features-label">Incluye:</div>
-      <ul class="plan-features">
-        <li><span class="ic-check"></span>350 GB de almacenamiento</li>
-        <li><span class="ic-check"></span>Alta velocidad en API</li>
-        <li><span class="ic-check"></span>Cloud y servicios ilimitados</li>
-        <li><span class="ic-check"></span>Soporte prioritario 24/7</li>
-        <li><span class="ic-check"></span>Dominio personalizado</li>
-      </ul>
-      <button class="btn-plan">Elegir Pro</button>
-    </div>
-    <div class="price-card reveal reveal-delay-3" onclick="selectPlan(this)">
-      <div class="plan-badge">Premium</div>
-      <div class="plan-name">Enterprise</div>
-      <div class="plan-price"><span class="currency">$</span>950</div>
-      <div class="plan-duration">por 8 meses</div>
-      <p class="plan-desc">Máxima potencia, almacenamiento y SLA garantizado para grandes organizaciones.</p>
-      <div class="plan-features-label">Incluye:</div>
-      <ul class="plan-features">
-        <li><span class="ic-check"></span>650 GB de almacenamiento</li>
-        <li><span class="ic-check"></span>Velocidad ultra rápida</li>
-        <li><span class="ic-check"></span>Acceso completo sin límites</li>
-        <li><span class="ic-check"></span>Soporte dedicado 24/7</li>
-        <li><span class="ic-check"></span>SLA garantizado</li>
-        <li><span class="ic-check"></span>Panel admin avanzado</li>
-      </ul>
-      <button class="btn-plan">Elegir Premium</button>
+    <div class="tl-grid reveal rd1">
+      <div class="tl-card">
+        <div class="tl-big">48</div>
+        <div class="tl-unit">Horas — Respuesta inicial</div>
+        <div class="tl-phase">Descubrimiento</div>
+        <div class="tl-desc">Llamada inicial para comprender tu visión y determinar cómo Nubifly puede potenciar tu proyecto digital.</div>
+        <ul class="tl-list">
+          <li>Análisis de idea y objetivos</li>
+          <li>Definición de alcance y plazos</li>
+          <li>Propuesta formal y onboarding</li>
+        </ul>
+        <div class="tl-arr">→</div>
+      </div>
+      <div class="tl-card">
+        <div class="tl-big">5</div>
+        <div class="tl-unit">Días — Sprint de diseño</div>
+        <div class="tl-phase">Iteración</div>
+        <div class="tl-desc">Ciclos de diseño y retroalimentación para construir alineación y minimizar revisiones innecesarias.</div>
+        <ul class="tl-list">
+          <li>Sprints semanales de diseño</li>
+          <li>2 llamadas de retroalimentación</li>
+          <li>Actualizaciones asíncronas vía Notion</li>
+        </ul>
+        <div class="tl-arr">→</div>
+      </div>
+      <div class="tl-card">
+        <div class="tl-big">6</div>
+        <div class="tl-unit">Semanas — Entrega completa</div>
+        <div class="tl-phase">Entrega</div>
+        <div class="tl-desc">Actualizaciones constantes hasta lograr el resultado final esperado, listo para lanzar al mundo.</div>
+        <ul class="tl-list">
+          <li>Entrega completa con documentación</li>
+          <li>30 días de soporte post-lanzamiento</li>
+          <li>Sesión de estrategia de crecimiento</li>
+        </ul>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ═══ TESTIMONIALS CAROUSEL ═══ -->
-<section class="testimonials">
-  <div class="section-inner" style="text-align:center">
-    <div class="section-label"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Testimonios</div>
-    <div class="section-title" style="margin:0 auto">Lo que dicen nuestros usuarios.</div>
-    <div class="section-sub" style="margin:14px auto 0">Miles de empresas ya confían en Nubifly para sus proyectos.</div>
+<!-- ─── QUIÉNES ─── -->
+<div class="section">
+  <div class="sec-wrap">
+    <div class="reveal">
+      <div class="sec-label">Clientes ideales</div>
+      <h2 class="sec-h">Trabajamos con <em>personas que:</em></h2>
+      <p class="sec-p">Nubifly está diseñado para un tipo específico de visionario digital. Aquí te decimos quién obtiene mayor valor de nuestra plataforma.</p>
+    </div>
+    <div class="who-grid reveal rd1">
+      <div class="who-card">
+        <div class="who-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <div class="who-t">Valoran la velocidad de lanzamiento</div>
+        <div class="who-d">Creen en publicar rápido, aprender continuamente e iterar con datos reales de usuarios, no suposiciones teóricas del mercado.</div>
+        <div class="who-n">Orientados a resultados concretos y medibles</div>
+      </div>
+      <div class="who-card">
+        <div class="who-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.74V17h8v-2.26A7 7 0 0012 2z"/>
+          </svg>
+        </div>
+        <div class="who-t">Tienen una visión digital clara</div>
+        <div class="who-d">Han identificado una oportunidad genuina en el ecosistema digital y poseen una hipótesis clara sobre cómo abordarla con tecnología.</div>
+        <div class="who-n">Conocen el problema y la solución</div>
+      </div>
+      <div class="who-card">
+        <div class="who-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+          </svg>
+        </div>
+        <div class="who-t">Buscan un socio tecnológico</div>
+        <div class="who-d">Tienen la visión, el conocimiento del mercado y la determinación para liderar. Nubifly aporta la ejecución técnica y el diseño para materializarla.</div>
+        <div class="who-n">Sus fortalezas están en la estrategia y el negocio</div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <div class="carousel-wrap">
-    <div class="carousel-track" id="carouselTrack">
 
-      <div class="rev-card">
-        <div class="rev-header">
-          <div class="rev-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          </div>
-          <div class="rev-meta">
-            <span class="rev-name">Marco Reyes</span>
-            <span class="rev-role">CTO, TechLab Solutions</span>
-            <span class="rev-date">Marzo 2025</span>
-          </div>
-        </div>
-        <p class="rev-text">"Nubifly transformó la manera en que manejamos nuestros proyectos. La velocidad de deploy es increíble y las APIs son super intuitivas."</p>
-      </div>
-
-      <div class="rev-card">
-        <div class="rev-header">
-          <div class="rev-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          </div>
-          <div class="rev-meta">
-            <span class="rev-name">Laura Castillo</span>
-            <span class="rev-role">Fundadora, DigitalWave</span>
-            <span class="rev-date">Febrero 2025</span>
-          </div>
-        </div>
-        <p class="rev-text">"Migramos todo a Nubifly en un fin de semana. El almacenamiento es rápido, seguro, y el soporte nos ayudó en cada paso del proceso."</p>
-      </div>
-
-      <div class="rev-card">
-        <div class="rev-header">
-          <div class="rev-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          </div>
-          <div class="rev-meta">
-            <span class="rev-name">Diego Alvarez</span>
-            <span class="rev-role">DevOps Lead, CloudApps</span>
-            <span class="rev-date">Enero 2025</span>
-          </div>
-        </div>
-        <p class="rev-text">"Las APIs de control de acceso son exactamente lo que necesitábamos. Nuestro equipo gestiona permisos de forma centralizada y segura."</p>
-      </div>
-
-      <div class="rev-card">
-        <div class="rev-header">
-          <div class="rev-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          </div>
-          <div class="rev-meta">
-            <span class="rev-name">Sofía Mendez</span>
-            <span class="rev-role">Product Manager, Nexo Digital</span>
-            <span class="rev-date">Abril 2025</span>
-          </div>
-        </div>
-        <p class="rev-text">"La interfaz es tan limpia e intuitiva que nuestro equipo empezó a usarla sin necesitar capacitación. Nubifly es simplemente brillante."</p>
-      </div>
-
-      <div class="rev-card">
-        <div class="rev-header">
-          <div class="rev-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          </div>
-          <div class="rev-meta">
-            <span class="rev-name">Carlos Herrera</span>
-            <span class="rev-role">CEO, StartupLab MX</span>
-            <span class="rev-date">Marzo 2025</span>
-          </div>
-        </div>
-        <p class="rev-text">"Redujimos costos de infraestructura un 40% al migrar a Nubifly. El soporte 24/7 y la estabilidad del servicio han sido excepcionales."</p>
-      </div>
-
+<!-- ─── PRECIOS ─── -->
+<div class="pricing-bg section" id="precios">
+  <div class="sec-wrap">
+    <div class="reveal" style="text-align:center">
+      <div class="sec-label" style="justify-content:center">Planes de precios</div>
+      <h2 class="sec-h" style="text-align:center">Elige el plan <em>perfecto para ti</em></h2>
+      <p class="sec-p" style="max-width:520px;margin:0 auto 56px">Precios transparentes, sin cargos ocultos. Cambia o cancela cuando quieras.</p>
     </div>
 
-    <div class="carousel-dots" id="carouselDots"></div>
-  </div>
-</section>
+    <div class="nf-plans reveal rd1">
 
-<!-- ═══ FAQ ═══ -->
-<section class="faq" id="faq">
-  <div class="section-label"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> FAQ</div>
-  <div class="section-title" style="margin:0 auto">Preguntas Frecuentes</div>
-  <div class="section-sub" style="margin:14px auto 0">Todo lo que necesitas saber antes de empezar.</div>
-  <div class="faq-list">
-    <div class="faq-item reveal"><button class="faq-q">¿Puedo empezar gratis?<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>Sí, ofrecemos un plan gratuito con 128 GB de almacenamiento y acceso básico a nuestras APIs durante 3 meses. No se requiere tarjeta de crédito para empezar.</p></div></div>
-    <div class="faq-item reveal reveal-delay-1"><button class="faq-q">¿Cómo funciona la API de control de acceso?<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>Nuestra API te permite crear tokens de acceso, definir permisos granulares por usuario o grupo, y monitorear toda la actividad en tiempo real desde tu panel de control.</p></div></div>
-    <div class="faq-item reveal reveal-delay-2"><button class="faq-q">¿Puedo migrar mi sitio existente?<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>Por supuesto. Nubifly soporta migración con un solo clic desde la mayoría de proveedores de hosting. También puedes subir tus archivos directamente a la nube.</p></div></div>
-    <div class="faq-item reveal reveal-delay-3"><button class="faq-q">¿Qué pasa cuando termina mi plan?<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>Tus datos permanecen seguros durante 30 días después de la expiración. Puedes renovar tu plan o descargar toda tu información en cualquier momento.</p></div></div>
-    <div class="faq-item reveal reveal-delay-4"><button class="faq-q">¿Ofrecen soporte técnico?<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="faq-a"><p>Todos los planes incluyen soporte por email. Los planes Pro y superiores cuentan con soporte prioritario 24/7 y asistencia personalizada para tu proyecto.</p></div></div>
-  </div>
-</section>
+      <!-- Plan 1: Gratis -->
+      <div class="nf-card" data-plan="gratis" onclick="selectPlan(this)">
+        <div class="nf-card-inner">
+          <div class="nf-tag nf-tag--gray">Gratis</div>
+          <div class="nf-price"><sup>$</sup>0</div>
+          <div class="nf-period">por 3 meses</div>
+          <div class="nf-desc">Ideal para explorar la plataforma y proyectos personales pequeños.</div>
+          <div class="nf-divider"></div>
+          <div class="nf-includes">Incluye:</div>
+          <ul class="nf-list">
+            <li><span class="nf-check">✓</span>650 GB de almacenamiento</li>
+            <li><span class="nf-check">✓</span>API básica incluida</li>
+            <li><span class="nf-check">✓</span>Soporte por email</li>
+          </ul>
+          <button class="nf-btn" onclick="event.stopPropagation();togglePlan(this.closest('.nf-card'))">Elegir Gratis</button>
+        </div>
+      </div>
 
-<!-- ═══ CTA ═══ -->
-<section class="cta-section" id="contact">
-  <div class="cta-box reveal">
-    <div class="cta-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></div>
-    <div class="section-title">¿Listo para despegar<br>con Nubifly?</div>
-    <div class="section-sub">Empieza hoy y lleva tu proyecto al siguiente nivel en la nube.</div>
-    <div class="cta-actions">
-      <a class="btn-cta btn-cta--fill" href="/login">
-        <svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        Iniciar sesión
+      <!-- Plan 2: Básico -->
+      <div class="nf-card" data-plan="basico" onclick="selectPlan(this)">
+        <div class="nf-card-inner">
+          <div class="nf-tag nf-tag--gray">Básico</div>
+          <div class="nf-price"><sup>$</sup>250</div>
+          <div class="nf-period">por 5 meses</div>
+          <div class="nf-desc">Para equipos pequeños que necesitan más espacio y mayor capacidad de API.</div>
+          <div class="nf-divider"></div>
+          <div class="nf-includes">Incluye:</div>
+          <ul class="nf-list">
+            <li><span class="nf-check">✓</span>1 TB de almacenamiento</li>
+            <li><span class="nf-check">✓</span>Más solicitudes de API</li>
+            <li><span class="nf-check">✓</span>Acceso a cloud sin límites</li>
+          </ul>
+          <button class="nf-btn" onclick="event.stopPropagation();togglePlan(this.closest('.nf-card'))">Elegir Básico</button>
+        </div>
+      </div>
+
+      <!-- Plan 3: Pro (Popular) -->
+      <div class="nf-card nf-card--featured" data-plan="pro" onclick="selectPlan(this)">
+        <div class="nf-badge">⚡ Popular</div>
+        <div class="nf-card-inner">
+          <div class="nf-tag nf-tag--dark">Pro</div>
+          <div class="nf-price"><sup>$</sup>450</div>
+          <div class="nf-period">por 6 meses</div>
+          <div class="nf-desc">La opción preferida para empresas y proyectos en crecimiento acelerado.</div>
+          <div class="nf-divider"></div>
+          <div class="nf-includes">Incluye:</div>
+          <ul class="nf-list">
+            <li><span class="nf-check">✓</span>2 TB de almacenamiento</li>
+            <li><span class="nf-check">✓</span>Alta velocidad en API</li>
+            <li><span class="nf-check">✓</span>Cloud y servicios ilimitados</li>
+            <li><span class="nf-check">✓</span>Soporte prioritario 24/7</li>
+          </ul>
+          <button class="nf-btn" onclick="event.stopPropagation();togglePlan(this.closest('.nf-card'))">Elegir Pro</button>
+        </div>
+      </div>
+
+      <!-- Plan 4: Enterprise (Premium) -->
+      <div class="nf-card" data-plan="enterprise" onclick="selectPlan(this)">
+        <div class="nf-badge nf-badge--gold">★ Premium</div>
+        <div class="nf-card-inner">
+          <div class="nf-tag nf-tag--gray">Enterprise</div>
+          <div class="nf-price"><sup>$</sup>950</div>
+          <div class="nf-period">por 8 meses</div>
+          <div class="nf-desc">Máxima potencia, almacenamiento y SLA garantizado para grandes organizaciones.</div>
+          <div class="nf-divider"></div>
+          <div class="nf-includes">Incluye:</div>
+          <ul class="nf-list">
+            <li><span class="nf-check">✓</span>3 TB de almacenamiento</li>
+            <li><span class="nf-check">✓</span>Velocidad ultra rápida</li>
+            <li><span class="nf-check">✓</span>Acceso completo sin límites</li>
+            <li><span class="nf-check">✓</span>Soporte dedicado 24/7</li>
+            <li><span class="nf-check">✓</span>SLA garantizado</li>
+            <li><span class="nf-check">✓</span>Panel admin avanzado</li>
+          </ul>
+          <button class="nf-btn" onclick="event.stopPropagation();togglePlan(this.closest('.nf-card'))">Elegir Enterprise</button>
+        </div>
+      </div>
+
+    </div><!-- /nf-plans -->
+
+
+
+  </div>
+</div>
+
+<!-- ─── FAQ ─── -->
+<div class="section" id="faq">
+  <div class="faq-wrap">
+    <div class="reveal" style="text-align:center">
+      <div class="sec-label" style="justify-content:center">Preguntas frecuentes</div>
+      <h2 class="sec-h" style="text-align:center">¿Tienes preguntas?</h2>
+    </div>
+    <div class="faq-list reveal rd1">
+      <div class="faq-item">
+        <div class="faq-q">¿Qué plan es mejor para mi proyecto?<div class="faq-ico">+</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Si aún estás validando el concepto, el Prototipo es ideal para testear con usuarios reales rápidamente. Si ya tienes claridad sobre tu producto y buscas una plataforma funcional completa, el plan Plataforma es la elección correcta. En caso de duda, agenda una llamada gratuita y te orientamos.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Cómo puedo seguir el progreso del proyecto?<div class="faq-ico">+</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Tendrás acceso completo a un espacio de trabajo compartido en Notion con actualizaciones en tiempo real, videollamadas quincenales y grabaciones asíncronas en Loom. La transparencia total es parte fundamental de nuestro proceso de trabajo.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Cómo funciona el esquema de pagos?<div class="faq-ico">+</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Dividimos los pagos en dos etapas: 50% por adelantado para iniciar el trabajo y el 50% restante al momento de la entrega final. Todos los pagos se procesan de forma segura mediante facturación formal y verificable.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Cuánto tiempo toma el proceso completo?<div class="faq-ico">+</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Tras una llamada inicial de descubrimiento con respuesta garantizada en 48 horas, iniciamos ciclos de sprint estructurados que incluyen diseño, retroalimentación, desarrollo e iteración. El proceso completo toma 6 semanas desde el inicio hasta el producto listo para lanzar.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Qué tecnologías utilizan para el desarrollo?<div class="faq-ico">+</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Construimos con stacks modernos y escalables: React y Next.js para plataformas web, React Native para aplicaciones móviles, y servicios backend con Node.js o Python integrados con Supabase o Firebase. Toda la entrega incluye documentación técnica completa.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Trabajan con proyectos que ya tienen financiamiento?<div class="faq-ico">+</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Sí. Muchos de nuestros clientes cuentan con financiamiento previo y nos eligen para avanzar más rápido que con un equipo interno. Somos un socio de ejecución confiable en cada etapa del crecimiento temprano de una plataforma digital.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Ofrecen soporte después del lanzamiento?<div class="faq-ico">+</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Todos los planes incluyen 30 días de soporte post-lanzamiento para resolver incidencias, ajustar funcionalidades y asegurar que la plataforma funcione correctamente en producción con usuarios reales.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TESTIMONIOS / COMENTARIOS ─── -->
+<div class="testi-sec" id="testimonios">
+  <div class="testi-head reveal">
+    <div class="sec-label" style="justify-content:center">Comentarios</div>
+    <h2 class="sec-h" style="text-align:center">Lo que dicen <em>nuestros usuarios</em></h2>
+    <p class="testi-sub">Miles de creadores ya publican sus proyectos, imágenes y videos en Nubifly.</p>
+  </div>
+  <div class="testi-rows">
+    <div class="testi-row"><div class="testi-track" id="testiTrackA"></div></div>
+    <div class="testi-row"><div class="testi-track testi-track--rev" id="testiTrackB"></div></div>
+  </div>
+</div>
+
+<!-- ─── CTA ─── -->
+<div class="cta-sec">
+  <div class="cta-grid"></div>
+  <div class="cta-glow"></div>
+  <!-- Parallax decorations -->
+  <div class="nf-geo-ring nf-geo-ring--w" style="width:460px;height:460px;top:-110px;right:-90px;" data-parallax="-0.09"></div>
+  <div class="nf-geo-ring nf-geo-ring--w" style="width:220px;height:220px;bottom:40px;left:6%;" data-parallax="0.16"></div>
+  <div class="nf-geo-ring nf-geo-ring--w" style="width:80px;height:80px;top:30%;left:22%;opacity:0.5;" data-parallax="-0.12"></div>
+  <div class="reveal" style="position:relative;z-index:1">
+    <div class="sec-label">Comenzar ahora</div>
+    <h2 class="sec-h">¿Listo para llevar tu <em>visión</em> al siguiente nivel?</h2>
+    <p>Únete a los creadores e innovadores que ya confían en Nubifly para construir el futuro digital.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="/login" class="btn-cta-w">Iniciar sesión</a>
+      <a href="/register" class="btn-cta-o">Registrarse</a>
+    </div>
+  </div>
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="foot-inner">
+
+    <!-- Top: link columns -->
+    <div class="foot-grid">
+
+      <!-- Producto -->
+      <div class="foot-col">
+        <h4 class="foot-col-title">Producto</h4>
+        <ul class="foot-col-list">
+          <li><a href="#plataforma">Plataforma</a></li>
+          <li><a href="#proceso">Funciones</a></li>
+          <li><a href="#api">API</a></li>
+          <li><a href="#precios">Precios</a></li>
+          <li><a href="#">Panel de control</a></li>
+        </ul>
+        <h4 class="foot-col-title foot-col-title--sub">Planes</h4>
+        <ul class="foot-col-list">
+          <li><a href="#precios">Básico</a></li>
+          <li><a href="#precios">Pro</a></li>
+          <li><a href="#precios">Enterprise</a></li>
+        </ul>
+      </div>
+
+      <!-- Recursos -->
+      <div class="foot-col">
+        <h4 class="foot-col-title">Recursos</h4>
+        <ul class="foot-col-list">
+          <li><a href="#faq">Preguntas frecuentes</a></li>
+          <li><a href="#">Documentación</a></li>
+          <li><a href="#">Guías de inicio</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Estado del sistema</a></li>
+        </ul>
+      </div>
+
+      <!-- Integraciones -->
+      <div class="foot-col">
+        <h4 class="foot-col-title">Integraciones</h4>
+        <ul class="foot-col-list">
+          <li><a href="#">Google Drive</a></li>
+          <li><a href="#">Notion</a></li>
+          <li><a href="#">Firebase</a></li>
+          <li><a href="#">Supabase</a></li>
+          <li><a href="#">Todas las integraciones</a></li>
+        </ul>
+      </div>
+
+      <!-- Empresa -->
+      <div class="foot-col">
+        <h4 class="foot-col-title">Empresa</h4>
+        <ul class="foot-col-list">
+          <li><a href="#">Acerca de Nubifly</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Soporte</a></li>
+          <li><a href="#">Privacidad</a></li>
+          <li><a href="#">Términos</a></li>
+        </ul>
+      </div>
+
+    </div><!-- /foot-grid -->
+
+    <!-- Brand + description + social (below the columns) -->
+    <div class="foot-brandbar">
+      <div class="foot-about">
+      <a href="#" class="foot-brand">
+        <div class="brand-mark" style="width:34px;height:34px;border-radius:9px">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24">
+            <path fill="white" d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5c0-2.64-2.05-4.78-4.65-4.96z"/>
+          </svg>
+        </div>
+        Nubifly
       </a>
-      <a class="btn-cta btn-cta--outline" href="/register">
-        Registrarse
-        <svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
+      <p class="foot-tagline">Innovación, velocidad y tecnología moderna en una sola plataforma, diseñada para una nueva era digital.</p>
+      <div class="foot-social">
+        <a href="https://www.youtube.com/@nubifly-cloud" target="_blank" rel="noopener noreferrer" class="foot-soc foot-soc--youtube" aria-label="YouTube">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/nubifly_clouds?igsh=MW9tYmU5NzNoN2EzMg==" target="_blank" rel="noopener noreferrer" class="foot-soc foot-soc--instagram" aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+        <a href="https://t.me/InfyraCloudsSoporte" target="_blank" rel="noopener noreferrer" class="foot-soc foot-soc--telegram" aria-label="Telegram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+        </a>
+        <a href="https://chat.whatsapp.com/ILofRohDHhREn4yhiR6Lht" target="_blank" rel="noopener noreferrer" class="foot-soc foot-soc--whatsapp" aria-label="WhatsApp">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.149-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        </a>
+        <a href="https://github.com/devcashflow42-sys" target="_blank" rel="noopener noreferrer" class="foot-soc foot-soc--github" aria-label="GitHub">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.23 1.92 1.23 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>
+        </a>
+      </div><!-- /foot-social -->
+      </div><!-- /foot-about -->
+
+      <!-- Suscripción / novedades -->
+      <div class="foot-newsletter">
+        <div class="foot-nl-status"><span class="foot-nl-dot"></span> Todos los sistemas operativos</div>
+        <h4 class="foot-nl-title">Recibe novedades de Nubifly</h4>
+        <p class="foot-nl-desc">Nuevas funciones, mejoras y consejos para publicar tus proyectos. Sin spam, cancela cuando quieras.</p>
+        <div class="foot-nl-form">
+          <input type="email" id="nlEmail" class="foot-nl-input" placeholder="tu@correo.com" aria-label="Correo electrónico" autocomplete="email">
+          <button type="button" id="nlBtn" class="foot-nl-btn">Suscribirme</button>
+        </div>
+        <p class="foot-nl-msg" id="nlMsg" role="status" aria-live="polite"></p>
+      </div>
+    </div><!-- /foot-brandbar -->
+
+    <!-- Bottom bar -->
+    <div class="foot-bottom">
+      <div class="foot-copy">© <span id="footYear">2026</span> Nubifly. Todos los derechos reservados.</div>
+      <div class="foot-legal">
+        <a href="#">Términos de servicio</a>
+        <a href="#">Política de privacidad</a>
+      </div>
     </div>
+
   </div>
-</section>
+</footer>
 
-<!-- ═══ FOOTER ═══ -->
-<div id="footer-root"></div>
-
-<!-- ═══ SCRIPTS ═══ -->
-<script src="components/navbar.js"></script>
-<script src="components/footer.js"></script>
+<!-- Scripts -->
 <script src="js/main.js"></script>
-
 </body>
 </html>
