@@ -1,432 +1,619 @@
-/* ═══════════════════════════════════════
-   login.js — Lógica Auth Nubifly
-   ═══════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   login.js — Nubifly Auth
+   Nuevo diseño UI  +  API real conectada
+   ═══════════════════════════════════════════════════════════════ */
 
-/* ─── Estado ────────────────────────── */
-let mode = 'login';
+/* ──────────────────────────────────────────────
+   TOAST
+────────────────────────────────────────────── */
+var toastEl    = document.getElementById('toast');
+var toastIcon  = document.getElementById('toastIcon');
+var toastText  = document.getElementById('toastText');
+var toastTimer;
 
-const COPY = {
-  login: {
-    title: 'Iniciar sesión',
-    sub:   'Bienvenido de vuelta. Accede a tu cuenta.',
-    btn:   'Iniciar sesión',
-    pre:   '¿No tienes una cuenta?',
-    link:  'Crear cuenta',
-    forgot: true,
-    heroTitle: 'Bienvenido de vuelta',
-    heroDesc: 'Accede a tu cuenta y continúa gestionando tus proyectos cloud con herramientas profesionales diseñadas para crecer contigo.'
-  },
-  register: {
-    title: 'Crear cuenta',
-    sub:   'Únete a Nubifly y empieza tu experiencia.',
-    btn:   'Crear cuenta',
-    pre:   '¿Ya tienes una cuenta?',
-    link:  'Iniciar sesión',
-    forgot: false,
-    heroTitle: 'Únete a Nubifly',
-    heroDesc: 'Crea tu cuenta en segundos y accede a una plataforma cloud completa con APIs seguras, almacenamiento ilimitado y herramientas listas para escalar tus proyectos.'
-  }
+var TOAST_ICONS = {
+  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8h.01M11 12h1v4h1"/></svg>'
 };
 
-/* ─── Helpers de DOM ────────────────── */
+function showToast(message, type) {
+  type = type || 'info';
+  toastIcon.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
+  toastText.textContent = message;
+  toastEl.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () {
+    toastEl.className = 'toast ' + type;
+  }, 3600);
+}
 
-/** Obtiene un elemento por ID de forma segura */
-function el(id) { return document.getElementById(id); }
+/* ──────────────────────────────────────────────
+   ESTADO
+────────────────────────────────────────────── */
+var isSignUp = false;
 
-/* ─── Modo login / registro ─────────── */
+/* ──────────────────────────────────────────────
+   REFERENCIAS A ELEMENTOS
+────────────────────────────────────────────── */
+var form           = document.getElementById('form');
+var title          = document.getElementById('title');
+var subtitle       = document.getElementById('subtitle');
+var btnText        = document.getElementById('btnText');
+var switchLink     = document.getElementById('switchLink');
+var switchPrefix   = document.getElementById('switchPrefix');
+var panelTitle     = document.getElementById('panelTitle');
+var panelSubtitle  = document.getElementById('panelSubtitle');
 
+var userField      = document.getElementById('userField');
+var confirmField   = document.getElementById('confirmField');
+var countryField   = document.getElementById('countryField');
+var termsField     = document.getElementById('termsField');
+
+var usernameInput  = document.getElementById('username');
+var emailInput     = document.getElementById('email');
+var password       = document.getElementById('password');
+var confirm        = document.getElementById('confirm');
+var country        = document.getElementById('country');
+var countryTrigger = document.getElementById('countryTrigger');
+var countryValue   = document.getElementById('countryValue');
+var termsCheck     = document.getElementById('termsCheck');
+var reqs           = document.getElementById('reqs');
+var reqsConfirm    = document.getElementById('reqsConfirm');
+var matchMsg       = document.getElementById('matchMsg');
+
+var creationBlocks = document.querySelectorAll('.creation-block');
+
+/* ──────────────────────────────────────────────
+   TOGGLE OJO — MOSTRAR / OCULTAR CONTRASEÑA
+────────────────────────────────────────────── */
+document.querySelectorAll('.toggle-eye').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var input  = document.getElementById(btn.dataset.target);
+    var hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    btn.classList.toggle('show', hidden);
+    btn.setAttribute('aria-label', hidden ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+});
+
+/* ──────────────────────────────────────────────
+   ALTERNAR MODO LOGIN / REGISTRO
+────────────────────────────────────────────── */
 function toggleMode() {
-  mode = mode === 'login' ? 'register' : 'login';
-  history.pushState({ mode }, '', mode === 'register' ? '/register' : '/login');
+  isSignUp = !isSignUp;
+  history.pushState(
+    { mode: isSignUp ? 'register' : 'login' },
+    '',
+    isSignUp ? '/register' : '/login'
+  );
   applyMode();
-  resetForm();
+  resetFields();
 }
 
 function applyMode() {
-  const c = COPY[mode];
-  const isReg = mode === 'register';
+  // Campos visibles / ocultos
+  userField.classList.toggle('hidden',    !isSignUp);
+  countryField.classList.toggle('hidden', !isSignUp);
+  confirmField.classList.toggle('hidden', !isSignUp);
+  termsField.classList.toggle('show',      isSignUp);
 
-  el('authTitle').textContent = c.title;
-  el('authSub').textContent   = c.sub;
-  el('btnTxt').textContent    = c.btn;
-  el('switchPre').textContent = c.pre;
-  el('switchLink').textContent = c.link;
-  
-  // Actualizar panel hero (solo desktop)
-  const heroTitle = el('heroTitle');
-  const heroDesc = el('heroDesc');
-  if (heroTitle) heroTitle.textContent = c.heroTitle;
-  if (heroDesc) heroDesc.textContent = c.heroDesc;
-
-  el('wrapUser').classList.toggle('hidden',   !isReg);
-  el('wrapPw2').classList.toggle('hidden',    !isReg);
-  el('wrapRegion').classList.toggle('hidden', !isReg);
-  el('wrapTerms').classList.toggle('hidden',  !isReg);
-  el('wrapPw').classList.toggle('show-forgot', !isReg);
-  el('fPw').setAttribute('autocomplete', isReg ? 'new-password' : 'current-password');
-  el('pwStrength').classList.remove('visible');
-
-  checkReady();
-}
-
-/* ─── Toggle visibilidad contraseña ─── */
-
-function togglePw(id, btn) {
-  const input = el(id);
-  const isText = input.type === 'text';
-  input.type = isText ? 'password' : 'text';
-  btn.querySelector('.eye-open').style.display = isText ? ''     : 'none';
-  btn.querySelector('.eye-off').style.display  = isText ? 'none' : '';
-}
-
-/* ─── Estado visual de campo ─────────── */
-
-function setState(inp, state, hintId, msg) {
-  inp.classList.remove('valid', 'error');
-  const iconOk  = inp.parentElement.querySelector('.icon-ok');
-  const iconErr = inp.parentElement.querySelector('.icon-err');
-  if (iconOk)  iconOk.style.display  = 'none';
-  if (iconErr) iconErr.style.display = 'none';
-
-  if (state === 'valid') {
-    inp.classList.add('valid');
-    if (iconOk) iconOk.style.display = '';
-  } else if (state === 'error') {
-    inp.classList.add('error');
-    if (iconErr) iconErr.style.display = '';
+  if (!isSignUp) {
+    // Al volver a login: limpiar campos de registro
+    confirm.value = '';
+    reqsConfirm.classList.remove('show');
+    matchMsg.className = 'match-msg';
+    matchMsg.innerHTML = '';
+    confirm.classList.remove('error');
+    termsCheck.checked = false;
+    termsCheck.classList.remove('error');
+    setCountry('');
+    countryTrigger.classList.remove('error');
+  } else {
+    checkMatch();
   }
 
-  if (hintId) {
-    const h = el(hintId);
-    h.textContent = msg || '';
-    h.className = 'field-hint' + (state === 'error' ? ' err' : state === 'valid' ? ' ok' : '');
+  // Textos
+  if (isSignUp) {
+    if (title)         title.textContent         = 'Crear cuenta';
+    if (subtitle)      subtitle.textContent      = 'Regístrate para comenzar a disfrutar la experiencia.';
+    if (btnText)       btnText.textContent        = 'Inscribirse';
+    if (switchPrefix)  switchPrefix.textContent   = '¿Ya tienes una cuenta? ';
+    if (switchLink)    switchLink.textContent      = 'Inicia sesión';
+    if (panelTitle)    panelTitle.textContent      = 'Crea tu cuenta';
+    if (panelSubtitle) panelSubtitle.textContent   = 'Regístrate para comenzar a disfrutar la experiencia.';
+  } else {
+    if (title)         title.textContent          = 'Iniciar sesión';
+    if (subtitle)      subtitle.textContent       = 'Accede a tu cuenta y continúa donde lo dejaste.';
+    if (btnText)       btnText.textContent         = 'Iniciar sesión';
+    if (switchPrefix)  switchPrefix.textContent    = '¿No tienes una cuenta? ';
+    if (switchLink)    switchLink.textContent       = 'Regístrate aquí';
+    if (panelTitle)    panelTitle.textContent       = 'Bienvenido de nuevo';
+    if (panelSubtitle) panelSubtitle.textContent    = 'Accede a tu cuenta y continúa donde lo dejaste.';
   }
+
+  // autocomplete en contraseña
+  password.setAttribute('autocomplete', isSignUp ? 'new-password' : 'current-password');
+
+  // Ocultar reqs si el campo queda vacío
+  reqs.classList.toggle('show', password.value.length > 0);
 }
 
-/* ─── Progreso del email ─────────────── */
+if (switchLink) switchLink.addEventListener('click', toggleMode);
 
-function emailProg(v) {
-  const prog = el('emailProg');
-  const bar  = el('emailBar');
+/* ──────────────────────────────────────────────
+   VALIDACIÓN DE CONTRASEÑA EN VIVO
+────────────────────────────────────────────── */
+var checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+var xSvg     = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 
-  if (!v) {
-    prog.classList.remove('visible');
-    bar.style.width = '0';
+function rules(v) {
+  return {
+    len:     v.length >= 8,
+    upper:   /[A-Z]/.test(v),
+    number:  /[0-9]/.test(v),
+    special: /[^A-Za-z0-9]/.test(v)
+  };
+}
+
+function checkPassword() {
+  var v = password.value;
+  var r = rules(v);
+  reqs.classList.toggle('show', v.length > 0);
+  reqs.querySelectorAll('li').forEach(function (li) {
+    li.classList.toggle('ok', r[li.dataset.rule]);
+  });
+  checkMatch();
+}
+
+function checkMatch() {
+  var rc = rules(confirm.value);
+  reqsConfirm.classList.toggle('show', confirm.value.length > 0);
+  reqsConfirm.querySelectorAll('li').forEach(function (li) {
+    li.classList.toggle('ok', rc[li.dataset.rule]);
+  });
+
+  if (confirm.value.length === 0) {
+    matchMsg.className = 'match-msg';
+    matchMsg.innerHTML = '';
+    confirm.classList.remove('error');
     return;
   }
-
-  prog.classList.add('visible');
-
-  let pct = 10;
-  if (v.includes('@'))             pct = 40;
-  if (v.split('@')[1]?.length > 0) pct = 65;
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) pct = 100;
-
-  bar.style.width      = pct + '%';
-  bar.style.background = pct < 40  ? '#9198a1'
-                       : pct < 100 ? '#57606a'
-                       : '#1a7f37';
-}
-
-/* ─── Fortaleza de contraseña ────────── */
-
-function pwScore(pw) {
-  let s = 0;
-  if (pw.length >= 8)           s++;
-  if (/[A-Z]/.test(pw))         s++;
-  if (/[0-9]/.test(pw))         s++;
-  if (/[^A-Za-z0-9]/.test(pw))  s++;
-  return s;
-}
-
-function updateStrength(pw) {
-  const colors = ['#d1242f', '#9a6700', '#57606a', '#1a7f37'];
-  const labels = ['Muy débil', 'Débil', 'Buena', 'Fuerte'];
-  const score  = pwScore(pw);
-
-  ['pb1','pb2','pb3','pb4'].forEach((id, i) => {
-    el(id).style.background = i < score ? colors[score - 1] : '#e8eaed';
-  });
-
-  const lbl = el('pwLbl');
-  lbl.textContent = (pw && score) ? labels[score - 1] : '';
-  if (pw && score) lbl.style.color = colors[score - 1];
-
-  el('pwStrength').classList.toggle('visible', mode === 'register' && pw.length > 0);
-}
-
-/* ─── Validación y habilitación ──────── */
-
-function checkReady() {
-  const email = el('fEmail').value;
-  const pw    = el('fPw').value;
-  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-
-  let ok = validEmail && pw.length >= 6;
-
-  if (mode === 'register') {
-    const user   = el('fUser').value.trim();
-    const pw2    = el('fPw2').value;
-    const region = el('fRegion').value;
-    const terms  = el('fTerms').checked;
-    ok = ok && user.length >= 3 && pw.length >= 8 && pwScore(pw) >= 2 && pw2 === pw && region !== '' && terms;
-  }
-
-  el('btnSubmit').disabled = !ok;
-}
-
-/* ─── Reset del formulario ───────────── */
-
-function resetForm() {
-  ['fUser', 'fEmail', 'fPw', 'fPw2'].forEach(id => {
-    const input = el(id);
-    input.value = '';
-    input.classList.remove('valid', 'error');
-
-    const iconOk  = input.parentElement.querySelector('.icon-ok');
-    const iconErr = input.parentElement.querySelector('.icon-err');
-    if (iconOk)  iconOk.style.display  = 'none';
-    if (iconErr) iconErr.style.display = 'none';
-
-    if (id.startsWith('fPw')) {
-      input.type = 'password';
-      const toggleBtn = input.parentElement.querySelector('.pw-toggle');
-      if (toggleBtn) {
-        toggleBtn.querySelector('.eye-open').style.display = '';
-        toggleBtn.querySelector('.eye-off').style.display  = 'none';
-      }
-    }
-  });
-
-  ['hintUser','hintEmail','hintPw','hintPw2'].forEach(id => {
-    const h = el(id);
-    h.textContent = '';
-    h.className   = 'field-hint';
-  });
-
-  el('emailProg').classList.remove('visible');
-  el('emailBar').style.width = '0';
-  el('pwStrength').classList.remove('visible');
-
-  // Reset región y términos
-  el('fRegion').value = '';
-  el('fTerms').checked = false;
-  el('hintRegion').textContent = '';
-  el('hintTerms').textContent  = '';
-
-  checkReady();
-}
-
-/* ─── Listeners de validación ────────── */
-
-el('fUser').addEventListener('input', function () {
-  const v = this.value.trim();
-  if (!v)               setState(this, '',       'hintUser', '');
-  else if (v.length < 3) setState(this, 'error', 'hintUser', 'Mínimo 3 caracteres');
-  else if (/\s/.test(this.value)) setState(this, 'error', 'hintUser', 'Sin espacios permitidos');
-  else                  setState(this, 'valid',  'hintUser', '');
-  checkReady();
-});
-
-el('fEmail').addEventListener('input', function () {
-  const v = this.value;
-  emailProg(v);
-  if (!v)                                          setState(this, '',       'hintEmail', '');
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) setState(this, 'error', 'hintEmail', 'Introduce un correo válido');
-  else                                             setState(this, 'valid',  'hintEmail', '');
-  checkReady();
-});
-
-el('fPw').addEventListener('input', function () {
-  const v = this.value;
-  updateStrength(v);
-
-  if (mode === 'login') {
-    if (!v)           setState(this, '',       'hintPw', '');
-    else if (v.length < 6) setState(this, 'error', 'hintPw', 'Mínimo 6 caracteres');
-    else              setState(this, 'valid',  'hintPw', '');
+  if (confirm.value === password.value) {
+    matchMsg.className = 'match-msg show ok';
+    matchMsg.innerHTML = checkSvg + 'Las contraseñas coinciden';
+    confirm.classList.remove('error');
   } else {
-    if (!v)           setState(this, '',       'hintPw', '');
-    else if (v.length < 8)   setState(this, 'error', 'hintPw', 'Mínimo 8 caracteres');
-    else if (pwScore(v) < 2) setState(this, 'error', 'hintPw', 'Añade mayúsculas o números');
-    else              setState(this, 'valid',  'hintPw', '');
-
-    // Re-validar confirmación si ya tiene valor
-    const pw2 = el('fPw2');
-    if (pw2.value) pw2.dispatchEvent(new Event('input'));
+    matchMsg.className = 'match-msg show bad';
+    matchMsg.innerHTML = xSvg + 'Las contraseñas no coinciden';
+    confirm.classList.add('error');
   }
+}
 
-  checkReady();
+password.addEventListener('input', checkPassword);
+confirm.addEventListener('input',  checkMatch);
+
+/* ──────────────────────────────────────────────
+   SELECCIÓN DE PAÍS — BOTTOMSHEET
+────────────────────────────────────────────── */
+var countries = [
+  'Afganistán','Albania','Alemania','Andorra','Angola','Antigua y Barbuda',
+  'Arabia Saudita','Argelia','Argentina','Armenia','Australia','Austria',
+  'Azerbaiyán','Bahamas','Bangladés','Barbados','Baréin','Belice','Benín',
+  'Bielorrusia','Birmania (Myanmar)','Bolivia','Bosnia y Herzegovina',
+  'Botsuana','Brasil','Brunéi','Bulgaria','Burkina Faso','Burundi','Bután',
+  'Bélgica','Cabo Verde','Camboya','Camerún','Canadá','Catar','Chad','Chile',
+  'China','Chipre','Colombia','Comoras','Corea del Norte','Corea del Sur',
+  'Costa de Marfil','Costa Rica','Croacia','Cuba','Dinamarca','Dominica',
+  'Ecuador','Egipto','El Salvador','Emiratos Árabes Unidos','Eritrea',
+  'Eslovaquia','Eslovenia','España','Estados Unidos','Estonia','Esuatini',
+  'Etiopía','Filipinas','Finlandia','Fiyi','Francia','Gabón','Gambia',
+  'Georgia','Ghana','Granada','Grecia','Guatemala','Guinea',
+  'Guinea Ecuatorial','Guinea-Bisáu','Guyana','Haití','Honduras','Hungría',
+  'India','Indonesia','Irak','Irlanda','Irán','Islandia','Islas Marshall',
+  'Islas Salomón','Israel','Italia','Jamaica','Japón','Jordania',
+  'Kazajistán','Kenia','Kirguistán','Kiribati','Kuwait','Laos','Lesoto',
+  'Letonia','Liberia','Libia','Liechtenstein','Lituania','Luxemburgo',
+  'Líbano','Macedonia del Norte','Madagascar','Malasia','Malaui','Maldivas',
+  'Malta','Malí','Marruecos','Mauricio','Mauritania','Micronesia','Moldavia',
+  'Mongolia','Montenegro','Mozambique','México','Mónaco','Namibia','Nauru',
+  'Nepal','Nicaragua','Nigeria','Noruega','Nueva Zelanda','Níger','Omán',
+  'Pakistán','Palaos','Palestina','Panamá','Papúa Nueva Guinea','Paraguay',
+  'Países Bajos','Perú','Polonia','Portugal','Puerto Rico','Reino Unido',
+  'República Centroafricana','República Checa','República del Congo',
+  'República Democrática del Congo','República Dominicana','Ruanda',
+  'Rumanía','Rusia','Samoa','San Cristóbal y Nieves','San Marino',
+  'San Vicente y las Granadinas','Santa Lucía','Santo Tomé y Príncipe',
+  'Senegal','Serbia','Seychelles','Sierra Leona','Singapur','Siria',
+  'Somalia','Sri Lanka','Sudáfrica','Sudán','Sudán del Sur','Suecia',
+  'Suiza','Surinam','Tailandia','Tanzania','Tayikistán','Timor Oriental',
+  'Togo','Tonga','Trinidad y Tobago','Turkmenistán','Turquía','Tuvalu',
+  'Túnez','Ucrania','Uganda','Uruguay','Uzbekistán','Vanuatu','Vaticano',
+  'Venezuela','Vietnam','Yemen','Yibuti','Zambia','Zimbabue','Otro'
+];
+
+var countrySheet  = document.getElementById('countrySheet');
+var sheetClose    = document.getElementById('sheetClose');
+var countryList   = document.getElementById('countryList');
+var countrySearch = document.getElementById('countrySearch');
+var countryEmpty  = document.getElementById('countryEmpty');
+
+var CHECK_MARK = '<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+function setCountry(value) {
+  country.value = value || '';
+  if (value) {
+    countryValue.textContent = value;
+    countryValue.classList.remove('placeholder');
+    countryTrigger.classList.remove('error');
+  } else {
+    countryValue.textContent = 'Selecciona tu país';
+    countryValue.classList.add('placeholder');
+  }
+}
+
+function buildCountryList(filter) {
+  filter = (filter || '').toLowerCase().trim();
+  countryList.innerHTML = '';
+  var shown = 0;
+  countries.forEach(function (name) {
+    if (filter && name.toLowerCase().indexOf(filter) === -1) return;
+    shown++;
+    var li = document.createElement('li');
+    if (country.value === name) li.className = 'selected';
+    li.innerHTML = '<span>' + name + '</span>' + CHECK_MARK;
+    li.addEventListener('click', function () {
+      setCountry(name);
+      closeCountrySheet();
+    });
+    countryList.appendChild(li);
+  });
+  countryEmpty.hidden = shown !== 0;
+}
+
+function openCountrySheet() {
+  buildCountryList('');
+  countrySearch.value = '';
+  countrySheet.classList.add('show');
+  countrySheet.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('sheet-open');
+  setTimeout(function () { countrySearch.focus(); }, 350);
+}
+
+function closeCountrySheet() {
+  countrySheet.classList.remove('show');
+  countrySheet.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('sheet-open');
+}
+
+countryTrigger.addEventListener('click', openCountrySheet);
+sheetClose.addEventListener('click', closeCountrySheet);
+countrySheet.addEventListener('click', function (e) {
+  if (e.target === countrySheet) closeCountrySheet();
+});
+countrySearch.addEventListener('input', function () {
+  buildCountryList(countrySearch.value);
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && countrySheet.classList.contains('show')) closeCountrySheet();
 });
 
-el('fPw2').addEventListener('input', function () {
-  const v  = this.value;
-  const pw = el('fPw').value;
-  if (!v)       setState(this, '',       'hintPw2', '');
-  else if (v !== pw) setState(this, 'error', 'hintPw2', 'Las contraseñas no coinciden');
-  else          setState(this, 'valid',  'hintPw2', '✓ Coinciden');
-  checkReady();
+/* ──────────────────────────────────────────────
+   ANIMACIÓN DE CREACIÓN DE CUENTA
+────────────────────────────────────────────── */
+function setCreationStep(idx) {
+  creationBlocks.forEach(function (block) {
+    var steps = block.querySelectorAll('.creation-steps li');
+    var fill  = block.querySelector('.creation-fill');
+    var pctEl = block.querySelector('.creation-pct');
+    steps.forEach(function (li, n) {
+      li.classList.remove('active', 'done');
+      if (n < idx)      li.classList.add('done');
+      else if (n === idx) li.classList.add('active');
+    });
+    var pct = Math.round((idx / (steps.length - 1)) * 100);
+    fill.style.width      = pct + '%';
+    pctEl.textContent     = pct + '%';
+  });
+}
+
+function finishCreation() {
+  creationBlocks.forEach(function (block) {
+    var steps = block.querySelectorAll('.creation-steps li');
+    steps.forEach(function (li) { li.classList.remove('active'); li.classList.add('done'); });
+    block.querySelector('.creation-fill').style.width = '100%';
+    block.querySelector('.creation-pct').textContent  = '100%';
+    block.classList.add('done');
+  });
+}
+
+function showCreation() {
+  creationBlocks.forEach(function (b) {
+    b.classList.remove('done');
+    b.classList.add('show');
+    b.setAttribute('aria-hidden', 'false');
+  });
+}
+
+function hideCreation() {
+  creationBlocks.forEach(function (b) {
+    b.classList.remove('show', 'done');
+    b.setAttribute('aria-hidden', 'true');
+  });
+}
+
+function lockForm(locked) {
+  form.querySelectorAll('input, select, button').forEach(function (el) {
+    el.disabled = locked;
+  });
+}
+
+function delay(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
+
+/* ──────────────────────────────────────────────
+   RESET DE CAMPOS
+────────────────────────────────────────────── */
+function resetFields() {
+  usernameInput.value = '';
+  emailInput.value    = '';
+  password.value      = '';
+  confirm.value       = '';
+
+  usernameInput.classList.remove('error');
+  emailInput.classList.remove('error');
+  password.classList.remove('error');
+  confirm.classList.remove('error');
+
+  reqs.classList.remove('show');
+  reqsConfirm.classList.remove('show');
+  matchMsg.className = 'match-msg';
+  matchMsg.innerHTML = '';
+
+  setCountry('');
+  termsCheck.checked = false;
+  termsCheck.classList.remove('error');
+
+  // Restaurar ojos
+  document.querySelectorAll('.toggle-eye').forEach(function (btn) {
+    var inp = document.getElementById(btn.dataset.target);
+    if (inp) inp.type = 'password';
+    btn.classList.remove('show');
+  });
+}
+
+/* ──────────────────────────────────────────────
+   SUBMIT PRINCIPAL
+────────────────────────────────────────────── */
+form.addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  var submitBtn = form.querySelector('.btn[type="submit"]');
+  if (submitBtn.disabled) return;
+
+  /* ── REGISTRO ── */
+  if (isSignUp) {
+    var r = rules(password.value);
+    if (!r.len || !r.upper || !r.number || !r.special) {
+      checkPassword();
+      showToast('La contraseña no cumple los requisitos.', 'error');
+      return;
+    }
+    if (password.value !== confirm.value) {
+      checkMatch();
+      showToast('Las contraseñas no coinciden.', 'error');
+      return;
+    }
+    if (!country.value) {
+      countryTrigger.classList.add('error');
+      showToast('Selecciona tu país para continuar.', 'error');
+      return;
+    }
+    if (!termsCheck.checked) {
+      termsCheck.classList.add('error');
+      showToast('Debes aceptar los términos para continuar.', 'error');
+      return;
+    }
+
+    var name       = usernameInput.value.trim();
+    var emailVal   = emailInput.value.trim();
+    var pwVal      = password.value;
+    var countryVal = country.value;
+
+    // Bloquear formulario + mostrar progreso
+    lockForm(true);
+    showCreation();
+    setCreationStep(0); // Procesando
+
+    try {
+      await delay(600);
+      setCreationStep(1); // Creando tu cuenta — aquí llama a la API
+
+      await NubiflyAPI.registerUser({
+        name:     name,
+        username: name,
+        email:    emailVal,
+        password: pwVal
+      });
+
+      // Animación de éxito
+      setCreationStep(2); await delay(450); // Analizando
+      setCreationStep(3); await delay(450); // Finalizando
+      finishCreation();                     // Éxito ✓
+
+      showToast('¡Cuenta creada con éxito!', 'success');
+      await delay(1100);
+
+      sessionStorage.removeItem('_nf_home_redir');
+      window.location.replace('/home');
+
+    } catch (err) {
+      hideCreation();
+      lockForm(false);
+      showToast(err.message || 'Error al crear la cuenta. Inténtalo de nuevo.', 'error');
+    }
+
+  /* ── LOGIN ── */
+  } else {
+    var origText = btnText.textContent;
+    btnText.textContent = 'Iniciando…';
+    submitBtn.disabled  = true;
+
+    try {
+      await NubiflyAPI.loginUser({
+        email:    emailInput.value.trim(),
+        password: password.value
+      });
+
+      sessionStorage.removeItem('_nf_home_redir');
+      window.location.replace('/home');
+
+    } catch (err) {
+      btnText.textContent = origText;
+      submitBtn.disabled  = false;
+      showToast(err.message || 'Error al iniciar sesión. Inténtalo de nuevo.', 'error');
+    }
+  }
 });
 
-el('fRegion').addEventListener('change', function () {
-  checkReady();
+/* ──────────────────────────────────────────────
+   GOOGLE OAUTH
+────────────────────────────────────────────── */
+document.getElementById('btnGoogle').addEventListener('click', function () {
+  showToast('Conectando con Google…', 'info');
+  window.location.href = '/api/auth/google';
 });
 
-el('fTerms').addEventListener('change', function () {
-  el('hintTerms').textContent = this.checked ? '' : 'Debes aceptar los términos para continuar';
-  checkReady();
+/* ──────────────────────────────────────────────
+   GITHUB OAUTH
+────────────────────────────────────────────── */
+document.getElementById('btnGitHub').addEventListener('click', function () {
+  showToast('Conectando con GitHub…', 'info');
+  window.location.href = '/api/auth/github';
 });
 
-/* ─── Continuar como invitado ─────────── */
+/* ──────────────────────────────────────────────
+   CONTINUAR COMO INVITADO
+────────────────────────────────────────────── */
+document.getElementById('guestBtn').addEventListener('click', async function () {
+  var btn = this;
+  if (btn.disabled) return;
 
-const GUEST_BTN_HTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Continuar como invitado`;
-const GUEST_LOADING_HTML = `<span class="guest-spinner"></span>Creando sesión…`;
-
-async function handleGuestLogin() {
-  const btn = el('btnGuest');
-  if (!btn || btn.classList.contains('loading')) return;
-
-  // Estado de carga
-  btn.classList.add('loading');
-  btn.innerHTML = GUEST_LOADING_HTML;
+  btn.disabled    = true;
+  var origHTML    = btn.innerHTML;
+  btn.innerHTML   =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;animation:spin .7s linear infinite" width="18" height="18"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>' +
+    'Creando sesión…';
 
   try {
-    const res = await fetch('/api/auth/guest', {
+    var res  = await fetch('/api/auth/guest', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' }
     });
 
-    let data = {};
-    try { data = await res.json(); } catch { /* ignore parse error */ }
+    var data = {};
+    try { data = await res.json(); } catch { /* ignore */ }
 
     if (!res.ok || !data.success || !data.token) {
-      const msg = data?.message || (res.status === 429
-        ? 'Demasiados intentos. Espera un momento.'
-        : res.status === 503
-          ? 'Servicio no disponible. Inténtalo de nuevo.'
+      var msg = data?.message ||
+        (res.status === 429 ? 'Demasiados intentos. Espera un momento.'
+          : res.status === 503 ? 'Servicio no disponible. Inténtalo de nuevo.'
           : 'No se pudo crear la sesión de invitado.');
       throw new Error(msg);
     }
 
-    // Guardar sesión en localStorage directamente (defensivo)
+    // Guardar sesión
     try {
       localStorage.setItem('nf_token', data.token);
       localStorage.setItem('nf_uid',   data.guestId || '');
       localStorage.setItem('nf_user',  JSON.stringify(data.user || {}));
       localStorage.removeItem('nf_refresh_token');
-    } catch { /* localStorage puede estar bloqueado en modo privado */ }
+    } catch { /* localStorage bloqueado en modo privado */ }
 
     sessionStorage.removeItem('_nf_home_redir');
     window.location.replace('/home');
 
   } catch (err) {
-    // Restaurar botón
-    btn.classList.remove('loading');
-    btn.innerHTML = GUEST_BTN_HTML;
-
-    // Mostrar error debajo del email (visible sin scroll)
-    const errEl = el('hintEmail') || el('hintPw');
-    if (errEl) {
-      errEl.textContent = err.message;
-      errEl.className   = 'field-hint err';
-    }
-  }
-}
-
-/* ─── Submit ─────────────────────────── */
-
-/* ─── Submit — conectado al backend ─────────────────────────────────────── */
-
-el('authForm').addEventListener('submit', async function (e) {
-  e.preventDefault();
-  const btn = el('btnSubmit');
-  if (btn.disabled) return;
-
-  el('btnTxt').style.opacity     = '0';
-  el('btnSpinner').style.display = 'block';
-  btn.disabled = true;
-
-  const email    = el('fEmail').value.trim();
-  const password = el('fPw').value;
-
-  try {
-    if (mode === 'login') {
-      await NubiflyAPI.loginUser({ email, password });
-    } else {
-      const name     = el('fUser').value.trim();
-      const username = el('fUser').value.trim(); // same field in this UI
-      await NubiflyAPI.registerUser({ name, username, email, password });
-    }
-    // Redirect to home on success — clear loop guard so /home auth check works normally
-    sessionStorage.removeItem('_nf_home_redir');
-    window.location.replace('/home');
-  } catch (err) {
-    el('btnTxt').style.opacity     = '1';
-    el('btnSpinner').style.display = 'none';
-    btn.disabled = false;
-
-    // Show error in a visible hint
-    const errMsg = err.message || 'Error de conexión. Inténtalo de nuevo.';
-    const hint   = el('hintEmail');
-    hint.textContent = errMsg;
-    hint.className   = 'field-hint err';
-    el('fEmail').classList.add('error');
+    btn.disabled  = false;
+    btn.innerHTML = origHTML;
+    showToast(err.message, 'error');
   }
 });
 
-/* ─── Init ───────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────
+   BOTÓN ATRÁS
+────────────────────────────────────────────── */
+document.getElementById('backBtn').addEventListener('click', function () {
+  if (history.length > 1) {
+    history.back();
+  } else {
+    window.location.href = '/';
+  }
+});
 
-// If already logged in, go straight to home.
-// Break any redirect loop: if we've bounced here from /home more than twice,
-// something is wrong with the stored token — force a clean re-login instead.
-if (NubiflyAPI.getToken()) {
+/* ──────────────────────────────────────────────
+   INICIALIZACIÓN
+────────────────────────────────────────────── */
+
+// Si ya hay sesión activa → ir directo a /home
+if (typeof NubiflyAPI !== 'undefined' && NubiflyAPI.getToken()) {
   sessionStorage.removeItem('_nf_home_redir');
   window.location.replace('/home');
 }
 
-// Show Google OAuth errors returned as ?error= in URL
+// Errores de OAuth pasados como ?error= en la URL
 (function () {
-  const p = new URLSearchParams(window.location.search);
-  const err = p.get('error');
-  if (err) {
-    history.replaceState({}, '', window.location.pathname);
-    const msgs = {
-      google_cancelled:       'Inicio con Google cancelado.',
-      google_not_configured:  'Google Login no está configurado aún.',
-      google_no_email:        'No se pudo obtener el correo de Google.',
-      github_cancelled:       'Inicio con GitHub cancelado.',
-      github_not_configured:  'GitHub Login no está configurado aún.',
-      github_no_email:        'No se pudo obtener el correo de GitHub. Asegúrate de tener un email público en tu cuenta.',
-      github_token_exchange:  'Error al conectar con GitHub. Inténtalo de nuevo.',
-      github_no_token:        'GitHub no devolvió un token válido.',
-      github_userinfo:        'No se pudo obtener tu perfil de GitHub. Inténtalo de nuevo.',
-      account_banned:         'Tu cuenta ha sido suspendida permanentemente.',
-      account_suspended:      'Tu cuenta está suspendida temporalmente.',
-      account_inactive:       'Tu cuenta no está activa. Contacta a soporte.',
-      token_error:            'Error al generar la sesión. Inténtalo de nuevo.',
-      db_error:               'Error de base de datos. Inténtalo de nuevo.',
-      db_write_error:         'Error al registrar tu cuenta. Inténtalo de nuevo.'
-    };
-    const hint = el('hintEmail');
-    if (hint) {
-      hint.textContent = msgs[err] || 'Error al iniciar sesión con Google.';
-      hint.className = 'field-hint err';
-    }
-  }
+  var p = new URLSearchParams(window.location.search);
+  var err = p.get('error');
+  if (!err) return;
+
+  history.replaceState({}, '', window.location.pathname);
+
+  var msgs = {
+    google_cancelled:      'Inicio con Google cancelado.',
+    google_not_configured: 'Google Login no está configurado aún.',
+    google_no_email:       'No se pudo obtener el correo de Google.',
+    github_cancelled:      'Inicio con GitHub cancelado.',
+    github_not_configured: 'GitHub Login no está configurado aún.',
+    github_no_email:       'No se pudo obtener el correo de GitHub. Asegúrate de tener un email público.',
+    github_token_exchange: 'Error al conectar con GitHub. Inténtalo de nuevo.',
+    github_no_token:       'GitHub no devolvió un token válido.',
+    github_userinfo:       'No se pudo obtener tu perfil de GitHub.',
+    account_banned:        'Tu cuenta ha sido suspendida permanentemente.',
+    account_suspended:     'Tu cuenta está suspendida temporalmente.',
+    account_inactive:      'Tu cuenta no está activa. Contacta a soporte.',
+    token_error:           'Error al generar la sesión. Inténtalo de nuevo.',
+    db_error:              'Error de base de datos. Inténtalo de nuevo.',
+    db_write_error:        'Error al registrar tu cuenta. Inténtalo de nuevo.'
+  };
+
+  setTimeout(function () {
+    showToast(msgs[err] || 'Error al iniciar sesión.', 'error');
+  }, 400);
 })();
 
-// Browser back/forward button — sync form mode with URL
-window.addEventListener('popstate', (e) => {
-  mode = (e.state?.mode === 'register' || window.location.pathname.startsWith('/register'))
-    ? 'register'
-    : 'login';
+// Detectar modo /register en la URL
+if (window.location.pathname.startsWith('/register')) {
+  isSignUp = true;
+}
+
+// Sincronizar historial del navegador con modo actual
+history.replaceState(
+  { mode: isSignUp ? 'register' : 'login' },
+  '',
+  window.location.pathname
+);
+
+// Botón atrás/adelante del navegador
+window.addEventListener('popstate', function (e) {
+  isSignUp = (
+    e.state?.mode === 'register' ||
+    window.location.pathname.startsWith('/register')
+  );
   applyMode();
-  resetForm();
+  resetFields();
 });
 
-if (window.location.pathname.startsWith('/register')) {
-  mode = 'register';
-}
-// Seed the initial history entry so popstate fires correctly on first back
-history.replaceState({ mode }, '', window.location.pathname);
+// Aplicar modo inicial
 applyMode();
