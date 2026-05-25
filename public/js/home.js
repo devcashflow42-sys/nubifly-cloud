@@ -95,7 +95,10 @@ const API = {
     });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) { Auth.clear(); window.location.href = '/login'; throw new Error('UNAUTHORIZED'); }
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    if (!res.ok) {
+      const msg = data.message || data.error || `Error HTTP ${res.status}`;
+      throw new Error(msg);
+    }
     return data;
   },
 

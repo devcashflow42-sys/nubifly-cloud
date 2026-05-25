@@ -15,7 +15,8 @@ export async function resolveStorageToken(env, tok) {
   if (!tok.startsWith('secret:')) return { storageTok: tok };
   if (!env.FIREBASE_SERVICE_ACCOUNT) {
     return { errorResponse: jsonRes(fail(
-      'Agrega FIREBASE_SERVICE_ACCOUNT en Cloudflare Pages → Settings → Environment variables.',
+      'Firebase Storage requiere FIREBASE_SERVICE_ACCOUNT. ' +
+      'Agrégalo en Cloudflare Pages → Settings → Environment variables.',
       'CONFIG_ERROR'), 500) };
   }
   try {
@@ -24,7 +25,9 @@ export async function resolveStorageToken(env, tok) {
     return { storageTok: await getFirebaseToken(sa) };
   } catch (e) {
     console.error('[resolveStorageToken]', e);
-    return { errorResponse: jsonRes(fail('FIREBASE_SERVICE_ACCOUNT tiene formato inválido.', 'CONFIG_ERROR'), 500) };
+    return { errorResponse: jsonRes(fail(
+      'FIREBASE_SERVICE_ACCOUNT tiene formato inválido. Verifica que sea JSON válido.',
+      'CONFIG_ERROR'), 500) };
   }
 }
 
@@ -32,33 +35,68 @@ export async function uploadBytesToStorage(env, storageTok, storagePath, mimeTyp
   const bucket = env.FIREBASE_STORAGE_BUCKET;
   if (!bucket) {
     return { errorResponse: jsonRes(fail(
-      'Agrega FIREBASE_STORAGE_BUCKET en Cloudflare Pages → Settings → Environment variables. ' +
+      'FIREBASE_STORAGE_BUCKET no está configurado. ' +
+      'Agrégalo en Cloudflare Pages → Settings → Environment variables. ' +
       'El valor es el nombre de tu bucket, p.ej. "mi-proyecto.appspot.com".',
       'CONFIG_ERROR'), 500) };
   }
+
   const encodedPath = encodeURIComponent(storagePath);
   const uploadUrl   = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${encodedPath}`;
+
+  let uploadRes;
   try {
-    const uploadRes = await fetch(uploadUrl, {
-      method: 'POST',
+    // NOTA: No incluir Content-Length — es un header prohibido en Cloudflare Workers
+    // y causa TypeError silencioso. El runtime lo calcula automáticamente.
+    uploadRes = await fetch(uploadUrl, {
+      method:  'POST',
       headers: {
-        'Authorization':  `Bearer ${storageTok}`,
-        'Content-Type':   mimeType,
-        'Content-Length': String(fileBytes.byteLength)
+        'Authorization': `Bearer ${storageTok}`,
+        'Content-Type':  mimeType,
       },
       body: fileBytes
     });
-    if (!uploadRes.ok) {
-      const errTxt = await uploadRes.text().catch(() => '');
-      console.error('[uploadBytesToStorage]', uploadRes.status, errTxt);
-      return { errorResponse: jsonRes(fail('Error al subir el archivo a Firebase Storage.', 'UPLOAD_ERROR'), 502) };
-    }
-    const storageData   = await uploadRes.json();
-    const downloadToken = storageData.downloadTokens;
-    const fileUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media${downloadToken ? `&token=${downloadToken}` : ''}`;
-    return { fileUrl, storageData };
   } catch (e) {
-    console.error('[uploadBytesToStorage] fetch', e);
-    return { errorResponse: jsonRes(fail('Error de conexión con Firebase Storage.', 'UPLOAD_ERROR'), 502) };
+    console.error('[uploadBytesToStorage] fetch network error:', e.message || e);
+    return { errorResponse: jsonRes(fail(
+      'No se pudo conectar con Firebase Storage. Verifica la configuración del proyecto.',
+      'UPLOAD_NETWORK_ERROR'), 502) };
   }
+
+  if (!uploadRes.ok) {
+    const errTxt = await uploadRes.text().catch(() => '');
+    console.error('[uploadBytesToStorage] Firebase Storage error:', uploadRes.status, errTxt);
+
+    // Mensajes específicos según el código HTTP de Firebase Storage
+    let msg;
+    if (uploadRes.status === 401 || uploadRes.status === 403) {
+      msg = `Firebase Storage rechazó la subida (HTTP ${uploadRes.status}): sin permisos. ` +
+            'Verifica las reglas de Storage y que FIREBASE_SERVICE_ACCOUNT tenga acceso.';
+    } else if (uploadRes.status === 404) {
+      msg = `El bucket de Firebase Storage no existe (HTTP 404). ` +
+            `Verifica que FIREBASE_STORAGE_BUCKET="${bucket}" sea correcto y que Storage esté habilitado.`;
+    } else if (uploadRes.status === 413) {
+      msg = 'El archivo es demasiado grande para Firebase Storage.';
+    } else {
+      msg = `Firebase Storage devolvió un error (HTTP ${uploadRes.status}). ` +
+            'Revisa los logs de Cloudflare para más detalles.';
+    }
+
+    return { errorResponse: jsonRes(fail(msg, 'UPLOAD_ERROR'), 502) };
+  }
+
+  let storageData;
+  try {
+    storageData = await uploadRes.json();
+  } catch (e) {
+    console.error('[uploadBytesToStorage] Failed to parse Storage response:', e.message);
+    return { errorResponse: jsonRes(fail(
+      'Firebase Storage devolvió una respuesta inesperada al subir el archivo.',
+      'UPLOAD_PARSE_ERROR'), 502) };
+  }
+
+  const downloadToken = storageData.downloadTokens;
+  const fileUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}` +
+                  `?alt=media${downloadToken ? `&token=${downloadToken}` : ''}`;
+  return { fileUrl, storageData };
 }
