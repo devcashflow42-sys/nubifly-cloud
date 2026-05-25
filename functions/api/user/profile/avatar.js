@@ -49,7 +49,7 @@ export async function onRequestPost(context) {
   if (fileBytes.byteLength > MAX_AVATAR_SIZE)
     return jsonRes(fail('La imagen no puede superar 5 MB.', 'FILE_TOO_LARGE'), 413);
 
-  // ── Upload to Firebase Storage ────────────────────────────────────────────
+  // ── Upload to Backblaze B2 Storage ───────────────────────────────────────
   const storageCtx = await resolveStorageToken(context.env, tok);
   if (storageCtx.errorResponse) return storageCtx.errorResponse;
 

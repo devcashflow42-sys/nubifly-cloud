@@ -88,7 +88,7 @@ export async function uploadFileForUser(request, user, env, tok, db) {
   const subPath     = folder ? `${folder}/` : '';
   const storagePath = `uploads/${user.uid}/${projectId}/${subPath}${timestamp}-${safeFilename}`;
 
-  // ── Subir a Firebase Storage ──────────────────────────────
+  // ── Subir a Backblaze B2 Storage ─────────────────────────
   const storageCtx = await resolveStorageToken(env, tok);
   if (storageCtx.errorResponse) return storageCtx.errorResponse;
 

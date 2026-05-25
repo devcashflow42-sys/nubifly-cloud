@@ -4,7 +4,7 @@
  * Handlers compartidos para los endpoints públicos v1.
  * Extraídos para mantener las rutas (functions/api/v1/*.js) cortas.
  *
- *   - v1Upload          → user key, sube a Firebase Storage
+ *   - v1Upload          → user key, sube a Backblaze B2 Storage
  *   - v1ListFiles       → user key, lista archivos del proyecto asociado
  *   - v1KeyStatus       → user key, info de la clave + uso
  *   - v1ProjectUpload   → user key o project key, sube a un proyecto específico
