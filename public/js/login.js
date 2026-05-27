@@ -544,27 +544,8 @@ document.getElementById('guestBtn').addEventListener('click', async function () 
 /* ──────────────────────────────────────────────
    BOTÓN ATRÁS
 ────────────────────────────────────────────── */
-// Capturamos la URL real de origen al cargar la página, ANTES de que
-// toggleMode() llame a history.pushState y contamine el historial.
-// Así el botón "Atrás" siempre sale del flujo de login en lugar de
-// oscilar entre /login y /register.
-var _realPrevUrl = (function () {
-  var ref = document.referrer;
-  if (ref) {
-    try {
-      var u = new URL(ref);
-      // Solo usamos referrers del mismo origen (misma app)
-      if (u.origin === location.origin) {
-        return u.pathname + (u.search || '');
-      }
-    } catch (e) { /* ignore */ }
-  }
-  // Sin referrer o referrer externo → ir a la página principal
-  return '/';
-})();
-
 document.getElementById('backBtn').addEventListener('click', function () {
-  window.location.href = _realPrevUrl;
+  window.location.href = '/';
 });
 
 /* ──────────────────────────────────────────────
