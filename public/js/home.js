@@ -893,16 +893,23 @@ async function loadNotifications() {
         'Sin notificaciones', 'Te avisaremos cuando haya actividad en tu cuenta.'
       );
     } else {
-      container.innerHTML = notifs.map(n => `
+      const nivelColor = { error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
+      container.innerHTML = notifs.map(n => {
+        const leida   = !!(n.leida || n.read);
+        const titulo  = escapeHtml(n.titulo  || n.title  || '');
+        const mensaje = escapeHtml(n.mensaje || n.body   || '');
+        const nivel   = n.nivel || 'info';
+        const dotStyle = !leida && nivelColor[nivel] ? ` style="background:${nivelColor[nivel]}"` : '';
+        return `
         <div class="notif-row">
-          <div class="notif-dot${n.read ? ' read' : ''}"></div>
+          <div class="notif-dot${leida ? ' read' : ''}"${dotStyle}></div>
           <div class="notif-body">
-            <div class="notif-title">${escapeHtml(n.title)}</div>
-            <div class="notif-desc">${escapeHtml(n.body)}</div>
+            <div class="notif-title">${titulo}</div>
+            <div class="notif-desc">${mensaje}</div>
             <div class="notif-time">${timeAgo(n.createdAt)}</div>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
   } catch (e) {
     container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Error cargando notificaciones.</div>`;

@@ -8,6 +8,7 @@ import { sanitizeUploadName }        from '../../_lib/helpers.js';
 import { resolveStorageToken,
          uploadBytesToStorage }      from '../../_lib/storage.js';
 import { jsonRes, ok, fail }         from '../../_lib/response.js';
+import { crearNotificacionLogro }    from '../../_lib/notifications.js';
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
 
@@ -110,6 +111,10 @@ export async function onRequestPost(context) {
     console.error('[POST /api/user/files] fbUpdate:', e.message);
     return jsonRes(fail('Error guardando el archivo. Inténtalo de nuevo.', 'DB_ERROR'), 500);
   }
+
+  // Notificación de logro — primera publicación (antispam incluido en la función)
+  crearNotificacionLogro(user.uid, 'primer_archivo', fileId, tok, db)
+    .catch(e => console.warn('[notify/primer_archivo]', e.message));
 
   return jsonRes(ok({ file: fileMeta }, 'Archivo publicado correctamente.'), 201);
 }
