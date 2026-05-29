@@ -112,9 +112,11 @@ export async function onRequestPost(context) {
     return jsonRes(fail('Error guardando el archivo. Inténtalo de nuevo.', 'DB_ERROR'), 500);
   }
 
-  // Notificación de logro — primera publicación (antispam incluido en la función)
-  crearNotificacionLogro(user.uid, 'primer_archivo', fileId, tok, db)
-    .catch(e => console.warn('[notify/primer_archivo]', e.message));
+  // context.waitUntil mantiene el worker vivo hasta que la notificación se guarde en Firebase
+  context.waitUntil(
+    crearNotificacionLogro(user.uid, 'primer_archivo', fileId, tok, db)
+      .catch(e => console.warn('[notify/primer_archivo]', e.message))
+  );
 
   return jsonRes(ok({ file: fileMeta }, 'Archivo publicado correctamente.'), 201);
 }

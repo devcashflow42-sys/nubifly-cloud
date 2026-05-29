@@ -98,12 +98,15 @@ export async function onRequestPatch(context) {
     [`userProjects/${user.uid}/${projectId}`]: updated,
   }, tok, db);
 
-  crearAvisoSistema(
-    user.uid, 'info',
-    '¡Proyecto actualizado!',
-    `Tu proyecto "${updated.name}" ha sido actualizado correctamente.`,
-    0, tok, db
-  ).catch(e => console.warn('[notify/proyecto_editado]', e.message));
+  // context.waitUntil mantiene el worker vivo hasta que la notificación se guarde en Firebase
+  context.waitUntil(
+    crearAvisoSistema(
+      user.uid, 'info',
+      '¡Proyecto actualizado!',
+      `Tu proyecto "${updated.name}" ha sido actualizado correctamente.`,
+      0, tok, db
+    ).catch(e => console.warn('[notify/proyecto_editado]', e.message))
+  );
 
   return jsonRes(ok({ project: { id: projectId, ...updated } }, 'Proyecto actualizado correctamente.'));
 }

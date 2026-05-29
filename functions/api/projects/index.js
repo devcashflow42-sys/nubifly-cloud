@@ -75,9 +75,11 @@ export async function onRequestPost(context) {
     [`apiKeyIndex/${encodeApiKey(apiKey)}`]:     { projectId: pid, ownerId: user.uid }
   }, tok, db);
 
-  // Notificación de logro — primer proyecto (antispam incluido en la función)
-  crearNotificacionLogro(user.uid, 'primer_proyecto', pid, tok, db)
-    .catch(e => console.warn('[notify/primer_proyecto]', e.message));
+  // context.waitUntil mantiene el worker vivo hasta que la notificación se guarde en Firebase
+  context.waitUntil(
+    crearNotificacionLogro(user.uid, 'primer_proyecto', pid, tok, db)
+      .catch(e => console.warn('[notify/primer_proyecto]', e.message))
+  );
 
   return jsonRes(ok({ project: { id: pid, ...project } }, 'Proyecto creado correctamente.'), 201);
 }
