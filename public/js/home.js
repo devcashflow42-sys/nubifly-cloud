@@ -473,7 +473,7 @@ async function loadRecentFiles() {
     const res = await API.getFiles();
     State.files = res?.data?.files || [];
     const container = document.getElementById('recentFilesList');
-    const recent = State.files.slice(0, 5);
+    const recent = State.files.filter(f => !f.projectId).slice(0, 5);
 
     if (recent.length === 0) {
       container.innerHTML = emptyListHTML(
@@ -607,6 +607,7 @@ async function loadFiles() {
   try {
     const res = await API.getFiles();
     State.files = res?.data?.files || [];
+    const publications = State.files.filter(f => !f.projectId);
 
     function renderFiles(files) {
       if (!container) return;
@@ -620,14 +621,14 @@ async function loadFiles() {
       }
     }
 
-    renderFiles(State.files);
+    renderFiles(publications);
 
     if (searchInput) {
       searchInput.oninput = () => {
         const q = searchInput.value.toLowerCase();
         const filtered = q
-          ? State.files.filter(f => (f.fileName || f.originalName || '').toLowerCase().includes(q))
-          : State.files;
+          ? publications.filter(f => (f.fileName || f.originalName || '').toLowerCase().includes(q))
+          : publications;
         renderFiles(filtered);
       };
     }
