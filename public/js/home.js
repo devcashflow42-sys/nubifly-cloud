@@ -125,6 +125,10 @@ const API = {
     return this.uploadFile('/api/user/files', formData);
   },
 
+  uploadToProject(formData) {
+    return this.uploadFile('/api/files/upload', formData);
+  },
+
   // ── API KEYS ──────────────────────────────────────────────────
   listApiKeys() {
     return this.request('GET', '/api/user/apikeys');
@@ -1119,7 +1123,8 @@ function openProjectDetail(projectId) {
 
   const isPublic = proj.visibility === 'public' || proj.public === true;
   const tags = Array.isArray(proj.tags) && proj.tags.length ? proj.tags : [];
-  const pid = escapeHtml(proj.projectId || proj.id);
+  const rawPid = proj.projectId || proj.id;
+  const pid = escapeHtml(rawPid);
 
   document.getElementById('projDetailContent').innerHTML = `
     <div class="proj-info-card">
@@ -1156,19 +1161,106 @@ function openProjectDetail(projectId) {
     </div>
 
     <div class="proj-files-head">
-      <span class="proj-files-title">Archivos publicados</span>
-      <button class="proj-files-upload" onclick="goPage('nueva')">+ Subir</button>
+      <span class="proj-files-title">Archivos del proyecto</span>
+      <button class="proj-files-upload" onclick="openProjectUpload('${pid}')">+ Subir</button>
     </div>
-    <div class="proj-empty-zone">
-      <div class="proj-empty-icon">
-        <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+    <div id="projFilesZone">
+      <div class="proj-empty-zone" style="cursor:pointer" onclick="openProjectUpload('${pid}')">
+        <div class="proj-empty-icon">
+          <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+        </div>
+        <div class="proj-empty-title">Sin archivos todavía</div>
+        <div class="proj-empty-sub">Toca aquí o usa "+ Subir" para añadir imágenes, videos, documentos o APK.</div>
       </div>
-      <div class="proj-empty-title">Sin archivos publicados todavía</div>
-      <div class="proj-empty-sub">Sube imágenes, videos, documentos o APK para compartirlos en este proyecto.</div>
     </div>
   `;
 
   goPage('proj-detail');
+  loadProjectFiles(rawPid);
+}
+
+// ─── Upload de archivos al proyecto ──────────────────────────
+function openProjectUpload(projectId) {
+  const inp = document.createElement('input');
+  inp.type     = 'file';
+  inp.multiple = true;
+  inp.accept   = 'image/*,video/*,audio/*,application/pdf,.apk,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,application/octet-stream';
+  inp.style.display = 'none';
+  document.body.appendChild(inp);
+
+  inp.addEventListener('change', async () => {
+    const files = Array.from(inp.files || []);
+    inp.remove();
+    if (!files.length) return;
+    await handleProjectUpload(projectId, files);
+  });
+
+  inp.click();
+}
+
+async function handleProjectUpload(projectId, files) {
+  const total = files.length;
+  let done = 0;
+  let errors = 0;
+
+  showToast(`Subiendo ${total} archivo${total !== 1 ? 's' : ''}…`);
+
+  for (const file of files) {
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('projectId', projectId);
+      await API.uploadToProject(fd);
+      done++;
+    } catch (e) {
+      errors++;
+      console.warn('[handleProjectUpload]', file.name, e.message);
+    }
+  }
+
+  if (errors === 0) {
+    showToast(`${done} archivo${done !== 1 ? 's' : ''} subido${done !== 1 ? 's' : ''} correctamente.`, 'success');
+  } else if (done > 0) {
+    showToast(`${done} subido${done !== 1 ? 's' : ''}, ${errors} con error.`, 'success');
+  } else {
+    showToast('Error al subir los archivos. Intenta de nuevo.', 'error');
+  }
+
+  await loadProjectFiles(projectId);
+}
+
+async function loadProjectFiles(projectId) {
+  try {
+    const res = await API.getFiles();
+    const all = res?.data?.files || [];
+    State.files = all;
+    renderProjectFiles(all, projectId);
+  } catch (e) {
+    console.warn('[loadProjectFiles]', e.message);
+  }
+}
+
+function renderProjectFiles(allFiles, projectId) {
+  const zone = document.getElementById('projFilesZone');
+  if (!zone) return;
+
+  const pid    = escapeHtml(projectId);
+  const files  = allFiles.filter(f =>
+    (f.projectId || f.project) === projectId
+  );
+
+  if (files.length === 0) {
+    zone.innerHTML = `
+      <div class="proj-empty-zone" style="cursor:pointer" onclick="openProjectUpload('${pid}')">
+        <div class="proj-empty-icon">
+          <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+        </div>
+        <div class="proj-empty-title">Sin archivos todavía</div>
+        <div class="proj-empty-sub">Toca aquí o usa "+ Subir" para añadir imágenes, videos, documentos o APK.</div>
+      </div>`;
+  } else {
+    zone.innerHTML = files.map(fileRowHTML).join('');
+  }
 }
 
 // ─── Project options popup ───────────────────────────────────
