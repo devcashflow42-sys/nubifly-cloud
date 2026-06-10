@@ -99,6 +99,8 @@ export async function signJwt(payload, secret, expiresIn = '7d') {
 export async function verifyJwt(token, secret) {
   const parts = token.split('.');
   if (parts.length !== 3) throw new Error('Formato de token inválido');
+  const header = JSON.parse(new TextDecoder().decode(b64urlDecode(parts[0])));
+  if (header.alg !== 'HS256') throw new Error('Algoritmo de token no permitido');
   const data = `${parts[0]}.${parts[1]}`;
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),

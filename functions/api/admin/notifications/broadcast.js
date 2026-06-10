@@ -75,11 +75,20 @@ export async function onRequestPost(context) {
   if (!NIVELES_VALIDOS.includes(nivel))
     return jsonRes(fail(`"nivel" debe ser: ${NIVELES_VALIDOS.join(' | ')}.`, 'INVALID_NIVEL'), 400);
 
-  if (!titulo.trim())
-    return jsonRes(fail('"titulo" es requerido.', 'REQUIRED_TITULO'), 400);
+  const stripHtml = s => String(s).replace(/<[^>]*>/g, '').trim();
+  const safeTitle = stripHtml(titulo);
+  const safeMsj   = stripHtml(mensaje);
+  const safeAcc   = stripHtml(accion).slice(0, 100);
 
-  if (!mensaje.trim())
+  if (!safeTitle)
+    return jsonRes(fail('"titulo" es requerido.', 'REQUIRED_TITULO'), 400);
+  if (safeTitle.length > 120)
+    return jsonRes(fail('"titulo" no puede superar 120 caracteres.', 'TITULO_TOO_LONG'), 400);
+
+  if (!safeMsj)
     return jsonRes(fail('"mensaje" es requerido.', 'REQUIRED_MENSAJE'), 400);
+  if (safeMsj.length > 500)
+    return jsonRes(fail('"mensaje" no puede superar 500 caracteres.', 'MENSAJE_TOO_LONG'), 400);
 
   let expiraTs = null;
   if (expira !== null && expira !== undefined) {
@@ -97,9 +106,9 @@ export async function onRequestPost(context) {
     tipo,
     nivel,
     origen:    'sistema',
-    titulo:    titulo.trim(),
-    mensaje:   mensaje.trim(),
-    accion:    accion.trim() || '',
+    titulo:    safeTitle,
+    mensaje:   safeMsj,
+    accion:    safeAcc,
     expira:    expiraTs,
     createdAt: Date.now(),
     createdBy: adminUser.uid,

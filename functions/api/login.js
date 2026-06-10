@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
     uid = await fbGet(`emails/${emailKey}`, tok, db);
   } catch (err) {
     console.error('[Login] Error leyendo Firebase:', err.message);
-    return jsonRes(fail('Error conectando con la base de datos: ' + err.message, 'DB_ERROR'), 503);
+    return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_ERROR'), 503);
   }
   if (!uid) return jsonRes(fail('Credenciales inválidas.'), 401);
 
@@ -53,7 +53,7 @@ export async function onRequestPost(context) {
     ]);
   } catch (err) {
     console.error('[Login] Error cargando usuario:', err.message);
-    return jsonRes(fail('Error conectando con la base de datos: ' + err.message, 'DB_ERROR'), 503);
+    return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_ERROR'), 503);
   }
   if (!user || !control) return jsonRes(fail('Credenciales inválidas.'), 401);
 

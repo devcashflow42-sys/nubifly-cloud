@@ -16,7 +16,7 @@ export async function onRequestGet() {
       username: 'string (3-20 chars)',
       name:     'string',
       email:    'string',
-      password: 'string (min 6)'
+      password: 'string (min 8)'
     },
     nota: 'Envía una petición POST con estos campos en el body JSON.'
   });
@@ -40,8 +40,8 @@ export async function onRequestPost(context) {
     return jsonRes(fail('Username: solo letras, números y _ (3–20 caracteres).'), 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return jsonRes(fail('Formato de email inválido.'), 400);
-  if (password.length < 6)
-    return jsonRes(fail('La contraseña debe tener al menos 6 caracteres.'), 400);
+  if (password.length < 8)
+    return jsonRes(fail('La contraseña debe tener al menos 8 caracteres.'), 400);
   if (name.length < 2 || name.length > 50)
     return jsonRes(fail('El nombre debe tener entre 2 y 50 caracteres.'), 400);
 
@@ -57,7 +57,7 @@ export async function onRequestPost(context) {
     ]);
   } catch (err) {
     console.error('[Register] Error leyendo Firebase:', err.message);
-    return jsonRes(fail('Error conectando con la base de datos: ' + err.message, 'DB_ERROR'), 503);
+    return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_ERROR'), 503);
   }
 
   if (emailExists) return jsonRes(fail('Este email ya está registrado.', 'EMAIL_EXISTS'), 409);
@@ -68,7 +68,7 @@ export async function onRequestPost(context) {
     passwordHash = await hashPassword(password);
   } catch (err) {
     console.error('[Register] Error hasheando contraseña:', err.message);
-    return jsonRes(fail('Error procesando contraseña: ' + err.message, 'HASH_ERROR'), 500);
+    return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'HASH_ERROR'), 500);
   }
 
   const uid = crypto.randomUUID().replace(/-/g, '');
@@ -100,7 +100,7 @@ export async function onRequestPost(context) {
     }, tok, db);
   } catch (err) {
     console.error('[Register] Error escribiendo Firebase:', err.message);
-    return jsonRes(fail('Error guardando usuario: ' + err.message, 'DB_WRITE_ERROR'), 503);
+    return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_WRITE_ERROR'), 503);
   }
 
   // Best-effort: crear también el usuario en Firebase Authentication.
@@ -118,7 +118,8 @@ export async function onRequestPost(context) {
   try {
     jwtToken = await signJwt({ uid, username: usernameKey, email: emailNormal }, env.JWT_SECRET, env.JWT_EXPIRES_IN || '7d');
   } catch (err) {
-    return jsonRes(fail('Error generando sesión: ' + err.message, 'TOKEN_ERROR'), 500);
+    console.error('[Register] Error generando JWT:', err.message);
+    return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'TOKEN_ERROR'), 500);
   }
 
   return jsonRes({
