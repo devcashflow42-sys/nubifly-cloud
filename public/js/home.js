@@ -1823,7 +1823,23 @@ async function init() {
   const isGuest    = cachedUser?.type === 'guest' || cachedUser?.isGuest === true;
 
   if (isGuest) {
+    // Verificar expiración del JWT del invitado en el cliente
+    const guestTok = Auth.getToken();
+    try {
+      const parts   = guestTok.split('.');
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        Auth.clear();
+        window.location.href = '/login';
+        return;
+      }
+    } catch {
+      Auth.clear();
+      window.location.href = '/login';
+      return;
+    }
     updateUserUI({ name: 'Invitado', type: 'guest' });
+    await loadDashboard();
     return;
   }
 

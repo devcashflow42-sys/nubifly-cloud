@@ -552,11 +552,27 @@ document.getElementById('backBtn').addEventListener('click', function () {
    INICIALIZACIÓN
 ────────────────────────────────────────────── */
 
-// Si ya hay sesión activa → ir directo a /home
-if (typeof NubiflyAPI !== 'undefined' && NubiflyAPI.getToken()) {
+// Si ya hay sesión activa y el token NO está expirado → ir directo a /home
+(function () {
+  var tok = typeof NubiflyAPI !== 'undefined'
+    ? NubiflyAPI.getToken()
+    : localStorage.getItem('nf_token');
+  if (!tok) return;
+  try {
+    var parts   = tok.split('.');
+    var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      // Token expirado — limpiar y dejar al usuario en login
+      localStorage.removeItem('nf_token');
+      localStorage.removeItem('nf_user');
+      localStorage.removeItem('nf_uid');
+      localStorage.removeItem('nf_refresh_token');
+      return;
+    }
+  } catch { return; } // token malformado → no redirigir
   sessionStorage.removeItem('_nf_home_redir');
   window.location.replace('/home');
-}
+}());
 
 // Errores de OAuth pasados como ?error= en la URL
 (function () {
