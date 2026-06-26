@@ -918,37 +918,173 @@ async function loadNotifications() {
   }
 }
 
+// ── LOGS state (filtro + paginación) ────────────────────────────────────────
+const LOGS_PAGE_SIZE = 20;
+let _logsFilter = 'all';   // 'all' | 'info' | 'warn' | 'error'
+let _logsPage   = 1;
+
+function _logLevel(ev) {
+  // status puede ser número (200, 404, 500) o string ('success', 'error')
+  const s   = ev.status;
+  const num = typeof s === 'number' ? s : parseInt(s, 10);
+  if (!isNaN(num)) {
+    if (num >= 500) return 'error';
+    if (num >= 400) return 'warn';
+    if (num >= 200) return 'info';
+  }
+  const str = String(s || ev.level || '').toLowerCase();
+  if (/(error|fail|timeout|denied|invalid|forbid|unauthor)/.test(str)) {
+    return /(unauthor|forbid|denied|invalid|not_?found)/.test(str) ? 'warn' : 'error';
+  }
+  if (/(warn|retry|slow)/.test(str)) return 'warn';
+  return 'info';
+}
+
+function _logMessage(ev) {
+  const lvl    = _logLevel(ev);
+  const method = (ev.method || 'GET').toUpperCase();
+  const path   = ev.endpoint || ev.path || '/api/v1';
+  const file   = ev.fileName ? ` — archivo "${ev.fileName}"` : '';
+  const key    = ev.apiKeyName ? ` con la clave "${ev.apiKeyName}"` : '';
+
+  if (lvl === 'error') {
+    if (/timeout/i.test(String(ev.status))) {
+      return `La solicitud ${method} ${path} excedió el tiempo de espera. Revisa tu conexión o el destino del enlace.`;
+    }
+    if (/5\d\d/.test(String(ev.status))) {
+      return `Error interno del servidor al procesar ${method} ${path}${file}. Inténtalo de nuevo en unos minutos.`;
+    }
+    return `Falló la solicitud ${method} ${path}${key}${file}.`;
+  }
+  if (lvl === 'warn') {
+    if (/401|unauthor/i.test(String(ev.status))) {
+      return `Clave API rechazada en ${method} ${path}. Verifica que tu API Key sea válida y esté activa.`;
+    }
+    if (/403|forbid|denied/i.test(String(ev.status))) {
+      return `Acceso denegado a ${method} ${path}. La clave API no tiene permiso sobre este recurso.`;
+    }
+    if (/404|not_?found/i.test(String(ev.status))) {
+      return `Recurso no encontrado en ${method} ${path}. El enlace o ID que enviaste puede ser inválido.`;
+    }
+    if (/429|rate/i.test(String(ev.status))) {
+      return `Demasiadas solicitudes a ${method} ${path}. Espera unos segundos antes de reintentar.`;
+    }
+    return `Aviso en ${method} ${path}${file}. Revisa los parámetros de la solicitud.`;
+  }
+  // info
+  if (ev.kind === 'file' || ev.fileId) {
+    return `Archivo subido correctamente vía ${method} ${path}${file}${key}.`;
+  }
+  return `Solicitud exitosa: ${method} ${path}${key}.`;
+}
+
+function _fmtLogTs(ts) {
+  if (!ts) return '—';
+  const d = new Date(typeof ts === 'number' ? ts : Date.parse(ts));
+  if (isNaN(d.getTime())) return '—';
+  const pad = n => String(n).padStart(2, '0');
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  };
+}
+
+function setLogsFilter(level) {
+  _logsFilter = level;
+  _logsPage   = 1;
+  document.querySelectorAll('.logs-fchip').forEach(c => {
+    c.classList.toggle('active', c.dataset.level === level);
+  });
+  renderLogs();
+}
+
+function changeLogsPage(delta) {
+  const filtered = State.activity.filter(ev => _logsFilter === 'all' || _logLevel(ev) === _logsFilter);
+  const maxPage  = Math.max(1, Math.ceil(filtered.length / LOGS_PAGE_SIZE));
+  _logsPage = Math.min(maxPage, Math.max(1, _logsPage + delta));
+  renderLogs();
+}
+
+function renderLogs() {
+  const container = document.getElementById('activityList');
+  if (!container) return;
+
+  const all      = State.activity || [];
+  const counts   = { info: 0, warn: 0, error: 0 };
+  for (const ev of all) counts[_logLevel(ev)]++;
+
+  document.getElementById('logsCountTotal').textContent = all.length;
+  document.getElementById('logsCountInfo').textContent  = counts.info;
+  document.getElementById('logsCountWarn').textContent  = counts.warn;
+  document.getElementById('logsCountErr').textContent   = counts.error;
+
+  const filtered = _logsFilter === 'all' ? all : all.filter(ev => _logLevel(ev) === _logsFilter);
+
+  if (filtered.length === 0) {
+    container.innerHTML = emptyListHTML(
+      `<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+      'Sin registros',
+      all.length === 0
+        ? 'Tu actividad de API aparecerá aquí cuando uses tus claves.'
+        : 'No hay logs de este nivel.'
+    );
+    document.getElementById('logsPagination').style.display = 'none';
+    return;
+  }
+
+  const maxPage = Math.max(1, Math.ceil(filtered.length / LOGS_PAGE_SIZE));
+  if (_logsPage > maxPage) _logsPage = maxPage;
+  const start = (_logsPage - 1) * LOGS_PAGE_SIZE;
+  const slice = filtered.slice(start, start + LOGS_PAGE_SIZE);
+
+  container.innerHTML = slice.map(ev => {
+    const lvl    = _logLevel(ev);
+    const lvlTxt = lvl === 'info' ? 'Info' : lvl === 'warn' ? 'Aviso' : 'Error';
+    const ts     = _fmtLogTs(ev.ts || ev.createdAt);
+    const msg    = _logMessage(ev);
+    const method = (ev.method || 'GET').toUpperCase();
+    const path   = ev.endpoint || ev.path || '/api/v1';
+    return `
+      <div class="logs-row">
+        <span class="logs-lvl logs-lvl-${lvl === 'error' ? 'err' : lvl}">
+          <span class="logs-lvl-dot"></span>${lvlTxt}
+        </span>
+        <span class="logs-ts">${ts.date}<span class="logs-ts-time">${ts.time}</span></span>
+        <div class="logs-msg">
+          ${escapeHtml(msg)}
+          <span class="logs-msg-meta">${escapeHtml(method)} · ${escapeHtml(path)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const pag = document.getElementById('logsPagination');
+  if (filtered.length > LOGS_PAGE_SIZE) {
+    pag.style.display = 'flex';
+    document.getElementById('logsPageInfo').textContent =
+      `Mostrando ${start + 1}–${Math.min(start + LOGS_PAGE_SIZE, filtered.length)} de ${filtered.length}`;
+    document.getElementById('logsPageNum').textContent = `${_logsPage} / ${maxPage}`;
+    document.getElementById('logsPagePrev').disabled = _logsPage === 1;
+    document.getElementById('logsPageNext').disabled = _logsPage === maxPage;
+  } else {
+    pag.style.display = 'none';
+  }
+}
+
 async function loadActivity() {
   const container = document.getElementById('activityList');
-
+  if (container) {
+    container.innerHTML = `<div class="list-loading" style="padding:40px"><div class="auth-spinner"></div></div>`;
+  }
   try {
     const res = await API.getActivity();
     State.activity = res?.data?.activity || [];
-
-    if (State.activity.length === 0) {
-      container.innerHTML = emptyListHTML(
-        `<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
-        'Sin actividad', 'Tu actividad de API aparecerá aquí.'
-      );
-    } else {
-      const methodClass = { GET:'method-get', POST:'method-post', DELETE:'method-delete' };
-      container.innerHTML = State.activity.map(ev => {
-        const method = (ev.method || 'GET').toUpperCase();
-        const cls = methodClass[method] || 'method-get';
-        return `
-          <div class="log-row">
-            <span class="log-method ${cls}">${method}</span>
-            <div class="log-body">
-              <div class="log-path">${escapeHtml(ev.path || ev.endpoint || '/api/v1')}</div>
-              <div class="log-status">${ev.status ? ev.status + ' · ' : ''}${ev.ms ? ev.ms + 'ms' : 'OK'}</div>
-            </div>
-            <span class="log-time">${timeAgo(ev.ts || ev.createdAt)}</span>
-          </div>
-        `;
-      }).join('');
-    }
+    _logsPage = 1;
+    renderLogs();
   } catch (e) {
-    container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Error cargando actividad.</div>`;
+    if (container) {
+      container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px">Error cargando logs. <button onclick="loadActivity()" style="color:var(--blue);font-weight:600;margin-left:6px">Reintentar</button></div>`;
+    }
     console.warn('[loadActivity]', e.message);
   }
 }

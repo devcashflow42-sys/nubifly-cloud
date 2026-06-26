@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260626b">
+  <link rel="stylesheet" href="css/home.css?v=20260626c">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -625,14 +625,64 @@
     <div class="sec-toolbar">
       <div style="display:flex;align-items:center;gap:10px">
         <button class="back-btn" onclick="goPage('panel')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <span class="tb-title">Log de Actividad</span>
+        <span class="tb-title">Logs</span>
+      </div>
+      <button class="logs-refresh" type="button" onclick="loadActivity()" aria-label="Recargar logs">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+    </div>
+
+    <div class="logs-summary" id="logsSummary">
+      <div class="logs-stat">
+        <span class="logs-stat-num" id="logsCountTotal">0</span>
+        <span class="logs-stat-lbl">Total</span>
+      </div>
+      <div class="logs-stat logs-stat-info">
+        <span class="logs-stat-num" id="logsCountInfo">0</span>
+        <span class="logs-stat-lbl">Info</span>
+      </div>
+      <div class="logs-stat logs-stat-warn">
+        <span class="logs-stat-num" id="logsCountWarn">0</span>
+        <span class="logs-stat-lbl">Avisos</span>
+      </div>
+      <div class="logs-stat logs-stat-err">
+        <span class="logs-stat-num" id="logsCountErr">0</span>
+        <span class="logs-stat-lbl">Errores</span>
       </div>
     </div>
-    <div id="activityList">
-      <div class="list-empty">
-        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-        <div class="list-empty-title">Sin actividad</div>
-        <div class="list-empty-sub">Tu actividad de API aparecerá aquí.</div>
+
+    <div class="logs-filters" id="logsFilters">
+      <button class="logs-fchip active" data-level="all" onclick="setLogsFilter('all')">Todos</button>
+      <button class="logs-fchip" data-level="info" onclick="setLogsFilter('info')">Info</button>
+      <button class="logs-fchip" data-level="warn" onclick="setLogsFilter('warn')">Avisos</button>
+      <button class="logs-fchip" data-level="error" onclick="setLogsFilter('error')">Errores</button>
+    </div>
+
+    <div class="logs-table-wrap">
+      <div class="logs-table-head">
+        <span class="logs-col logs-col-lvl">Nivel</span>
+        <span class="logs-col logs-col-ts">Fecha</span>
+        <span class="logs-col logs-col-msg">Mensaje</span>
+      </div>
+      <div id="activityList" class="logs-table-body">
+        <div class="list-empty">
+          <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="list-empty-title">Sin actividad</div>
+          <div class="list-empty-sub">Tu actividad de API aparecerá aquí.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="logs-pagination" id="logsPagination" style="display:none">
+      <span class="logs-page-info" id="logsPageInfo">—</span>
+      <div class="logs-page-ctrl">
+        <button class="logs-page-btn" id="logsPagePrev" onclick="changeLogsPage(-1)" aria-label="Página anterior">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="logs-page-num" id="logsPageNum">1</span>
+        <button class="logs-page-btn" id="logsPageNext" onclick="changeLogsPage(1)" aria-label="Página siguiente">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
     </div>
   </section>
@@ -1008,6 +1058,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260626b"></script>
+<script src="js/home.js?v=20260626c"></script>
 </body>
 </html>
