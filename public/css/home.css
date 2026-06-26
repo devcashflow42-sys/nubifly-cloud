@@ -502,8 +502,8 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .proj-menu-danger{color:#dc2626}
 .proj-menu-danger .proj-menu-icon svg{stroke:#dc2626}
 /* Project delete confirm sheet */
-.pdel-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(2px)}
-.pdel-backdrop.show{opacity:1;pointer-events:auto}
+.pdel-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;opacity:0;pointer-events:none;visibility:hidden;transition:opacity .25s, visibility 0s linear .25s;backdrop-filter:blur(2px)}
+.pdel-backdrop.show{opacity:1;pointer-events:auto;visibility:visible;transition:opacity .25s, visibility 0s}
 .pdel-sheet{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;background:#fff;border-radius:24px 24px 0 0;padding:10px 20px 36px;z-index:501;transform:translateY(100%);transition:transform .32s cubic-bezier(.32,1,.55,1)}
 .pdel-backdrop.show .pdel-sheet{transform:translateY(0)}
 .pdel-handle{width:36px;height:4px;background:rgba(0,0,0,.12);border-radius:2px;margin:0 auto 20px}
@@ -610,9 +610,10 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .del-backdrop{
   position:fixed;inset:0;background:rgba(0,0,0,0);z-index:900;
   display:flex;align-items:flex-end;justify-content:center;
-  pointer-events:none;transition:background .3s var(--ease);
+  pointer-events:none;visibility:hidden;
+  transition:background .3s var(--ease), visibility 0s linear .38s;
 }
-.del-backdrop.show{background:rgba(0,0,0,.45);pointer-events:auto}
+.del-backdrop.show{background:rgba(0,0,0,.45);pointer-events:auto;visibility:visible;transition:background .3s var(--ease), visibility 0s}
 .del-sheet{
   width:100%;max-width:480px;
   background:var(--white);border-radius:24px 24px 0 0;
@@ -705,9 +706,10 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .ckey-backdrop{
   position:fixed;inset:0;background:rgba(0,0,0,0);z-index:900;
   display:flex;align-items:flex-end;justify-content:center;
-  pointer-events:none;transition:background .3s var(--ease);
+  pointer-events:none;visibility:hidden;
+  transition:background .3s var(--ease), visibility 0s linear .38s;
 }
-.ckey-backdrop.show{background:rgba(0,0,0,.45);pointer-events:auto}
+.ckey-backdrop.show{background:rgba(0,0,0,.45);pointer-events:auto;visibility:visible;transition:background .3s var(--ease), visibility 0s}
 .ckey-sheet{
   width:100%;max-width:480px;
   background:var(--white);border-radius:24px 24px 0 0;
