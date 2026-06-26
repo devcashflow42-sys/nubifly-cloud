@@ -30,9 +30,12 @@ export async function onRequestGet(context) {
   }
 
   const files = Array.from(seen.values());
+  // fileCount cuenta solo publicaciones independientes (sin projectId).
+  // Los archivos subidos dentro de un proyecto se cuentan aparte en cada proyecto.
+  const publications = files.filter(f => !f.projectId);
   return jsonRes(ok({
     projectCount: projData ? Object.keys(projData).length : 0,
-    fileCount:    files.length,
+    fileCount:    publications.length,
     storageUsed:  files.reduce((s, f) => s + (f.fileSize || f.size || 0), 0)
   }));
 }
