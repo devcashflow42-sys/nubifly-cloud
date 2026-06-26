@@ -942,40 +942,38 @@ function _logLevel(ev) {
 
 function _logMessage(ev) {
   const lvl    = _logLevel(ev);
-  const method = (ev.method || 'GET').toUpperCase();
-  const path   = ev.endpoint || ev.path || '/api/v1';
-  const file   = ev.fileName ? ` — archivo "${ev.fileName}"` : '';
-  const key    = ev.apiKeyName ? ` con la clave "${ev.apiKeyName}"` : '';
+  const file   = ev.fileName ? ` "${ev.fileName}"` : '';
+  const keyTxt = ev.apiKeyName ? ` (clave: ${ev.apiKeyName})` : '';
 
   if (lvl === 'error') {
     if (/timeout/i.test(String(ev.status))) {
-      return `La solicitud ${method} ${path} excedió el tiempo de espera. Revisa tu conexión o el destino del enlace.`;
+      return 'La solicitud excedió el tiempo de espera. Revisa tu conexión o que el destino del enlace responda a tiempo.';
     }
     if (/5\d\d/.test(String(ev.status))) {
-      return `Error interno del servidor al procesar ${method} ${path}${file}. Inténtalo de nuevo en unos minutos.`;
+      return `Error interno del servidor al procesar el archivo${file}. Inténtalo de nuevo en unos minutos.`;
     }
-    return `Falló la solicitud ${method} ${path}${key}${file}.`;
+    return `Falló la solicitud${file}${keyTxt}. Revisa los detalles del request.`;
   }
   if (lvl === 'warn') {
     if (/401|unauthor/i.test(String(ev.status))) {
-      return `Clave API rechazada en ${method} ${path}. Verifica que tu API Key sea válida y esté activa.`;
+      return 'Clave API rechazada. Verifica que tu API Key sea válida y esté activa en tu panel.';
     }
     if (/403|forbid|denied/i.test(String(ev.status))) {
-      return `Acceso denegado a ${method} ${path}. La clave API no tiene permiso sobre este recurso.`;
+      return 'Acceso denegado. La clave API no tiene permiso sobre este recurso o proyecto.';
     }
     if (/404|not_?found/i.test(String(ev.status))) {
-      return `Recurso no encontrado en ${method} ${path}. El enlace o ID que enviaste puede ser inválido.`;
+      return 'Recurso no encontrado. El enlace o ID que enviaste puede ser inválido o haber sido eliminado.';
     }
     if (/429|rate/i.test(String(ev.status))) {
-      return `Demasiadas solicitudes a ${method} ${path}. Espera unos segundos antes de reintentar.`;
+      return 'Demasiadas solicitudes en poco tiempo. Espera unos segundos antes de reintentar.';
     }
-    return `Aviso en ${method} ${path}${file}. Revisa los parámetros de la solicitud.`;
+    return `Aviso al procesar la solicitud${file}. Revisa los parámetros enviados.`;
   }
   // info
   if (ev.kind === 'file' || ev.fileId) {
-    return `Archivo subido correctamente vía ${method} ${path}${file}${key}.`;
+    return `Archivo${file} subido correctamente${keyTxt}.`;
   }
-  return `Solicitud exitosa: ${method} ${path}${key}.`;
+  return `Solicitud completada correctamente${keyTxt}.`;
 }
 
 function _fmtLogTs(ts) {
@@ -1038,21 +1036,26 @@ function renderLogs() {
   const slice = filtered.slice(start, start + LOGS_PAGE_SIZE);
 
   container.innerHTML = slice.map(ev => {
-    const lvl    = _logLevel(ev);
-    const lvlTxt = lvl === 'info' ? 'Info' : lvl === 'warn' ? 'Aviso' : 'Error';
-    const ts     = _fmtLogTs(ev.ts || ev.createdAt);
-    const msg    = _logMessage(ev);
-    const method = (ev.method || 'GET').toUpperCase();
-    const path   = ev.endpoint || ev.path || '/api/v1';
+    const lvl     = _logLevel(ev);
+    const lvlKey  = lvl === 'error' ? 'err' : lvl;
+    const lvlTxt  = lvl === 'info' ? 'Info' : lvl === 'warn' ? 'Aviso' : 'Error';
+    const ts      = _fmtLogTs(ev.ts || ev.createdAt);
+    const msg     = _logMessage(ev);
+    const method  = (ev.method || 'GET').toUpperCase();
+    const path    = ev.endpoint || ev.path || '/api/v1';
+    const mClass  = ({ GET:'m-get', POST:'m-post', DELETE:'m-delete', PATCH:'m-patch', PUT:'m-put' })[method] || 'm-get';
     return `
-      <div class="logs-row">
-        <span class="logs-lvl logs-lvl-${lvl === 'error' ? 'err' : lvl}">
-          <span class="logs-lvl-dot"></span>${lvlTxt}
-        </span>
-        <span class="logs-ts">${ts.date}<span class="logs-ts-time">${ts.time}</span></span>
-        <div class="logs-msg">
-          ${escapeHtml(msg)}
-          <span class="logs-msg-meta">${escapeHtml(method)} · ${escapeHtml(path)}</span>
+      <div class="logs-card lvl-${lvlKey}">
+        <div class="logs-card-head">
+          <span class="logs-lvl logs-lvl-${lvlKey}">
+            <span class="logs-lvl-dot"></span>${lvlTxt}
+          </span>
+          <span class="logs-ts">${ts.date}<span class="logs-ts-time">${ts.time}</span></span>
+        </div>
+        <div class="logs-msg">${escapeHtml(msg)}</div>
+        <div class="logs-meta">
+          <span class="logs-meta-method ${mClass}">${escapeHtml(method)}</span>
+          <span class="logs-meta-path">${escapeHtml(path)}</span>
         </div>
       </div>
     `;

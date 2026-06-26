@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260626c">
+  <link rel="stylesheet" href="css/home.css?v=20260626d">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -658,18 +658,11 @@
       <button class="logs-fchip" data-level="error" onclick="setLogsFilter('error')">Errores</button>
     </div>
 
-    <div class="logs-table-wrap">
-      <div class="logs-table-head">
-        <span class="logs-col logs-col-lvl">Nivel</span>
-        <span class="logs-col logs-col-ts">Fecha</span>
-        <span class="logs-col logs-col-msg">Mensaje</span>
-      </div>
-      <div id="activityList" class="logs-table-body">
-        <div class="list-empty">
-          <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div class="list-empty-title">Sin actividad</div>
-          <div class="list-empty-sub">Tu actividad de API aparecerá aquí.</div>
-        </div>
+    <div id="activityList" class="logs-list">
+      <div class="list-empty">
+        <div class="list-empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="list-empty-title">Sin actividad</div>
+        <div class="list-empty-sub">Tu actividad de API aparecerá aquí.</div>
       </div>
     </div>
 
@@ -1058,6 +1051,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260626c"></script>
+<script src="js/home.js?v=20260626d"></script>
 </body>
 </html>
