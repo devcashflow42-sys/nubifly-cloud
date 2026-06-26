@@ -1023,16 +1023,95 @@ async function loadAnalytics() {
 // ═══════════════════════════════════════════════════════════════
 // ║  PUBLISH — Subir archivos / publicaciones
 // ═══════════════════════════════════════════════════════════════
-let _selectedFile = null;
+let _selectedFiles = [];
+
+const PUB_IMG_EXT = ['jpg','jpeg','png','gif','webp','avif','svg','bmp'];
+
+function _fileExt(f) {
+  return (f.name || '').split('.').pop().toLowerCase();
+}
+
+function _isImage(f) {
+  return (f.type && f.type.startsWith('image/')) || PUB_IMG_EXT.includes(_fileExt(f));
+}
+
+function _thumbHTML(f) {
+  if (_isImage(f)) {
+    const url = URL.createObjectURL(f);
+    return `<img src="${url}" alt="" onload="URL.revokeObjectURL(this.src)">`;
+  }
+  const ext = _fileExt(f) || 'doc';
+  return `<span class="pub-file-ext">${escapeHtml(ext.slice(0,4))}</span>`;
+}
+
+function renderSelectedFiles() {
+  const list   = document.getElementById('pubFileList');
+  const zone   = document.getElementById('uploadZone');
+  const title  = document.getElementById('uploadTitle');
+  if (!list) return;
+
+  if (_selectedFiles.length === 0) {
+    list.style.display = 'none';
+    list.innerHTML = '';
+    if (title) title.textContent = 'Arrastra tus archivos aquí o explora';
+    return;
+  }
+
+  if (title) title.textContent = _selectedFiles.length === 1
+    ? '1 archivo seleccionado'
+    : `${_selectedFiles.length} archivos seleccionados`;
+
+  list.style.display = 'flex';
+  list.innerHTML = _selectedFiles.map((f, i) => `
+    <div class="pub-file-row">
+      <div class="pub-file-thumb">${_thumbHTML(f)}</div>
+      <div class="pub-file-info">
+        <div class="pub-file-name">${escapeHtml(f.name)}</div>
+        <div class="pub-file-size">${formatBytes(f.size)}</div>
+      </div>
+      <button class="pub-file-remove" type="button" aria-label="Quitar archivo" onclick="removeSelectedFile(${i})">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
 
 function handleFileSelect(input) {
-  _selectedFile = input.files[0] || null;
-  const titleEl = document.getElementById('uploadTitle');
-  if (_selectedFile) {
-    titleEl.textContent = _selectedFile.name;
-  } else {
-    titleEl.textContent = 'Subir Archivo';
+  const incoming = Array.from(input.files || []);
+  for (const f of incoming) {
+    const dup = _selectedFiles.some(x => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified);
+    if (!dup) _selectedFiles.push(f);
   }
+  input.value = '';
+  renderSelectedFiles();
+}
+
+function removeSelectedFile(index) {
+  _selectedFiles.splice(index, 1);
+  renderSelectedFiles();
+}
+
+function clearPublishState() {
+  _selectedFiles = [];
+  const t = document.getElementById('pubTitle');
+  const d = document.getElementById('pubDesc');
+  const i = document.getElementById('fileInput');
+  if (t) t.value = '';
+  if (d) d.value = '';
+  if (i) i.value = '';
+  renderSelectedFiles();
+}
+
+function handlePublishCancel() {
+  if (_selectedFiles.length > 0 || (document.getElementById('pubTitle')?.value || '').trim()) {
+    if (!confirm('¿Cancelar publicación? Los archivos seleccionados se descartarán.')) return;
+  }
+  clearPublishState();
+  goPage('panel');
+}
+
+function handlePublishBack() {
+  handlePublishCancel();
 }
 
 async function handlePublish() {
@@ -1041,34 +1120,43 @@ async function handlePublish() {
   const btn   = document.getElementById('pubBtn');
   const btn2  = document.getElementById('pubBtn2');
 
-  if (!_selectedFile) {
-    showToast('Selecciona un archivo primero', 'error');
+  if (_selectedFiles.length === 0) {
+    showToast('Selecciona al menos un archivo', 'error');
     return;
   }
 
   setBtnLoading(btn, true);
   setBtnLoading(btn2, true);
 
-  try {
-    const fd = new FormData();
-    fd.append('file', _selectedFile);
-    if (title) fd.append('title', title);
-    if (desc)  fd.append('description', desc);
+  let ok = 0, failed = 0;
+  for (let i = 0; i < _selectedFiles.length; i++) {
+    const f = _selectedFiles[i];
+    try {
+      const fd = new FormData();
+      fd.append('file', f);
+      if (title) fd.append('title', _selectedFiles.length > 1 ? `${title} (${i + 1}/${_selectedFiles.length})` : title);
+      if (desc)  fd.append('description', desc);
+      await API.publishFile(fd);
+      ok++;
+    } catch (e) {
+      console.warn('[publish]', f.name, e.message);
+      failed++;
+    }
+  }
 
-    await API.publishFile(fd);
+  setBtnLoading(btn, false);
+  setBtnLoading(btn2, false);
 
-    showToast('¡Publicación creada correctamente!', 'success');
-    _selectedFile = null;
-    document.getElementById('pubTitle').value = '';
-    document.getElementById('pubDesc').value  = '';
-    document.getElementById('uploadTitle').textContent = 'Subir Archivo';
-    document.getElementById('fileInput').value = '';
+  if (ok > 0 && failed === 0) {
+    showToast(ok === 1 ? '¡Publicación creada correctamente!' : `¡${ok} publicaciones creadas!`, 'success');
+    clearPublishState();
     goPage('panel');
-  } catch (e) {
-    showToast('Error: ' + e.message, 'error');
-  } finally {
-    setBtnLoading(btn, false);
-    setBtnLoading(btn2, false);
+  } else if (ok > 0 && failed > 0) {
+    showToast(`${ok} publicadas, ${failed} fallaron.`, 'info');
+    _selectedFiles = _selectedFiles.slice(ok);
+    renderSelectedFiles();
+  } else {
+    showToast('No se pudo publicar. Inténtalo de nuevo.', 'error');
   }
 }
 

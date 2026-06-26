@@ -194,6 +194,8 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .btn-primary:hover{background:var(--ink-2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .btn-ghost{background:var(--white);color:var(--ink);border:1.5px solid var(--smoke-3)}
 .btn-ghost:hover{background:var(--smoke-2)}
+.btn-secondary{background:var(--smoke-2);color:var(--ink);border:1px solid var(--smoke-2)}
+.btn-secondary:hover{background:var(--smoke-3)}
 .btn-sm{height:34px;padding:0 14px;font-size:12px}
 .btn:disabled{opacity:.5;pointer-events:none}
 
@@ -471,6 +473,22 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 
 /* ═══════════════════════ PUBLISH BAR ═══════════════════════ */
 .publish-bar{margin-top:4px}
+
+/* ═══════════════════════ PUB FILE LIST (selección multi) ═══════════════════════ */
+.pub-file-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.pub-file-row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--white);border:1px solid var(--smoke-2);border-radius:14px;box-shadow:var(--sh);animation:pubFileIn .25s var(--spring)}
+@keyframes pubFileIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pub-file-thumb{width:44px;height:44px;border-radius:10px;background:var(--smoke-2);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.pub-file-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pub-file-thumb svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.6}
+.pub-file-ext{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.pub-file-info{flex:1;min-width:0}
+.pub-file-name{font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.pub-file-size{font-size:11.5px;color:var(--muted)}
+.pub-file-remove{flex-shrink:0;width:32px;height:32px;border-radius:10px;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:background .15s,color .15s}
+.pub-file-remove:hover{background:rgba(229,72,77,.08);color:var(--danger)}
+.pub-file-remove svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.pub-file-count{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin:14px 0 6px}
 
 /* ═══════════════════════ ACCESS GRID ═══════════════════════ */
 .access-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
