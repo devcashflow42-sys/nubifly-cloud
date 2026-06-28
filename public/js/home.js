@@ -359,6 +359,62 @@ function ana2Period(btn) {
 }
 
 let _projAccess = 'private';
+let _projIconFile = null;
+let _projIconDataUrl = '';
+
+function updateDescCount() {
+  const el  = document.getElementById('projDesc');
+  const out = document.getElementById('projDescCount');
+  if (!el || !out) return;
+  out.textContent = `${el.value.length}/500`;
+}
+
+function handleProjIconSelect(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+
+  if (!/^image\/(jpeg|png|webp)$/i.test(f.type)) {
+    showToast('Formato no válido. Usa JPG, PNG o WEBP.', 'error');
+    input.value = '';
+    return;
+  }
+  if (f.size > 2 * 1024 * 1024) {
+    showToast('La imagen supera los 2 MB.', 'error');
+    input.value = '';
+    return;
+  }
+
+  _projIconFile = f;
+  const reader = new FileReader();
+  reader.onload = e => {
+    _projIconDataUrl = e.target.result;
+    const drop    = document.getElementById('projIconDrop');
+    const preview = document.getElementById('projIconPreview');
+    const label   = document.getElementById('projIconBtnLabel');
+    if (preview) preview.innerHTML = `<img src="${_projIconDataUrl}" alt="">`;
+    if (drop)    drop.classList.add('has-img');
+    if (label)   label.textContent = 'Cambiar imagen';
+  };
+  reader.readAsDataURL(f);
+}
+
+function resetProjIcon() {
+  _projIconFile = null;
+  _projIconDataUrl = '';
+  const drop    = document.getElementById('projIconDrop');
+  const preview = document.getElementById('projIconPreview');
+  const label   = document.getElementById('projIconBtnLabel');
+  const input   = document.getElementById('projIconInput');
+  if (drop)    drop.classList.remove('has-img');
+  if (preview) preview.innerHTML = `
+    <svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
+    </svg>`;
+  if (label) label.textContent = 'Subir imagen';
+  if (input) input.value = '';
+}
 
 function selectAccess(el, value) {
   document.querySelectorAll('#page-nuevo-proyecto .access-opt').forEach(o => o.classList.remove('selected'));
@@ -428,6 +484,8 @@ function resetNewProjectForm() {
   const pub  = document.getElementById('accessPublico');
   if (priv) priv.classList.add('selected');
   if (pub)  pub.classList.remove('selected');
+  resetProjIcon();
+  updateDescCount();
 }
 
 // ═══════════════════════════════════════════════════════════════
