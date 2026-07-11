@@ -332,7 +332,56 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(tick);
   })();
 
+  // Contador regresivo de la oferta de lanzamiento
+  initLaunchCountdown();
+
 }); // end DOMContentLoaded
+
+// ─── CONTADOR DE LANZAMIENTO ───
+function initLaunchCountdown() {
+  const sec = document.getElementById('lanzamiento');
+  if (!sec) return;
+  const end = new Date(sec.getAttribute('data-end') || '').getTime();
+  if (isNaN(end)) return;
+
+  const elD = document.getElementById('lc-d');
+  const elH = document.getElementById('lc-h');
+  const elM = document.getElementById('lc-m');
+  const elS = document.getElementById('lc-s');
+  const box = document.getElementById('launchCount');
+  const ended = document.getElementById('launchEnded');
+  if (!elD || !elH || !elM || !elS) return;
+
+  const pad = (n) => String(n).padStart(2, '0');
+  let timer = null;
+
+  function set(el, val) {
+    const v = pad(val);
+    if (el.textContent === v) return;
+    el.textContent = v;
+    el.classList.remove('tick');
+    void el.offsetWidth;      // reinicia la animación
+    el.classList.add('tick');
+  }
+
+  function tick() {
+    let diff = Math.floor((end - Date.now()) / 1000);
+    if (diff <= 0) {
+      if (box) box.style.display = 'none';
+      if (ended) ended.hidden = false;
+      if (timer) clearInterval(timer);
+      return;
+    }
+    const d = Math.floor(diff / 86400); diff -= d * 86400;
+    const h = Math.floor(diff / 3600);  diff -= h * 3600;
+    const m = Math.floor(diff / 60);
+    const s = diff - m * 60;
+    set(elD, d); set(elH, h); set(elM, m); set(elS, s);
+  }
+
+  tick();
+  timer = setInterval(tick, 1000);
+}
 
 // ─── PLAN SELECTION ───
 

@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/main.css?v=20260711d">
+  <link rel="stylesheet" href="css/main.css?v=20260711e">
 </head>
 <body>
 
@@ -668,6 +668,79 @@
 </div>
 
 
+<!-- ─── LANZAMIENTO OFICIAL ─── -->
+<section class="launch section" id="lanzamiento" data-end="2026-08-25T23:59:59">
+  <div class="sec-wrap">
+    <div class="launch-card reveal">
+      <span class="launch-orb launch-orb--a" aria-hidden="true"></span>
+      <span class="launch-orb launch-orb--b" aria-hidden="true"></span>
+
+      <div class="launch-badge">
+        <span class="launch-badge-fire">🔥</span> 85% OFF
+        <span class="launch-badge-sub">Oferta de lanzamiento</span>
+      </div>
+
+      <div class="launch-eyebrow">🚀 Lanzamiento oficial</div>
+      <h2 class="launch-title">¡Aprovecha el <span class="launch-hl">85% de descuento</span>!</h2>
+      <p class="launch-sub">Forma parte de los primeros usuarios de Nubifly y obtén acceso a todos nuestros servicios con un precio exclusivo de lanzamiento.</p>
+      <p class="launch-fine">Esta promoción estará disponible únicamente durante los primeros <b>45 días</b> desde el lanzamiento oficial o hasta agotar los cupos. Después, los planes volverán automáticamente a su precio normal.</p>
+
+      <!-- Contador regresivo -->
+      <div class="launch-count" id="launchCount" role="timer" aria-label="Tiempo restante de la oferta">
+        <div class="lc-tile"><span class="lc-num" id="lc-d">00</span><span class="lc-lbl">Días</span></div>
+        <span class="lc-sep">:</span>
+        <div class="lc-tile"><span class="lc-num" id="lc-h">00</span><span class="lc-lbl">Horas</span></div>
+        <span class="lc-sep">:</span>
+        <div class="lc-tile"><span class="lc-num" id="lc-m">00</span><span class="lc-lbl">Minutos</span></div>
+        <span class="lc-sep">:</span>
+        <div class="lc-tile"><span class="lc-num" id="lc-s">00</span><span class="lc-lbl">Segundos</span></div>
+      </div>
+      <p class="launch-ended" id="launchEnded" hidden>⏳ La promoción de lanzamiento ha finalizado. Los precios normales ya están activos.</p>
+
+      <!-- Precios: original tachado + descuento en verde -->
+      <div class="launch-prices">
+        <div class="lp-item">
+          <span class="lp-name">Básico</span>
+          <span class="lp-old">$4,999</span>
+          <span class="lp-new">$749 <i>MXN</i></span>
+        </div>
+        <div class="lp-item lp-item--pop">
+          <span class="lp-name">Pro</span>
+          <span class="lp-old">$8,999</span>
+          <span class="lp-new">$1,349 <i>MXN</i></span>
+        </div>
+        <div class="lp-item">
+          <span class="lp-name">Enterprise</span>
+          <span class="lp-old">$18,999</span>
+          <span class="lp-new">$2,849 <i>MXN</i></span>
+        </div>
+      </div>
+
+      <!-- Urgencia -->
+      <div class="launch-urgency">
+        <span class="lu-dots"><i></i><i></i><i></i></span>
+        Más de <b>1,000 usuarios</b> ya están aprovechando esta promoción.
+      </div>
+
+      <!-- CTAs -->
+      <div class="launch-cta">
+        <a href="/register" class="launch-btn launch-btn--primary">
+          Comenzar ahora
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+        <a href="#precios" class="launch-btn launch-btn--ghost">Ver planes</a>
+      </div>
+
+      <!-- Garantías -->
+      <ul class="launch-checks">
+        <li><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sin costos ocultos</li>
+        <li><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cancela cuando quieras</li>
+        <li><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Oferta válida solo los primeros 45 días</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <!-- ─── PRECIOS ─── -->
 <div class="pricing-bg section" id="precios">
   <div class="sec-wrap">
@@ -962,6 +1035,6 @@
 </footer>
 
 <!-- Scripts -->
-<script src="js/main.js?v=20260711d"></script>
+<script src="js/main.js?v=20260711e"></script>
 </body>
 </html>
