@@ -21,37 +21,13 @@
  */
 import { fbGet, fbUpdate }           from '../../_lib/firebase.js';
 import { verifyStripeSignature,
-         getPlan }                    from '../../_lib/stripe.js';
+         getPlan, buildPlanRecord,
+         sessionEmail }               from '../../_lib/stripe.js';
 import { crearAvisoSistema }         from '../../_lib/notifications.js';
 import { toEmailKey }                from '../../_lib/helpers.js';
 
 function txt(body, status = 200) {
   return new Response(body, { status, headers: { 'Content-Type': 'text/plain' } });
-}
-
-function buildPlanData(plan, session) {
-  const now = Date.now();
-  return {
-    plan: {
-      type:        plan.id,
-      isPremium:   true,
-      purchasedAt: now,
-      amountPaid:  session.amount_total ?? plan.priceCents,
-      currency:    session.currency || 'usd',
-      stripe: {
-        customerId:        session.customer || null,
-        checkoutSessionId: session.id,
-        paymentIntentId:   session.payment_intent || null,
-        customerEmail:     session.customer_email || session.customer_details?.email || ''
-      }
-    },
-    limits: {
-      maxApiKeys:      plan.limits.maxApiKeys,
-      monthlyRequests: plan.limits.monthlyRequests,
-      maxFileSizeMB:   plan.limits.maxFileSizeMB
-    },
-    now
-  };
 }
 
 export async function onRequestPost(context) {
@@ -99,7 +75,14 @@ export async function onRequestPost(context) {
     return txt('missing data', 200);
   }
 
-  const { plan: planData, limits, now } = buildPlanData(plan, session);
+  const { plan: planData, limits, now } = buildPlanRecord(plan, {
+    amountTotal:     session.amount_total,
+    currency:        session.currency,
+    customerId:      session.customer,
+    sessionId:       session.id,
+    paymentIntentId: session.payment_intent,
+    customerEmail:   emailRaw
+  });
 
   // Resolver uid destino: primero el uid del session, si no hay, buscar por email
   let targetUid = uidFromSession;
@@ -111,26 +94,37 @@ export async function onRequestPost(context) {
 
   // Caso 1: tenemos un usuario existente → activar plan ya
   if (targetUid) {
+    // ¿Ya se aplicó esta misma Checkout Session? (p.ej. register.js la verificó
+    // directamente en una carrera). Evita reescritura innecesaria y aviso doble.
+    const existingSession = await fbGet(
+      `controlUsers/${targetUid}/plan/stripe/checkoutSessionId`, tok, db
+    ).catch(() => null);
+    const alreadyApplied = existingSession && existingSession === session.id;
+
     try {
-      await fbUpdate({
-        [`controlUsers/${targetUid}/plan`]:      planData,
-        [`controlUsers/${targetUid}/limits`]:    limits,
-        [`controlUsers/${targetUid}/updatedAt`]: now,
-        [dedupPath]: { ts: now, uid: targetUid, plan: plan.id, sessionId: session.id }
-      }, tok, db);
+      const updates = { [dedupPath]: { ts: now, uid: targetUid, plan: plan.id, sessionId: session.id } };
+      if (!alreadyApplied) {
+        updates[`controlUsers/${targetUid}/plan`]      = planData;
+        updates[`controlUsers/${targetUid}/limits`]    = limits;
+        updates[`controlUsers/${targetUid}/updatedAt`] = now;
+      }
+      await fbUpdate(updates, tok, db);
     } catch (e) {
       console.error('[stripe/webhook] fbUpdate:', e.message);
       return txt('db error', 500);
     }
 
-    context.waitUntil(
-      crearAvisoSistema(
-        targetUid, 'info',
-        `¡Bienvenido a ${plan.name}!`,
-        `Tu pago se procesó correctamente. Ahora tienes ${plan.limits.maxApiKeys} API keys y archivos de hasta ${plan.limits.maxFileSizeMB} MB.`,
-        0, tok, db
-      ).catch(e => console.warn('[stripe/webhook] aviso:', e.message))
-    );
+    // Solo notificar si nosotros aplicamos el plan (register no lo hizo antes)
+    if (!alreadyApplied) {
+      context.waitUntil(
+        crearAvisoSistema(
+          targetUid, 'info',
+          `¡Bienvenido a ${plan.name}!`,
+          `Tu pago se procesó correctamente. Ahora tienes ${plan.limits.maxApiKeys} API keys y archivos de hasta ${plan.limits.maxFileSizeMB} MB.`,
+          0, tok, db
+        ).catch(e => console.warn('[stripe/webhook] aviso:', e.message))
+      );
+    }
 
     return txt('ok', 200);
   }

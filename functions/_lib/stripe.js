@@ -147,6 +147,52 @@ export async function createOneTimeCheckout(env, { uid = '', email = '', plan })
   return stripeReq(env, 'POST', '/checkout/sessions', params);
 }
 
+// ── Recuperar una Checkout Session por ID ─────────────────────────────────
+// Usado por /api/payment/session y por register.js para verificar un pago
+// de invitado directamente contra Stripe (sin depender del webhook).
+export async function retrieveCheckoutSession(env, sessionId) {
+  if (!sessionId) throw new Error('sessionId requerido');
+  return stripeReq(env, 'GET', `/checkout/sessions/${encodeURIComponent(sessionId)}`);
+}
+
+// Extrae el email del comprador de una Checkout Session (varias ubicaciones).
+export function sessionEmail(session) {
+  return (
+    session?.customer_email ||
+    session?.customer_details?.email ||
+    ''
+  ).trim().toLowerCase();
+}
+
+// ── Construir el registro de plan (compartido webhook + register) ─────────
+// Devuelve { plan, limits, now } listos para escribir en controlUsers/{uid}.
+export function buildPlanRecord(plan, {
+  amountTotal, currency, customerId, sessionId, paymentIntentId, customerEmail
+} = {}) {
+  const now = Date.now();
+  return {
+    plan: {
+      type:        plan.id,
+      isPremium:   true,
+      purchasedAt: now,
+      amountPaid:  amountTotal ?? plan.priceCents,
+      currency:    currency || 'usd',
+      stripe: {
+        customerId:        customerId || null,
+        checkoutSessionId: sessionId || null,
+        paymentIntentId:   paymentIntentId || null,
+        customerEmail:     customerEmail || ''
+      }
+    },
+    limits: {
+      maxApiKeys:      plan.limits.maxApiKeys,
+      monthlyRequests: plan.limits.monthlyRequests,
+      maxFileSizeMB:   plan.limits.maxFileSizeMB
+    },
+    now
+  };
+}
+
 // ── Verificar firma HMAC-SHA256 de webhook (Web Crypto) ────────────────────
 // Stripe firma con: HMAC-SHA256(secret, `${timestamp}.${payload}`)
 // Header: Stripe-Signature: t=1492774577,v1=abc123...,v1=...

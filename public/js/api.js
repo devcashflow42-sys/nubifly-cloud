@@ -316,11 +316,13 @@ async function apiFetch(endpoint, options = {}) {
    AUTH
 ──────────────────────────────────────────────────────────────── */
 
-async function registerUser({ name, username, email, password }) {
+async function registerUser({ name, username, email, password, checkoutSessionId }) {
+  const body = { name, username, email, password };
+  if (checkoutSessionId) body.checkoutSessionId = checkoutSessionId;
   const res = await apiFetch('/register', {
     method: 'POST',
     auth: false,
-    body: { name, username, email, password }
+    body
   });
 
   const user = extractUser(res);

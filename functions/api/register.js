@@ -7,6 +7,9 @@ import { fbGet, fbUpdate }       from '../_lib/firebase.js';
 import { syncFirebaseAuthUser }  from '../_lib/firebase-auth.js';
 import { toEmailKey, toEmailNormal } from '../_lib/helpers.js';
 import { jsonRes, fail }         from '../_lib/response.js';
+import { retrieveCheckoutSession, getPlan,
+         buildPlanRecord, sessionEmail } from '../_lib/stripe.js';
+import { crearAvisoSistema }     from '../_lib/notifications.js';
 
 export async function onRequestGet() {
   return jsonRes({
@@ -30,9 +33,10 @@ export async function onRequestPost(context) {
   try { body = await request.json(); } catch { return jsonRes(fail('JSON inválido.'), 400); }
 
   const { email, password, username } = body;
-  const name   = (body.name || username || '').trim();
-  const avatar = body.avatar || '';
-  const bio    = body.bio    || '';
+  const name              = (body.name || username || '').trim();
+  const avatar            = body.avatar || '';
+  const bio               = body.bio    || '';
+  const checkoutSessionId = String(body.checkoutSessionId || '').trim();
 
   if (!username || !email || !password)
     return jsonRes(fail('Campos requeridos: username, email, password.'), 400);
@@ -91,11 +95,51 @@ export async function onRequestPost(context) {
     createdAt: now, updatedAt: now
   };
 
-  // Activar plan pendiente si el email ya pagó como invitado
+  // ── Activar plan pagado (pago-primero) ────────────────────────────────────
+  // Fuente 1: pendingUpgrades/{emailKey} — lo escribió el webhook si ya llegó.
+  // Fuente 2 (fallback anti-carrera): verificar la Checkout Session contra
+  //          Stripe directamente. Cubre el caso en que el usuario se registra
+  //          más rápido de lo que tarda el webhook en llegar.
+  let paidPlan   = null;   // { planData, limits }
+  let notifyPlan = null;   // objeto plan para el aviso de bienvenida
+  let clearPending = false;
+
   const pending = await fbGet(`pendingUpgrades/${emailKey}`, tok, db).catch(() => null);
   if (pending && pending.planData && pending.limits) {
-    controlData.plan   = pending.planData;
-    controlData.limits = { ...controlData.limits, ...pending.limits };
+    paidPlan     = { planData: pending.planData, limits: pending.limits };
+    notifyPlan   = getPlan(pending.plan);
+    clearPending = true;
+  } else if (checkoutSessionId) {
+    try {
+      const sess     = await retrieveCheckoutSession(env, checkoutSessionId);
+      const paidMail = sessionEmail(sess);
+      const plan     = getPlan(String(sess.metadata?.plan || '').toLowerCase());
+      const emailMatches = paidMail && paidMail === emailNormal.toLowerCase();
+      if (sess.payment_status === 'paid' && emailMatches && plan && plan.id !== 'gratis') {
+        const rec  = buildPlanRecord(plan, {
+          amountTotal:     sess.amount_total,
+          currency:        sess.currency,
+          customerId:      sess.customer,
+          sessionId:       sess.id,
+          paymentIntentId: sess.payment_intent,
+          customerEmail:   paidMail
+        });
+        paidPlan   = { planData: rec.plan, limits: rec.limits };
+        notifyPlan = plan;
+        // El webhook evita duplicar el aviso: al llegar (ruta usuario-existente)
+        // detecta que este checkoutSessionId ya se aplicó y NO vuelve a notificar.
+      }
+    } catch (e) {
+      console.warn('[Register] verificación Stripe:', e.message);
+    }
+  }
+
+  if (paidPlan) {
+    controlData.plan   = paidPlan.planData;
+    controlData.limits = { ...controlData.limits, ...paidPlan.limits };
+    // Limpiar cualquier pendingUpgrades de este email (aunque el webhook lo
+    // haya escrito en una carrera): ya está aplicado en la cuenta.
+    clearPending = true;
   }
 
   try {
@@ -105,11 +149,25 @@ export async function onRequestPost(context) {
       [`usernames/${usernameKey}`]:      uid,
       [`emails/${emailKey}`]:            uid
     };
-    if (pending) updates[`pendingUpgrades/${emailKey}`] = null;
+    if (clearPending) updates[`pendingUpgrades/${emailKey}`] = null;
     await fbUpdate(updates, tok, db);
   } catch (err) {
     console.error('[Register] Error escribiendo Firebase:', err.message);
     return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_WRITE_ERROR'), 503);
+  }
+
+  // Aviso de bienvenida cuando activamos un plan aquí (pendingUpgrades o
+  // verificación directa con Stripe). El webhook deduplica por checkoutSessionId
+  // para no enviar un segundo aviso.
+  if (notifyPlan) {
+    context.waitUntil(
+      crearAvisoSistema(
+        uid, 'info',
+        `¡Bienvenido a ${notifyPlan.name}!`,
+        `Tu pago se procesó correctamente. Ahora tienes ${notifyPlan.limits.maxApiKeys} API keys y archivos de hasta ${notifyPlan.limits.maxFileSizeMB} MB.`,
+        0, tok, db
+      ).catch(e => console.warn('[Register] aviso plan:', e.message))
+    );
   }
 
   // Best-effort: crear también el usuario en Firebase Authentication.

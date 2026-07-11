@@ -72,17 +72,20 @@
     </div>
 
     <div class="callout" id="calloutGuest" style="display:none">
-      Detectamos que <b>aún no tienes cuenta</b> en Nubifly.<br>
-      Regístrate con el mismo email que usaste al pagar
-      <span class="email-pill" id="emailHint" style="display:none"></span>
-      y tu plan se activará automáticamente.
+      Ya casi. Crea tu cuenta con este correo y tu plan se activará al instante:
+      <div><span class="email-pill" id="emailHint" style="display:none"></span></div>
+    </div>
+
+    <div class="callout" id="calloutLogin" style="display:none">
+      Este correo <span class="email-pill" id="emailHint2" style="display:none"></span>
+      ya tiene una cuenta. Inicia sesión y verás tu plan ya activo.
     </div>
 
     <div class="callout" id="calloutMember" style="display:none">
       Tu plan ya está activo en tu cuenta. Puedes empezar a usar los nuevos límites de inmediato.
     </div>
 
-    <a class="btn" id="ctaPrimary" href="/register">Crear cuenta</a>
+    <a class="btn" id="ctaPrimary" href="/register">Continuar</a>
     <a class="btn btn-secondary" href="/">Volver al inicio</a>
 
     <div class="foot">
@@ -100,7 +103,9 @@
       document.getElementById('planName').textContent = pretty[plan] || plan || 'premium';
       document.getElementById('sessId').textContent   = sessId ? (sessId.slice(0, 24) + '…') : '—';
 
-      // Detectar si el usuario ya tiene sesión activa
+      var cta = document.getElementById('ctaPrimary');
+
+      // 1) ¿El usuario ya tiene sesión activa? → su plan se activó por uid
       var tok = localStorage.getItem('nf_token');
       var loggedIn = false;
       if (tok) {
@@ -110,17 +115,60 @@
           if (!payload.exp || payload.exp >= Math.floor(Date.now()/1000)) loggedIn = true;
         } catch (e) { /* ignore */ }
       }
-
-      var cta = document.getElementById('ctaPrimary');
       if (loggedIn) {
         document.getElementById('calloutMember').style.display = 'block';
         cta.textContent = 'Ir a mi panel';
         cta.href = '/home?checkout=success&plan=' + encodeURIComponent(plan);
-      } else {
-        document.getElementById('calloutGuest').style.display = 'block';
-        cta.textContent = 'Crear cuenta ahora';
-        cta.href = '/register';
+        return;
       }
+
+      // 2) Invitado: consultar el email del pago para dirigir a registro o login
+      cta.textContent = 'Un momento…';
+      cta.style.pointerEvents = 'none';
+      cta.style.opacity = '.6';
+
+      function fallbackRegister() {
+        cta.textContent = 'Crear cuenta ahora';
+        cta.href = '/register' + (plan ? '?plan=' + encodeURIComponent(plan) : '')
+                 + (sessId ? (plan ? '&' : '?') + 'session_id=' + encodeURIComponent(sessId) : '');
+        cta.style.pointerEvents = '';
+        cta.style.opacity = '';
+        document.getElementById('calloutGuest').style.display = 'block';
+      }
+
+      if (!sessId) { fallbackRegister(); return; }
+
+      fetch('/api/payment/session?id=' + encodeURIComponent(sessId))
+        .then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then(function (res) {
+          var d = res && res.data ? res.data : {};
+          var email = (d.email || '').trim();
+          cta.style.pointerEvents = '';
+          cta.style.opacity = '';
+
+          if (email && d.hasAccount) {
+            // Ya tiene cuenta → login (el webhook activó el plan por email)
+            document.getElementById('calloutLogin').style.display = 'block';
+            var p2 = document.getElementById('emailHint2');
+            p2.textContent = email; p2.style.display = 'inline-block';
+            cta.textContent = 'Iniciar sesión';
+            cta.href = '/login?email=' + encodeURIComponent(email);
+          } else {
+            // No tiene cuenta → registro con email pre-rellenado + bloqueado
+            document.getElementById('calloutGuest').style.display = 'block';
+            cta.textContent = 'Crear cuenta ahora';
+            var params = [];
+            if (email)  params.push('email=' + encodeURIComponent(email));
+            if (plan)   params.push('plan=' + encodeURIComponent(plan));
+            if (sessId) params.push('session_id=' + encodeURIComponent(sessId));
+            cta.href = '/register' + (params.length ? '?' + params.join('&') : '');
+            if (email) {
+              var p1 = document.getElementById('emailHint');
+              p1.textContent = email; p1.style.display = 'inline-block';
+            }
+          }
+        })
+        .catch(function () { fallbackRegister(); });
     }());
   </script>
 </body>

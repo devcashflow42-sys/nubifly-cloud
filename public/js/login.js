@@ -33,6 +33,9 @@ function showToast(message, type) {
 ────────────────────────────────────────────── */
 var isSignUp = false;
 
+// Datos del checkout pagado (llega desde /pago-completado con ?email=&plan=&session_id=)
+var _paidCheckout = { sessionId: '', plan: '', email: '' };
+
 /* ──────────────────────────────────────────────
    REFERENCIAS A ELEMENTOS
 ────────────────────────────────────────────── */
@@ -434,7 +437,8 @@ form.addEventListener('submit', async function (e) {
         name:     name,
         username: name,
         email:    emailVal,
-        password: pwVal
+        password: pwVal,
+        checkoutSessionId: _paidCheckout.sessionId || ''
       });
 
       // Animación de éxito
@@ -618,6 +622,40 @@ document.getElementById('backBtn').addEventListener('click', function () {
     showToast(msgs[err] || 'Error al iniciar sesión.', 'error');
   }, 400);
 })();
+
+// ── Checkout pagado: pre-rellenar registro con el email del pago ──────────
+// /pago-completado envía a /register?email=…&plan=…&session_id=…
+(function () {
+  var q = new URLSearchParams(window.location.search);
+  var email  = (q.get('email') || '').trim();
+  var plan   = (q.get('plan') || '').trim();
+  var sess   = (q.get('session_id') || q.get('checkout_session') || '').trim();
+  if (!email && !sess) return;
+
+  _paidCheckout = { sessionId: sess, plan: plan, email: email };
+
+  // Forzar modo registro solo si viene un pago nuevo (plan o session).
+  // Si solo llega el email (cuenta ya existente) → dejar modo login.
+  if (sess || plan) isSignUp = true;
+
+  if (email && emailInput) {
+    emailInput.value = email;
+    emailInput.setAttribute('readonly', 'readonly');
+    emailInput.classList.add('locked');
+  }
+
+  // Nota visible: este correo tiene un plan pagado
+  var host = emailInput ? emailInput.closest('.field') || emailInput.parentElement : null;
+  if (host && plan) {
+    var pretty = { basico: 'Básico', pro: 'Pro', enterprise: 'Enterprise' };
+    var note = document.createElement('div');
+    note.className = 'paid-note';
+    note.style.cssText = 'margin-top:8px;font-size:12.5px;color:#16A34A;font-weight:600;display:flex;align-items:center;gap:6px';
+    note.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      + 'Plan ' + (pretty[plan] || plan) + ' pagado — se activará al crear tu cuenta con este correo.';
+    host.appendChild(note);
+  }
+}());
 
 // Detectar modo /register en la URL
 if (window.location.pathname.startsWith('/register')) {
