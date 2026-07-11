@@ -58,6 +58,7 @@ const SIGNING_EXEMPT_PATHS = [
   '/api/users',
   '/api/app',
   '/api/payment/webhook',
+  '/api/payment/checkout',
 ];
 
 function isExemptFromSigning(pathname) {

@@ -91,13 +91,22 @@ export async function onRequestPost(context) {
     createdAt: now, updatedAt: now
   };
 
+  // Activar plan pendiente si el email ya pagó como invitado
+  const pending = await fbGet(`pendingUpgrades/${emailKey}`, tok, db).catch(() => null);
+  if (pending && pending.planData && pending.limits) {
+    controlData.plan   = pending.planData;
+    controlData.limits = { ...controlData.limits, ...pending.limits };
+  }
+
   try {
-    await fbUpdate({
+    const updates = {
       [`users/${uid}`]:                  userData,
       [`controlUsers/${uid}`]:           controlData,
       [`usernames/${usernameKey}`]:      uid,
       [`emails/${emailKey}`]:            uid
-    }, tok, db);
+    };
+    if (pending) updates[`pendingUpgrades/${emailKey}`] = null;
+    await fbUpdate(updates, tok, db);
   } catch (err) {
     console.error('[Register] Error escribiendo Firebase:', err.message);
     return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_WRITE_ERROR'), 503);

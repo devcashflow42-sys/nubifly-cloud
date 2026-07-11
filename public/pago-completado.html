@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pago completado — Nubifly</title>
+  <link rel="icon" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Sora',sans-serif;
+      background:#F6F5F0;
+      color:#1a1a1a;
+      min-height:100vh;
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;
+    }
+    .card{
+      max-width:500px;width:100%;
+      background:#fff;border-radius:24px;
+      padding:44px 32px;
+      box-shadow:0 12px 40px rgba(0,0,0,.08);
+      text-align:center;
+    }
+    .check{
+      width:72px;height:72px;border-radius:50%;
+      background:#DCFCE7;color:#16A34A;
+      display:flex;align-items:center;justify-content:center;
+      margin:0 auto 20px;
+    }
+    .check svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    h1{font-family:'Instrument Serif',serif;font-size:34px;font-weight:400;letter-spacing:-.6px;margin-bottom:8px;line-height:1.15}
+    .plan-name{color:#111;font-weight:600}
+    .sub{font-size:14.5px;color:#666;line-height:1.6;margin-bottom:24px}
+    .callout{
+      background:#F9FAFB;border:1px solid #E5E7EB;border-radius:14px;
+      padding:14px 16px;text-align:left;margin-bottom:24px;
+      font-size:13px;color:#374151;line-height:1.55;
+    }
+    .callout b{color:#111}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      background:#111;color:#fff;font-family:inherit;font-size:14px;font-weight:600;
+      padding:14px 26px;border-radius:99px;border:0;cursor:pointer;
+      transition:transform .15s,background .15s;text-decoration:none;
+      width:100%;margin-bottom:10px;
+    }
+    .btn:hover{background:#000;transform:translateY(-1px)}
+    .btn-secondary{background:transparent;color:#111;border:1.5px solid #E5E7EB}
+    .btn-secondary:hover{background:#F9FAFB}
+    .email-pill{
+      display:inline-block;
+      background:#F3F4F6;border-radius:99px;
+      padding:5px 13px;font-size:12.5px;font-weight:600;color:#111;
+      font-family:'DM Mono',monospace;
+      margin-top:4px;
+    }
+    .foot{
+      margin-top:22px;font-size:11.5px;color:#9CA3AF;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="check">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h1>¡Pago recibido!</h1>
+    <div class="sub">
+      Tu plan <span class="plan-name" id="planName">—</span> queda activado en un instante.
+    </div>
+
+    <div class="callout" id="calloutGuest" style="display:none">
+      Detectamos que <b>aún no tienes cuenta</b> en Nubifly.<br>
+      Regístrate con el mismo email que usaste al pagar
+      <span class="email-pill" id="emailHint" style="display:none"></span>
+      y tu plan se activará automáticamente.
+    </div>
+
+    <div class="callout" id="calloutMember" style="display:none">
+      Tu plan ya está activo en tu cuenta. Puedes empezar a usar los nuevos límites de inmediato.
+    </div>
+
+    <a class="btn" id="ctaPrimary" href="/register">Crear cuenta</a>
+    <a class="btn btn-secondary" href="/">Volver al inicio</a>
+
+    <div class="foot">
+      Sesión de pago: <span id="sessId">—</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var q = new URLSearchParams(window.location.search);
+      var plan   = (q.get('plan') || '').trim();
+      var sessId = (q.get('session_id') || '').trim();
+
+      var pretty = { basico:'Básico', pro:'Pro', enterprise:'Enterprise' };
+      document.getElementById('planName').textContent = pretty[plan] || plan || 'premium';
+      document.getElementById('sessId').textContent   = sessId ? (sessId.slice(0, 24) + '…') : '—';
+
+      // Detectar si el usuario ya tiene sesión activa
+      var tok = localStorage.getItem('nf_token');
+      var loggedIn = false;
+      if (tok) {
+        try {
+          var parts = tok.split('.');
+          var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+          if (!payload.exp || payload.exp >= Math.floor(Date.now()/1000)) loggedIn = true;
+        } catch (e) { /* ignore */ }
+      }
+
+      var cta = document.getElementById('ctaPrimary');
+      if (loggedIn) {
+        document.getElementById('calloutMember').style.display = 'block';
+        cta.textContent = 'Ir a mi panel';
+        cta.href = '/home?checkout=success&plan=' + encodeURIComponent(plan);
+      } else {
+        document.getElementById('calloutGuest').style.display = 'block';
+        cta.textContent = 'Crear cuenta ahora';
+        cta.href = '/register';
+      }
+    }());
+  </script>
+</body>
+</html>

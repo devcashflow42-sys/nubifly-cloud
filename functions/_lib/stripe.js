@@ -111,9 +111,12 @@ function flattenForm(obj, prefix = '') {
 }
 
 // ── Crear una Checkout Session de pago único ──────────────────────────────
-export async function createOneTimeCheckout(env, { uid, email, plan }) {
+// uid opcional: si viene, se guarda como client_reference_id.
+// Si no viene (invitado sin login), Stripe pedirá el email en su checkout
+// y el webhook activará el plan por email después del pago.
+export async function createOneTimeCheckout(env, { uid = '', email = '', plan }) {
   const cfg = getPlan(plan);
-  if (!cfg || cfg.id === 'free') throw new Error('Plan inválido para checkout.');
+  if (!cfg || cfg.id === 'gratis') throw new Error('Plan inválido para checkout.');
 
   const publicUrl = (env.PUBLIC_URL || '').replace(/\/$/, '') || 'https://nubifly.com';
 
@@ -131,15 +134,15 @@ export async function createOneTimeCheckout(env, { uid, email, plan }) {
         }
       }
     }],
-    client_reference_id: uid,
-    metadata: { uid, plan: cfg.id },
+    metadata: { uid: uid || '', plan: cfg.id },
     payment_intent_data: {
-      metadata: { uid, plan: cfg.id }
+      metadata: { uid: uid || '', plan: cfg.id }
     },
-    success_url: `${publicUrl}/home?checkout=success&plan=${cfg.id}`,
-    cancel_url:  `${publicUrl}/home?checkout=cancel`
+    success_url: `${publicUrl}/pago-completado?plan=${cfg.id}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url:  `${publicUrl}/#precios`
   };
-  if (email) params.customer_email = email;
+  if (uid)   params.client_reference_id = uid;
+  if (email) params.customer_email      = email;
 
   return stripeReq(env, 'POST', '/checkout/sessions', params);
 }
