@@ -347,6 +347,26 @@ function selectPlan(card) {
   card.classList.add('nf-selected');
 }
 
+// ── Moneda seleccionada (USD / MXN) ──────────────────────────────────────
+let _currency = 'usd';
+
+function setCurrency(cur) {
+  _currency = (cur === 'mxn') ? 'mxn' : 'usd';
+  // Botones activos
+  document.querySelectorAll('.nf-cur-btn').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.cur === _currency);
+  });
+  // Actualizar cada precio mostrado
+  document.querySelectorAll('.nf-price-num').forEach(function (el) {
+    const v = el.dataset[_currency];
+    if (v != null) el.textContent = v;
+  });
+  // Etiqueta de moneda (USD / MXN)
+  document.querySelectorAll('.nf-cur-label').forEach(function (el) {
+    el.textContent = _currency.toUpperCase();
+  });
+}
+
 // Tap on the BUTTON — va directo a Stripe Checkout (sin exigir login)
 async function togglePlan(card) {
   const planId = (card.dataset.plan || '').trim().toLowerCase();
@@ -383,7 +403,7 @@ async function togglePlan(card) {
     const res = await fetch('/api/payment/checkout', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ plan: planId })
+      body: JSON.stringify({ plan: planId, currency: _currency })
     });
 
     // Leer como texto primero para poder diagnosticar respuestas no-JSON

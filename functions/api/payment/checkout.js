@@ -37,8 +37,9 @@ export async function onRequestPost(context) {
     try { body = await request.json(); }
     catch { return jsonRes(fail('JSON inválido.', 'BAD_REQUEST'), 400); }
 
-    const planId = String(body?.plan || '').trim().toLowerCase();
-    const cfg    = getPlan(planId);
+    const planId   = String(body?.plan || '').trim().toLowerCase();
+    const currency = String(body?.currency || 'usd').trim().toLowerCase();
+    const cfg      = getPlan(planId);
     if (!cfg || cfg.id === 'gratis') {
       return jsonRes(fail('Plan inválido. Usa "basico", "pro" o "enterprise".', 'INVALID_PLAN'), 400);
     }
@@ -65,7 +66,7 @@ export async function onRequestPost(context) {
 
     let session;
     try {
-      session = await createOneTimeCheckout(env, { uid, email, plan: cfg.id });
+      session = await createOneTimeCheckout(env, { uid, email, plan: cfg.id, currency });
     } catch (e) {
       console.error('[payment/checkout] stripe:', e && e.message);
       // Incluir el detalle de Stripe para diagnóstico (no es dato sensible).

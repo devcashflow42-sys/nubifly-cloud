@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=20260711d">
 </head>
 <body>
 
@@ -674,7 +674,13 @@
     <div class="reveal" style="text-align:center">
       <div class="sec-label" style="justify-content:center">Planes de precios</div>
       <h2 class="sec-h" style="text-align:center">Elige el plan <em>perfecto para ti</em></h2>
-      <p class="sec-p" style="max-width:520px;margin:0 auto 56px">Precios transparentes, sin cargos ocultos. Cambia o cancela cuando quieras.</p>
+      <p class="sec-p" style="max-width:520px;margin:0 auto 28px">Precios transparentes, sin cargos ocultos. Cambia o cancela cuando quieras.</p>
+
+      <!-- Selector de moneda USD / MXN -->
+      <div class="nf-currency" role="group" aria-label="Moneda">
+        <button type="button" class="nf-cur-btn active" data-cur="usd" onclick="setCurrency('usd')">🇺🇸 USD</button>
+        <button type="button" class="nf-cur-btn" data-cur="mxn" onclick="setCurrency('mxn')">🇲🇽 MXN</button>
+      </div>
     </div>
 
     <div class="nf-plans reveal rd1">
@@ -683,8 +689,8 @@
       <div class="nf-card" data-plan="gratis" onclick="selectPlan(this)">
         <div class="nf-card-inner">
           <div class="nf-tag nf-tag--gray">Gratis</div>
-          <div class="nf-price"><sup>$</sup>0</div>
-          <div class="nf-period">por 3 meses</div>
+          <div class="nf-price"><sup>$</sup><span class="nf-price-num" data-usd="0" data-mxn="0">0</span></div>
+          <div class="nf-period"><span class="nf-cur-label">USD</span> · por 3 meses</div>
           <div class="nf-desc">Ideal para explorar la plataforma y proyectos personales pequeños.</div>
           <div class="nf-divider"></div>
           <div class="nf-includes">Incluye:</div>
@@ -701,8 +707,8 @@
       <div class="nf-card" data-plan="basico" onclick="selectPlan(this)">
         <div class="nf-card-inner">
           <div class="nf-tag nf-tag--gray">Básico</div>
-          <div class="nf-price"><sup>$</sup>250</div>
-          <div class="nf-period">por 5 meses</div>
+          <div class="nf-price"><sup>$</sup><span class="nf-price-num" data-usd="250" data-mxn="4,999">250</span></div>
+          <div class="nf-period"><span class="nf-cur-label">USD</span> · por 5 meses</div>
           <div class="nf-desc">Para equipos pequeños que necesitan más espacio y mayor capacidad de API.</div>
           <div class="nf-divider"></div>
           <div class="nf-includes">Incluye:</div>
@@ -720,8 +726,8 @@
         <div class="nf-badge">⚡ Popular</div>
         <div class="nf-card-inner">
           <div class="nf-tag nf-tag--dark">Pro</div>
-          <div class="nf-price"><sup>$</sup>450</div>
-          <div class="nf-period">por 6 meses</div>
+          <div class="nf-price"><sup>$</sup><span class="nf-price-num" data-usd="450" data-mxn="8,999">450</span></div>
+          <div class="nf-period"><span class="nf-cur-label">USD</span> · por 6 meses</div>
           <div class="nf-desc">La opción preferida para empresas y proyectos en crecimiento acelerado.</div>
           <div class="nf-divider"></div>
           <div class="nf-includes">Incluye:</div>
@@ -740,8 +746,8 @@
         <div class="nf-badge nf-badge--gold">★ Premium</div>
         <div class="nf-card-inner">
           <div class="nf-tag nf-tag--gray">Enterprise</div>
-          <div class="nf-price"><sup>$</sup>950</div>
-          <div class="nf-period">por 8 meses</div>
+          <div class="nf-price"><sup>$</sup><span class="nf-price-num" data-usd="950" data-mxn="18,999">950</span></div>
+          <div class="nf-period"><span class="nf-cur-label">USD</span> · por 8 meses</div>
           <div class="nf-desc">Máxima potencia, almacenamiento y SLA garantizado para grandes organizaciones.</div>
           <div class="nf-divider"></div>
           <div class="nf-includes">Incluye:</div>
@@ -956,6 +962,6 @@
 </footer>
 
 <!-- Scripts -->
-<script src="js/main.js?v=20260711c"></script>
+<script src="js/main.js?v=20260711d"></script>
 </body>
 </html>

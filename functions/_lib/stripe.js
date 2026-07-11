@@ -14,13 +14,20 @@
  */
 
 // ── Catálogo de planes ─────────────────────────────────────────────────────
-// Precios en centavos (USD). Ajusta valores/beneficios cuando quieras.
+// Monedas soportadas. 'usd' = dólares, 'mxn' = pesos mexicanos.
+export const SUPPORTED_CURRENCIES = ['usd', 'mxn'];
+
+// Precios en la unidad mínima de cada moneda (centavos USD / centavos MXN).
+//   usd: 25000  = $250.00 USD
+//   mxn: 499900 = $4,999.00 MXN
+// ⚠️ Los montos en MXN son un punto de partida — AJÚSTALOS al precio real
+//    que quieras cobrar en pesos (no es una conversión automática).
 // IDs deben coincidir con data-plan="..." en index.html
 export const PLANS = {
   gratis: {
     id: 'gratis',
     name: 'Gratis',
-    priceCents: 0,
+    prices: { usd: 0, mxn: 0 },
     limits: {
       maxApiKeys:      2,
       monthlyRequests: 1_000,
@@ -31,7 +38,7 @@ export const PLANS = {
   basico: {
     id: 'basico',
     name: 'Básico',
-    priceCents: 25000,    // $250.00 USD
+    prices: { usd: 25000, mxn: 499900 },   // $250 USD  ·  $4,999 MXN
     limits: {
       maxApiKeys:      10,
       monthlyRequests: 100_000,
@@ -42,7 +49,7 @@ export const PLANS = {
   pro: {
     id: 'pro',
     name: 'Pro',
-    priceCents: 45000,    // $450.00 USD
+    prices: { usd: 45000, mxn: 899900 },   // $450 USD  ·  $8,999 MXN
     limits: {
       maxApiKeys:      50,
       monthlyRequests: 1_000_000,
@@ -53,7 +60,7 @@ export const PLANS = {
   enterprise: {
     id: 'enterprise',
     name: 'Enterprise',
-    priceCents: 95000,    // $950.00 USD
+    prices: { usd: 95000, mxn: 1899900 },  // $950 USD  ·  $18,999 MXN
     limits: {
       maxApiKeys:      500,
       monthlyRequests: 999_999_999,
@@ -62,6 +69,20 @@ export const PLANS = {
     }
   }
 };
+
+// Normaliza la moneda a una soportada (por defecto usd).
+export function normalizeCurrency(currency) {
+  const c = String(currency || '').trim().toLowerCase();
+  return SUPPORTED_CURRENCIES.includes(c) ? c : 'usd';
+}
+
+// Precio de un plan en la moneda pedida, en centavos. Cae a usd si falta.
+export function planPrice(plan, currency) {
+  if (!plan) return 0;
+  const c = normalizeCurrency(currency);
+  if (plan.prices) return plan.prices[c] ?? plan.prices.usd ?? 0;
+  return plan.priceCents || 0; // compatibilidad con formato antiguo
+}
 
 export function getPlan(planId) {
   return PLANS[planId] || null;
@@ -124,9 +145,13 @@ function flattenForm(obj, prefix = '') {
 // uid opcional: si viene, se guarda como client_reference_id.
 // Si no viene (invitado sin login), Stripe pedirá el email en su checkout
 // y el webhook activará el plan por email después del pago.
-export async function createOneTimeCheckout(env, { uid = '', email = '', plan }) {
+export async function createOneTimeCheckout(env, { uid = '', email = '', plan, currency = 'usd' }) {
   const cfg = getPlan(plan);
   if (!cfg || cfg.id === 'gratis') throw new Error('Plan inválido para checkout.');
+
+  const cur    = normalizeCurrency(currency);
+  const amount = planPrice(cfg, cur);
+  if (!amount || amount <= 0) throw new Error(`El plan ${cfg.id} no tiene precio en ${cur.toUpperCase()}.`);
 
   const publicUrl = (env.PUBLIC_URL || '').replace(/\/$/, '') || 'https://nubifly.com';
 
@@ -136,17 +161,17 @@ export async function createOneTimeCheckout(env, { uid = '', email = '', plan })
     line_items: [{
       quantity: 1,
       price_data: {
-        currency: 'usd',
-        unit_amount: cfg.priceCents,
+        currency: cur,
+        unit_amount: amount,
         product_data: {
           name: `Nubifly ${cfg.name}`,
           description: `Upgrade permanente al plan ${cfg.name}. Sin renovaciones.`
         }
       }
     }],
-    metadata: { uid: uid || '', plan: cfg.id },
+    metadata: { uid: uid || '', plan: cfg.id, currency: cur },
     payment_intent_data: {
-      metadata: { uid: uid || '', plan: cfg.id }
+      metadata: { uid: uid || '', plan: cfg.id, currency: cur }
     },
     success_url: `${publicUrl}/pago-completado?plan=${cfg.id}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url:  `${publicUrl}/#precios`
@@ -185,8 +210,8 @@ export function buildPlanRecord(plan, {
       type:        plan.id,
       isPremium:   true,
       purchasedAt: now,
-      amountPaid:  amountTotal ?? plan.priceCents,
-      currency:    currency || 'usd',
+      amountPaid:  amountTotal ?? planPrice(plan, currency),
+      currency:    normalizeCurrency(currency),
       stripe: {
         customerId:        customerId || null,
         checkoutSessionId: sessionId || null,

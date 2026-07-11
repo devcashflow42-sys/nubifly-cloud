@@ -32,11 +32,13 @@ export async function onRequestGet(context) {
       limits:      currentPlan.limits
     },
     catalog: Object.values(PLANS).map(p => ({
-      id:         p.id,
-      name:       p.name,
-      priceCents: p.priceCents,
-      priceUsd:   (p.priceCents / 100).toFixed(2),
-      limits:     p.limits
+      id:     p.id,
+      name:   p.name,
+      prices: {
+        usd: { cents: p.prices.usd, amount: (p.prices.usd / 100).toFixed(2) },
+        mxn: { cents: p.prices.mxn, amount: (p.prices.mxn / 100).toFixed(2) }
+      },
+      limits: p.limits
     }))
   }));
 }

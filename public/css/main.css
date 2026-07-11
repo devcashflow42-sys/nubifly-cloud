@@ -438,6 +438,36 @@ nav.solid { box-shadow: 0 2px 24px rgba(0,0,0,0.07); }
 /* ─── PRECIOS — Nueva sección de planes ─── */
 .pricing-bg { background: var(--off-white); }
 
+/* Selector de moneda USD / MXN */
+.nf-currency {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--gray-100, #f1f1f1);
+  border: 1px solid var(--gray-200, #e5e5e5);
+  margin: 0 auto 44px;
+}
+.nf-cur-btn {
+  border: 0;
+  background: transparent;
+  color: var(--gray-500, #6b7280);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .18s, color .18s;
+  white-space: nowrap;
+}
+.nf-cur-btn:hover { color: var(--gray-700, #374151); }
+.nf-cur-btn.active {
+  background: #111;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
 /* Grid de 4 columnas */
 .nf-plans {
   display: grid;
