@@ -69,11 +69,18 @@ export function getPlan(planId) {
 
 // ── Stripe REST call (form-encoded, sin SDK) ───────────────────────────────
 async function stripeReq(env, method, path, body) {
-  if (!env.STRIPE_SECRET_KEY) {
+  // .trim() defensivo: un salto de línea o espacio al pegar la clave en el
+  // panel de variables rompe la cabecera Authorization y Stripe responde 401.
+  const secretKey = (env.STRIPE_SECRET_KEY || '').trim();
+  if (!secretKey) {
     throw new Error('STRIPE_SECRET_KEY no configurado');
   }
+  if (!secretKey.startsWith('sk_')) {
+    // pk_live / pk_test / rk_… no sirven para crear sesiones de checkout
+    throw new Error('La clave de Stripe debe ser una clave SECRETA (empieza con "sk_"), no una publicable.');
+  }
   const headers = {
-    Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+    Authorization: `Bearer ${secretKey}`,
     'Stripe-Version': '2024-06-20'
   };
   let payload;
@@ -84,6 +91,9 @@ async function stripeReq(env, method, path, body) {
   const res  = await fetch(`https://api.stripe.com/v1${path}`, { method, headers, body: payload });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error('Clave secreta de Stripe inválida o revocada (401). Genera una nueva "sk_live_…" en Stripe → API keys, pégala en Cloudflare sin espacios y vuelve a desplegar.');
+    }
     const msg = data?.error?.message || data?.error?.code || `Stripe ${res.status}`;
     throw new Error(`Stripe API: ${msg}`);
   }
