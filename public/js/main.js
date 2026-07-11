@@ -337,12 +337,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 }); // end DOMContentLoaded
 
+// Revierte los precios al valor normal (sin descuento) cuando la oferta termina
+function revertLaunchPrices() {
+  document.querySelectorAll('.nf-card').forEach(function (card) {
+    const oldEl = card.querySelector('.nf-price-old');
+    const numEl = card.querySelector('.nf-price-num');
+    if (oldEl && numEl) {
+      numEl.dataset.usd = oldEl.dataset.usd;   // el número principal pasa a ser el original
+      numEl.dataset.mxn = oldEl.dataset.mxn;
+      oldEl.style.display = 'none';
+    }
+  });
+  document.querySelectorAll('.nf-off-tag').forEach(function (t) { t.style.display = 'none'; });
+  setCurrency(_currency);   // re-render con la moneda actual
+}
+
 // ─── CONTADOR DE LANZAMIENTO ───
 function initLaunchCountdown() {
-  const sec = document.getElementById('lanzamiento');
+  const sec = document.getElementById('promoBar');
   if (!sec) return;
   const end = new Date(sec.getAttribute('data-end') || '').getTime();
-  if (isNaN(end)) return;
+  if (isNaN(end)) { return; }
 
   const elD = document.getElementById('lc-d');
   const elH = document.getElementById('lc-h');
@@ -370,6 +385,7 @@ function initLaunchCountdown() {
       if (box) box.style.display = 'none';
       if (ended) ended.hidden = false;
       if (timer) clearInterval(timer);
+      revertLaunchPrices();   // oferta terminada → precios normales
       return;
     }
     const d = Math.floor(diff / 86400); diff -= d * 86400;
@@ -405,10 +421,15 @@ function setCurrency(cur) {
   document.querySelectorAll('.nf-cur-btn').forEach(function (b) {
     b.classList.toggle('active', b.dataset.cur === _currency);
   });
-  // Actualizar cada precio mostrado
+  // Precio principal (con descuento durante el lanzamiento)
   document.querySelectorAll('.nf-price-num').forEach(function (el) {
     const v = el.dataset[_currency];
     if (v != null) el.textContent = v;
+  });
+  // Precio original tachado
+  document.querySelectorAll('.nf-price-old').forEach(function (el) {
+    const v = el.dataset[_currency];
+    if (v != null) el.textContent = '$' + v;
   });
   // Etiqueta de moneda (USD / MXN)
   document.querySelectorAll('.nf-cur-label').forEach(function (el) {

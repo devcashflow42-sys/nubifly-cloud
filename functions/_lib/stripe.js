@@ -38,7 +38,8 @@ export const PLANS = {
   basico: {
     id: 'basico',
     name: 'Básico',
-    prices: { usd: 25000, mxn: 499900 },   // $250 USD  ·  $4,999 MXN
+    prices:       { usd: 25000, mxn: 499900 },   // $250 USD  ·  $4,999 MXN
+    launchPrices: { usd: 3800,  mxn: 74900  },   // 85% OFF → $38 USD · $749 MXN
     limits: {
       maxApiKeys:      10,
       monthlyRequests: 100_000,
@@ -49,7 +50,8 @@ export const PLANS = {
   pro: {
     id: 'pro',
     name: 'Pro',
-    prices: { usd: 45000, mxn: 899900 },   // $450 USD  ·  $8,999 MXN
+    prices:       { usd: 45000, mxn: 899900  },  // $450 USD  ·  $8,999 MXN
+    launchPrices: { usd: 6800,  mxn: 134900  },  // 85% OFF → $68 USD · $1,349 MXN
     limits: {
       maxApiKeys:      50,
       monthlyRequests: 1_000_000,
@@ -60,7 +62,8 @@ export const PLANS = {
   enterprise: {
     id: 'enterprise',
     name: 'Enterprise',
-    prices: { usd: 95000, mxn: 1899900 },  // $950 USD  ·  $18,999 MXN
+    prices:       { usd: 95000, mxn: 1899900 },  // $950 USD  ·  $18,999 MXN
+    launchPrices: { usd: 14300, mxn: 284900  },  // 85% OFF → $143 USD · $2,849 MXN
     limits: {
       maxApiKeys:      500,
       monthlyRequests: 999_999_999,
@@ -70,16 +73,32 @@ export const PLANS = {
   }
 };
 
+// ── Oferta de lanzamiento (85% OFF) ───────────────────────────────────────
+// Mientras Date.now() < endsAt se cobra launchPrices; después, el precio normal.
+// ⚠️ Debe coincidir con data-end del tablero en index.html.
+export const LAUNCH = {
+  percentOff: 85,
+  endsAt: Date.parse('2026-08-25T23:59:59')   // fecha/hora local del navegador del contador
+};
+export function launchActive() {
+  return Number.isFinite(LAUNCH.endsAt) && Date.now() < LAUNCH.endsAt;
+}
+
 // Normaliza la moneda a una soportada (por defecto usd).
 export function normalizeCurrency(currency) {
   const c = String(currency || '').trim().toLowerCase();
   return SUPPORTED_CURRENCIES.includes(c) ? c : 'usd';
 }
 
-// Precio de un plan en la moneda pedida, en centavos. Cae a usd si falta.
-export function planPrice(plan, currency) {
+// Precio de un plan en la moneda pedida, en centavos.
+// useLaunch=true devuelve el precio de lanzamiento (85% OFF) si el plan lo tiene.
+export function planPrice(plan, currency, useLaunch = false) {
   if (!plan) return 0;
   const c = normalizeCurrency(currency);
+  if (useLaunch && plan.launchPrices) {
+    const lp = plan.launchPrices[c] ?? plan.launchPrices.usd;
+    if (lp != null) return lp;
+  }
   if (plan.prices) return plan.prices[c] ?? plan.prices.usd ?? 0;
   return plan.priceCents || 0; // compatibilidad con formato antiguo
 }
@@ -149,11 +168,13 @@ export async function createOneTimeCheckout(env, { uid = '', email = '', plan, c
   const cfg = getPlan(plan);
   if (!cfg || cfg.id === 'gratis') throw new Error('Plan inválido para checkout.');
 
-  const cur    = normalizeCurrency(currency);
-  const amount = planPrice(cfg, cur);
+  const cur      = normalizeCurrency(currency);
+  const onLaunch = launchActive();
+  const amount   = planPrice(cfg, cur, onLaunch);
   if (!amount || amount <= 0) throw new Error(`El plan ${cfg.id} no tiene precio en ${cur.toUpperCase()}.`);
 
   const publicUrl = (env.PUBLIC_URL || '').replace(/\/$/, '') || 'https://nubifly.com';
+  const prodName  = onLaunch ? `Nubifly ${cfg.name} — Lanzamiento (${LAUNCH.percentOff}% OFF)` : `Nubifly ${cfg.name}`;
 
   const params = {
     mode: 'payment',
@@ -164,14 +185,14 @@ export async function createOneTimeCheckout(env, { uid = '', email = '', plan, c
         currency: cur,
         unit_amount: amount,
         product_data: {
-          name: `Nubifly ${cfg.name}`,
+          name: prodName,
           description: `Upgrade permanente al plan ${cfg.name}. Sin renovaciones.`
         }
       }
     }],
-    metadata: { uid: uid || '', plan: cfg.id, currency: cur },
+    metadata: { uid: uid || '', plan: cfg.id, currency: cur, launch: onLaunch ? '1' : '0' },
     payment_intent_data: {
-      metadata: { uid: uid || '', plan: cfg.id, currency: cur }
+      metadata: { uid: uid || '', plan: cfg.id, currency: cur, launch: onLaunch ? '1' : '0' }
     },
     success_url: `${publicUrl}/pago-completado?plan=${cfg.id}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url:  `${publicUrl}/#precios`

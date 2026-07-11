@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/main.css?v=20260711e">
+  <link rel="stylesheet" href="css/main.css?v=20260711f">
 </head>
 <body>
 
@@ -668,86 +668,29 @@
 </div>
 
 
-<!-- ─── LANZAMIENTO OFICIAL ─── -->
-<section class="launch section" id="lanzamiento" data-end="2026-08-25T23:59:59">
-  <div class="sec-wrap">
-    <div class="launch-card reveal">
-      <span class="launch-orb launch-orb--a" aria-hidden="true"></span>
-      <span class="launch-orb launch-orb--b" aria-hidden="true"></span>
-
-      <div class="launch-badge">
-        <span class="launch-badge-fire">🔥</span> 85% OFF
-        <span class="launch-badge-sub">Oferta de lanzamiento</span>
-      </div>
-
-      <div class="launch-eyebrow">🚀 Lanzamiento oficial</div>
-      <h2 class="launch-title">¡Aprovecha el <span class="launch-hl">85% de descuento</span>!</h2>
-      <p class="launch-sub">Forma parte de los primeros usuarios de Nubifly y obtén acceso a todos nuestros servicios con un precio exclusivo de lanzamiento.</p>
-      <p class="launch-fine">Esta promoción estará disponible únicamente durante los primeros <b>45 días</b> desde el lanzamiento oficial o hasta agotar los cupos. Después, los planes volverán automáticamente a su precio normal.</p>
-
-      <!-- Contador regresivo -->
-      <div class="launch-count" id="launchCount" role="timer" aria-label="Tiempo restante de la oferta">
-        <div class="lc-tile"><span class="lc-num" id="lc-d">00</span><span class="lc-lbl">Días</span></div>
-        <span class="lc-sep">:</span>
-        <div class="lc-tile"><span class="lc-num" id="lc-h">00</span><span class="lc-lbl">Horas</span></div>
-        <span class="lc-sep">:</span>
-        <div class="lc-tile"><span class="lc-num" id="lc-m">00</span><span class="lc-lbl">Minutos</span></div>
-        <span class="lc-sep">:</span>
-        <div class="lc-tile"><span class="lc-num" id="lc-s">00</span><span class="lc-lbl">Segundos</span></div>
-      </div>
-      <p class="launch-ended" id="launchEnded" hidden>⏳ La promoción de lanzamiento ha finalizado. Los precios normales ya están activos.</p>
-
-      <!-- Precios: original tachado + descuento en verde -->
-      <div class="launch-prices">
-        <div class="lp-item">
-          <span class="lp-name">Básico</span>
-          <span class="lp-old">$4,999</span>
-          <span class="lp-new">$749 <i>MXN</i></span>
-        </div>
-        <div class="lp-item lp-item--pop">
-          <span class="lp-name">Pro</span>
-          <span class="lp-old">$8,999</span>
-          <span class="lp-new">$1,349 <i>MXN</i></span>
-        </div>
-        <div class="lp-item">
-          <span class="lp-name">Enterprise</span>
-          <span class="lp-old">$18,999</span>
-          <span class="lp-new">$2,849 <i>MXN</i></span>
-        </div>
-      </div>
-
-      <!-- Urgencia -->
-      <div class="launch-urgency">
-        <span class="lu-dots"><i></i><i></i><i></i></span>
-        Más de <b>1,000 usuarios</b> ya están aprovechando esta promoción.
-      </div>
-
-      <!-- CTAs -->
-      <div class="launch-cta">
-        <a href="/register" class="launch-btn launch-btn--primary">
-          Comenzar ahora
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
-        <a href="#precios" class="launch-btn launch-btn--ghost">Ver planes</a>
-      </div>
-
-      <!-- Garantías -->
-      <ul class="launch-checks">
-        <li><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sin costos ocultos</li>
-        <li><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cancela cuando quieras</li>
-        <li><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Oferta válida solo los primeros 45 días</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
 <!-- ─── PRECIOS ─── -->
 <div class="pricing-bg section" id="precios">
   <div class="sec-wrap">
     <div class="reveal" style="text-align:center">
       <div class="sec-label" style="justify-content:center">Planes de precios</div>
       <h2 class="sec-h" style="text-align:center">Elige el plan <em>perfecto para ti</em></h2>
-      <p class="sec-p" style="max-width:520px;margin:0 auto 28px">Precios transparentes, sin cargos ocultos. Cambia o cancela cuando quieras.</p>
+      <p class="sec-p" style="max-width:520px;margin:0 auto 24px">Precios transparentes, sin cargos ocultos. Cambia o cancela cuando quieras.</p>
+
+      <!-- Tablero de lanzamiento 85% OFF + contador -->
+      <div class="promo-board" id="promoBar" data-end="2026-08-25T23:59:59">
+        <div class="promo-badge"><span class="promo-fire">🔥</span> 85% OFF <i>· Oferta de lanzamiento</i></div>
+        <div class="promo-count" id="launchCount" role="timer" aria-label="Tiempo restante de la oferta">
+          <div class="lc-tile"><span class="lc-num" id="lc-d">00</span><span class="lc-lbl">Días</span></div>
+          <span class="lc-sep">:</span>
+          <div class="lc-tile"><span class="lc-num" id="lc-h">00</span><span class="lc-lbl">Horas</span></div>
+          <span class="lc-sep">:</span>
+          <div class="lc-tile"><span class="lc-num" id="lc-m">00</span><span class="lc-lbl">Minutos</span></div>
+          <span class="lc-sep">:</span>
+          <div class="lc-tile"><span class="lc-num" id="lc-s">00</span><span class="lc-lbl">Segundos</span></div>
+        </div>
+        <p class="promo-urgency">Más de <b>1,000 usuarios</b> ya están aprovechando esta promoción.</p>
+        <p class="promo-ended" id="launchEnded" hidden>⏳ La promoción finalizó. Los precios normales ya están activos.</p>
+      </div>
 
       <!-- Selector de moneda USD / MXN -->
       <div class="nf-currency" role="group" aria-label="Moneda">
@@ -780,8 +723,11 @@
       <div class="nf-card" data-plan="basico" onclick="selectPlan(this)">
         <div class="nf-card-inner">
           <div class="nf-tag nf-tag--gray">Básico</div>
-          <div class="nf-price"><sup>$</sup><span class="nf-price-num" data-usd="250" data-mxn="4,999">250</span></div>
-          <div class="nf-period"><span class="nf-cur-label">USD</span> · por 5 meses</div>
+          <div class="nf-price">
+            <span class="nf-price-old" data-usd="250" data-mxn="4,999">$250</span>
+            <span class="nf-price-now"><sup>$</sup><span class="nf-price-num" data-usd="38" data-mxn="749">38</span></span>
+          </div>
+          <div class="nf-period"><span class="nf-off-tag">−85%</span> <span class="nf-cur-label">USD</span> · por 5 meses</div>
           <div class="nf-desc">Para equipos pequeños que necesitan más espacio y mayor capacidad de API.</div>
           <div class="nf-divider"></div>
           <div class="nf-includes">Incluye:</div>
@@ -799,8 +745,11 @@
         <div class="nf-badge">⚡ Popular</div>
         <div class="nf-card-inner">
           <div class="nf-tag nf-tag--dark">Pro</div>
-          <div class="nf-price"><sup>$</sup><span class="nf-price-num" data-usd="450" data-mxn="8,999">450</span></div>
-          <div class="nf-period"><span class="nf-cur-label">USD</span> · por 6 meses</div>
+          <div class="nf-price">
+            <span class="nf-price-old" data-usd="450" data-mxn="8,999">$450</span>
+            <span class="nf-price-now"><sup>$</sup><span class="nf-price-num" data-usd="68" data-mxn="1,349">68</span></span>
+          </div>
+          <div class="nf-period"><span class="nf-off-tag">−85%</span> <span class="nf-cur-label">USD</span> · por 6 meses</div>
           <div class="nf-desc">La opción preferida para empresas y proyectos en crecimiento acelerado.</div>
           <div class="nf-divider"></div>
           <div class="nf-includes">Incluye:</div>
@@ -819,8 +768,11 @@
         <div class="nf-badge nf-badge--gold">★ Premium</div>
         <div class="nf-card-inner">
           <div class="nf-tag nf-tag--gray">Enterprise</div>
-          <div class="nf-price"><sup>$</sup><span class="nf-price-num" data-usd="950" data-mxn="18,999">950</span></div>
-          <div class="nf-period"><span class="nf-cur-label">USD</span> · por 8 meses</div>
+          <div class="nf-price">
+            <span class="nf-price-old" data-usd="950" data-mxn="18,999">$950</span>
+            <span class="nf-price-now"><sup>$</sup><span class="nf-price-num" data-usd="143" data-mxn="2,849">143</span></span>
+          </div>
+          <div class="nf-period"><span class="nf-off-tag">−85%</span> <span class="nf-cur-label">USD</span> · por 8 meses</div>
           <div class="nf-desc">Máxima potencia, almacenamiento y SLA garantizado para grandes organizaciones.</div>
           <div class="nf-divider"></div>
           <div class="nf-includes">Incluye:</div>
@@ -1035,6 +987,6 @@
 </footer>
 
 <!-- Scripts -->
-<script src="js/main.js?v=20260711e"></script>
+<script src="js/main.js?v=20260711f"></script>
 </body>
 </html>
