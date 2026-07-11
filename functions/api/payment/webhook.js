@@ -62,7 +62,7 @@ export async function onRequestPost(context) {
   const plan      = getPlan(planId);
   const paymentOk = session.payment_status === 'paid';
 
-  if (!uid || !plan || plan.id === 'free' || !paymentOk) {
+  if (!uid || !plan || plan.id === 'gratis' || !paymentOk) {
     console.warn('[stripe/webhook] evento inválido', { uid, planId, paymentOk });
     await fbUpdate({ [dedupPath]: { ts: Date.now(), ignored: true } }, tok, db).catch(() => {});
     return txt('missing data', 200);

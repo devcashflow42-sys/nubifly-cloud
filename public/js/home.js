@@ -2097,6 +2097,20 @@ async function init() {
     history.replaceState({}, '', window.location.pathname);
   }
 
+  // ── Retorno de Stripe Checkout ────────────────────────────────────────
+  const checkoutFlag = urlParams.get('checkout');
+  const paidPlan     = urlParams.get('plan');
+  if (checkoutFlag === 'success') {
+    setTimeout(() => showToast(
+      `¡Pago recibido! Tu plan ${paidPlan ? paidPlan.charAt(0).toUpperCase() + paidPlan.slice(1) : ''} ya está activo.`,
+      'success'
+    ), 300);
+    history.replaceState({}, '', window.location.pathname);
+  } else if (checkoutFlag === 'cancel') {
+    setTimeout(() => showToast('Pago cancelado. Puedes intentarlo de nuevo cuando quieras.', 'info'), 300);
+    history.replaceState({}, '', window.location.pathname);
+  }
+
   if (!Auth.isLoggedIn()) {
     window.location.href = '/login';
     return;

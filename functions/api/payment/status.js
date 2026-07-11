@@ -20,8 +20,8 @@ export async function onRequestGet(context) {
   try { control = await fbGet(`controlUsers/${user.uid}`, tok, db); }
   catch { return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_ERROR'), 503); }
 
-  const currentPlanId = control?.plan?.type || 'free';
-  const currentPlan   = getPlan(currentPlanId) || PLANS.free;
+  const currentPlanId = control?.plan?.type || 'gratis';
+  const currentPlan   = getPlan(currentPlanId) || PLANS.gratis;
 
   return jsonRes(ok({
     plan: {

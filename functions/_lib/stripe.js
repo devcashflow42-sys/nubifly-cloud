@@ -15,35 +15,50 @@
 
 // ── Catálogo de planes ─────────────────────────────────────────────────────
 // Precios en centavos (USD). Ajusta valores/beneficios cuando quieras.
+// IDs deben coincidir con data-plan="..." en index.html
 export const PLANS = {
-  free: {
-    id: 'free',
+  gratis: {
+    id: 'gratis',
     name: 'Gratis',
     priceCents: 0,
     limits: {
       maxApiKeys:      2,
-      monthlyRequests: 1000,
-      maxFileSizeMB:   50
+      monthlyRequests: 1_000,
+      maxFileSizeMB:   50,
+      storageGB:       650
+    }
+  },
+  basico: {
+    id: 'basico',
+    name: 'Básico',
+    priceCents: 25000,    // $250.00 USD
+    limits: {
+      maxApiKeys:      10,
+      monthlyRequests: 100_000,
+      maxFileSizeMB:   500,
+      storageGB:       1024        // 1 TB
     }
   },
   pro: {
     id: 'pro',
     name: 'Pro',
-    priceCents: 1900,     // $19.00 USD
-    limits: {
-      maxApiKeys:      10,
-      monthlyRequests: 50_000,
-      maxFileSizeMB:   500
-    }
-  },
-  business: {
-    id: 'business',
-    name: 'Business',
-    priceCents: 4900,     // $49.00 USD
+    priceCents: 45000,    // $450.00 USD
     limits: {
       maxApiKeys:      50,
       monthlyRequests: 1_000_000,
-      maxFileSizeMB:   2048
+      maxFileSizeMB:   2048,       // 2 GB
+      storageGB:       2048        // 2 TB
+    }
+  },
+  enterprise: {
+    id: 'enterprise',
+    name: 'Enterprise',
+    priceCents: 95000,    // $950.00 USD
+    limits: {
+      maxApiKeys:      500,
+      monthlyRequests: 999_999_999,
+      maxFileSizeMB:   10240,      // 10 GB
+      storageGB:       3072        // 3 TB
     }
   }
 };

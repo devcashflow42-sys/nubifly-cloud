@@ -28,8 +28,8 @@ export async function onRequestPost(context) {
 
   const planId = String(body?.plan || '').trim().toLowerCase();
   const cfg    = getPlan(planId);
-  if (!cfg || cfg.id === 'free') {
-    return jsonRes(fail('Plan inválido. Usa "pro" o "business".', 'INVALID_PLAN'), 400);
+  if (!cfg || cfg.id === 'gratis') {
+    return jsonRes(fail('Plan inválido. Usa "basico", "pro" o "enterprise".', 'INVALID_PLAN'), 400);
   }
 
   // Si el usuario ya está en un plan pago del mismo o mayor nivel, no cobrar de nuevo
@@ -37,8 +37,8 @@ export async function onRequestPost(context) {
   try { control = await fbGet(`controlUsers/${user.uid}`, tok, db); }
   catch { return jsonRes(fail('Error de servicio. Inténtalo de nuevo.', 'DB_ERROR'), 503); }
 
-  const currentPlan = control?.plan?.type || 'free';
-  const rank = { free: 0, pro: 1, business: 2 };
+  const currentPlan = control?.plan?.type || 'gratis';
+  const rank = { gratis: 0, basico: 1, pro: 2, enterprise: 3 };
   if ((rank[currentPlan] || 0) >= (rank[cfg.id] || 0)) {
     return jsonRes(fail(`Ya tienes el plan ${currentPlan}.`, 'PLAN_ALREADY_ACTIVE'), 409);
   }

@@ -347,14 +347,92 @@ function selectPlan(card) {
   card.classList.add('nf-selected');
 }
 
-// Tap on the BUTTON — toggles
-function togglePlan(card) {
-  if (card.classList.contains('nf-selected')) {
-    card.classList.remove('nf-selected');
-  } else {
-    selectPlan(card);
+// Tap on the BUTTON — inicia el checkout / registro según el plan
+async function togglePlan(card) {
+  const planId = (card.dataset.plan || '').trim().toLowerCase();
+  if (!planId) return;
+
+  // Plan gratis → registro normal (no cobrar)
+  if (planId === 'gratis') {
+    window.location.href = '/register';
+    return;
+  }
+
+  const btn = card.querySelector('.nf-btn');
+  const origHTML = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Procesando…';
+  }
+
+  try {
+    const token = localStorage.getItem('nf_token');
+
+    // Sin sesión → mandar a login y volver a /#precios
+    if (!token) {
+      sessionStorage.setItem('nf_pending_plan', planId);
+      window.location.href = '/login?next=' + encodeURIComponent('/#precios');
+      return;
+    }
+
+    // Verificar que el JWT no esté expirado
+    try {
+      const parts   = token.split('.');
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        localStorage.removeItem('nf_token');
+        sessionStorage.setItem('nf_pending_plan', planId);
+        window.location.href = '/login?next=' + encodeURIComponent('/#precios');
+        return;
+      }
+    } catch { /* token inválido — dejar que el servidor responda 401 */ }
+
+    // Llamar al backend para crear la Checkout Session
+    const res = await fetch('/api/payment/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ plan: planId })
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 401) {
+      localStorage.removeItem('nf_token');
+      sessionStorage.setItem('nf_pending_plan', planId);
+      window.location.href = '/login?next=' + encodeURIComponent('/#precios');
+      return;
+    }
+
+    if (!res.ok || !data?.data?.url) {
+      const msg = data?.message || 'No se pudo iniciar el pago. Inténtalo de nuevo.';
+      alert(msg);
+      return;
+    }
+
+    // Redirigir a Stripe Checkout
+    window.location.href = data.data.url;
+
+  } catch (e) {
+    console.warn('[togglePlan]', e.message);
+    alert('Error de conexión. Inténtalo de nuevo.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHTML;
+    }
   }
 }
+
+// Si venimos de /login con un plan pendiente, dispararlo al cargar
+window.addEventListener('DOMContentLoaded', function () {
+  const pending = sessionStorage.getItem('nf_pending_plan');
+  if (!pending) return;
+  sessionStorage.removeItem('nf_pending_plan');
+  const card = document.querySelector(`.nf-card[data-plan="${pending}"]`);
+  if (card) setTimeout(() => togglePlan(card), 350);
+});
 
 // Click anywhere OUTSIDE the cards → deselect
 document.addEventListener('click', function (e) {

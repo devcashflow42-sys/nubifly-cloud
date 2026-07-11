@@ -446,7 +446,7 @@ form.addEventListener('submit', async function (e) {
       await delay(1100);
 
       sessionStorage.removeItem('_nf_home_redir');
-      window.location.replace('/home');
+      window.location.replace(resolvePostLoginTarget());
 
     } catch (err) {
       hideCreation();
@@ -467,7 +467,7 @@ form.addEventListener('submit', async function (e) {
       });
 
       sessionStorage.removeItem('_nf_home_redir');
-      window.location.replace('/home');
+      window.location.replace(resolvePostLoginTarget());
 
     } catch (err) {
       btnText.textContent = origText;
@@ -476,6 +476,20 @@ form.addEventListener('submit', async function (e) {
     }
   }
 });
+
+/* ──────────────────────────────────────────────
+   POST-LOGIN REDIRECT
+   Si vino con ?next=/#precios (checkout pendiente) → volver ahí.
+   Si no → /home
+────────────────────────────────────────────── */
+function resolvePostLoginTarget() {
+  try {
+    var q = new URLSearchParams(window.location.search);
+    var next = q.get('next');
+    if (next && next.startsWith('/')) return next;
+  } catch { /* ignore */ }
+  return '/home';
+}
 
 /* ──────────────────────────────────────────────
    GOOGLE OAUTH
@@ -532,7 +546,7 @@ document.getElementById('guestBtn').addEventListener('click', async function () 
     } catch { /* localStorage bloqueado en modo privado */ }
 
     sessionStorage.removeItem('_nf_home_redir');
-    window.location.replace('/home');
+    window.location.replace(resolvePostLoginTarget());
 
   } catch (err) {
     btn.disabled  = false;
