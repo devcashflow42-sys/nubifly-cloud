@@ -44,6 +44,10 @@ export async function onRequestPost(context) {
     return jsonRes(fail('Username: solo letras, números y _ (3–20 caracteres).'), 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return jsonRes(fail('Formato de email inválido.'), 400);
+  // Rechazar caracteres ilegales en rutas de Firebase RTDB (/, ., #, $, [, ])
+  // para que el email no inyecte rutas anidadas en emails/{key}.
+  if (/[/#$\[\]]/.test(email))
+    return jsonRes(fail('El email contiene caracteres no permitidos.'), 400);
   if (password.length < 8)
     return jsonRes(fail('La contraseña debe tener al menos 8 caracteres.'), 400);
   if (name.length < 2 || name.length > 50)

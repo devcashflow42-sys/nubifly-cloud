@@ -364,6 +364,12 @@ function resetFields() {
   password.value      = '';
   confirm.value       = '';
 
+  // Liberar el bloqueo del email del flujo de pago para no dejarlo vacío + readonly
+  emailInput.removeAttribute('readonly');
+  emailInput.classList.remove('locked');
+  var _pn = document.querySelector('.paid-note');
+  if (_pn) _pn.remove();
+
   usernameInput.classList.remove('error');
   emailInput.classList.remove('error');
   password.classList.remove('error');
@@ -632,11 +638,15 @@ document.getElementById('backBtn').addEventListener('click', function () {
   var sess   = (q.get('session_id') || q.get('checkout_session') || '').trim();
   if (!email && !sess) return;
 
-  _paidCheckout = { sessionId: sess, plan: plan, email: email };
+  var pretty = { basico: 'Básico', pro: 'Pro', enterprise: 'Enterprise' };
+  // Normalizar plan: solo aceptar valores conocidos (evita inyección vía URL)
+  var planKey = Object.prototype.hasOwnProperty.call(pretty, plan) ? plan : '';
 
-  // Forzar modo registro solo si viene un pago nuevo (plan o session).
+  _paidCheckout = { sessionId: sess, plan: planKey, email: email };
+
+  // Forzar modo registro solo si viene un pago nuevo (plan conocido o session).
   // Si solo llega el email (cuenta ya existente) → dejar modo login.
-  if (sess || plan) isSignUp = true;
+  if (sess || planKey) isSignUp = true;
 
   if (email && emailInput) {
     emailInput.value = email;
@@ -644,15 +654,15 @@ document.getElementById('backBtn').addEventListener('click', function () {
     emailInput.classList.add('locked');
   }
 
-  // Nota visible: este correo tiene un plan pagado
+  // Nota visible: este correo tiene un plan pagado.
+  // Solo se muestra para planes conocidos y se construye con textContent
+  // (sin innerHTML de datos externos) para evitar XSS por el parámetro plan.
   var host = emailInput ? emailInput.closest('.field') || emailInput.parentElement : null;
-  if (host && plan) {
-    var pretty = { basico: 'Básico', pro: 'Pro', enterprise: 'Enterprise' };
+  if (host && planKey) {
     var note = document.createElement('div');
     note.className = 'paid-note';
-    note.style.cssText = 'margin-top:8px;font-size:12.5px;color:#16A34A;font-weight:600;display:flex;align-items:center;gap:6px';
-    note.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-      + 'Plan ' + (pretty[plan] || plan) + ' pagado — se activará al crear tu cuenta con este correo.';
+    note.style.cssText = 'margin-top:8px;font-size:12.5px;color:#16A34A;font-weight:600';
+    note.textContent = '✓ Plan ' + pretty[planKey] + ' pagado — se activará al crear tu cuenta con este correo.';
     host.appendChild(note);
   }
 }());
@@ -662,11 +672,13 @@ if (window.location.pathname.startsWith('/register')) {
   isSignUp = true;
 }
 
-// Sincronizar historial del navegador con modo actual
+// Sincronizar historial del navegador con modo actual.
+// Preservar la query (?email&plan&session_id) para que un reload no pierda
+// el contexto del pago.
 history.replaceState(
   { mode: isSignUp ? 'register' : 'login' },
   '',
-  window.location.pathname
+  window.location.pathname + window.location.search
 );
 
 // Botón atrás/adelante del navegador

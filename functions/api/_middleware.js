@@ -77,9 +77,14 @@ const AUTH_PREFIXES = [
 // ── Rutas de administración (rate limit moderado: 30 req/min) ─────────────────
 const ADMIN_PREFIXES = ['/api/admin'];
 
+// ── Endpoints de pago públicos (sin login/firma) — limitar por IP ─────────────
+// El webhook queda fuera: lo llama Stripe y puede llegar en ráfagas.
+const PAYMENT_PREFIXES = ['/api/payment/checkout', '/api/payment/session'];
+
 function getRLType(pathname) {
-  if (AUTH_PREFIXES.some(p  => pathname.startsWith(p))) return 'auth';
-  if (ADMIN_PREFIXES.some(p => pathname.startsWith(p))) return 'admin';
+  if (AUTH_PREFIXES.some(p    => pathname.startsWith(p))) return 'auth';
+  if (ADMIN_PREFIXES.some(p   => pathname.startsWith(p))) return 'admin';
+  if (PAYMENT_PREFIXES.some(p => pathname.startsWith(p))) return 'admin'; // cupo moderado
   return null; // sin Firebase RL para endpoints de usuario (evita latencia)
 }
 
