@@ -385,11 +385,27 @@ async function togglePlan(card) {
       headers,
       body: JSON.stringify({ plan: planId })
     });
-    const data = await res.json().catch(() => ({}));
 
-    if (!res.ok || !data?.data?.url) {
-      const msg = data?.message || 'No se pudo iniciar el pago. Inténtalo de nuevo.';
-      alert(msg);
+    // Leer como texto primero para poder diagnosticar respuestas no-JSON
+    // (p. ej. si la ruta cae al fallback SPA y devuelve el index.html).
+    var rawText = '';
+    var data = null;
+    try { rawText = await res.text(); data = JSON.parse(rawText); } catch (_) { /* no era JSON */ }
+
+    if (!res.ok || !data || !data.data || !data.data.url) {
+      var looksHtml = /^\s*<(?:!doctype|html)/i.test(rawText);
+      var detail;
+      if (data && data.message) {
+        detail = data.message;                                   // error real del backend
+      } else if (looksHtml) {
+        detail = 'El endpoint de pago no está desplegado (HTTP ' + res.status
+               + '). Vuelve a desplegar el sitio en Cloudflare Pages.';
+      } else {
+        detail = 'El servidor respondió HTTP ' + res.status
+               + (rawText ? (': ' + rawText.slice(0, 140)) : ' (respuesta vacía).');
+      }
+      console.warn('[togglePlan] checkout error', res.status, rawText.slice(0, 300));
+      alert('No se pudo iniciar el pago.\n\n' + detail);
       return;
     }
 
@@ -398,7 +414,7 @@ async function togglePlan(card) {
 
   } catch (e) {
     console.warn('[togglePlan]', e.message);
-    alert('Error de conexión. Inténtalo de nuevo.');
+    alert('Error de conexión: ' + (e.message || 'sin detalle') + '. Inténtalo de nuevo.');
   } finally {
     if (btn) {
       btn.disabled = false;
