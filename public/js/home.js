@@ -1427,6 +1427,76 @@ function _extractPicture(meta, jtags) {
   return null;
 }
 
+// ── Lector de metadatos MP4 / M4A en JS puro (sin dependencias) ──────────────
+// Recorre los átomos moov→udta→meta→ilst y extrae etiquetas + carátula (covr).
+async function parseMp4Tags(file) {
+  let buf;
+  try { buf = new Uint8Array(await file.arrayBuffer()); }
+  catch { return null; }
+  if (buf.length < 16) return null;
+  const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  const typeAt = (o) => String.fromCharCode(buf[o], buf[o+1], buf[o+2], buf[o+3]);
+
+  // Lista de cajas dentro de [start,end): { type, start(content), end }
+  function boxes(start, end) {
+    const out = [];
+    let o = start;
+    while (o + 8 <= end) {
+      let size = dv.getUint32(o);
+      const type = typeAt(o + 4);
+      let hdr = 8;
+      if (size === 1) {
+        try { size = Number(dv.getBigUint64(o + 8)); } catch { break; }
+        hdr = 16;
+      } else if (size === 0) {
+        size = end - o;
+      }
+      if (size < hdr || o + size > end) break;
+      out.push({ type, start: o + hdr, end: o + size });
+      o += size;
+    }
+    return out;
+  }
+  const child = (list, t) => list.find(b => b.type === t);
+
+  const moov = child(boxes(0, buf.length), 'moov'); if (!moov) return null;
+  const udta = child(boxes(moov.start, moov.end), 'udta'); if (!udta) return null;
+  const meta = child(boxes(udta.start, udta.end), 'meta'); if (!meta) return null;
+  // 'meta' es full box: saltar 4 bytes (versión + flags) antes de los hijos
+  const ilst = child(boxes(meta.start + 4, meta.end), 'ilst'); if (!ilst) return null;
+
+  const MAP = {
+    '©nam': 'title', '©ART': 'artist', 'aART': 'albumartist',
+    '©alb': 'album', '©day': 'year',   '©gen': 'genre',
+    '©wrt': 'composer', 'cprt': 'copyright', '©cmt': 'comment',
+    '©lyr': 'lyrics'
+  };
+  const out = {};
+  let picture = null;
+
+  for (const it of boxes(ilst.start, ilst.end)) {
+    const data = child(boxes(it.start, it.end), 'data');
+    if (!data) continue;
+    const typeCode = dv.getUint32(data.start) & 0xffffff; // 1=UTF8, 13=JPEG, 14=PNG, 0=implícito
+    const valStart = data.start + 8;                       // 4 versión/flags + 4 reservado
+    const valEnd   = data.end;
+    if (valEnd <= valStart) continue;
+
+    if (it.type === 'covr') {
+      picture = { format: typeCode === 14 ? 'image/png' : 'image/jpeg', data: buf.slice(valStart, valEnd) };
+    } else if (it.type === 'trkn') {
+      if (valEnd - valStart >= 4) out.track = String(dv.getUint16(valStart + 2));
+    } else if (MAP[it.type]) {
+      try {
+        const text = new TextDecoder('utf-8').decode(buf.subarray(valStart, valEnd)).replace(/\0+$/, '').trim();
+        if (text) out[MAP[it.type]] = text;
+      } catch { /* ignorar */ }
+    }
+  }
+  if (picture) out.picture = picture;
+  return out;
+}
+
 function _stripExt(name) { return String(name || '').replace(/\.[^.]+$/, ''); }
 function _fmtDuration(sec) {
   sec = Math.round(Number(sec) || 0);
@@ -1457,26 +1527,31 @@ function _audioDurationFallback(file) {
   });
 }
 
-// Extrae metadatos del audio (2 fuentes) y rellena el formulario automáticamente
+// Extrae metadatos del audio y rellena el formulario automáticamente
 async function autofillAudioMeta(file) {
   if (!file) return;
   renderAudioPanel({ loading: true, file });
 
-  // Lanzar ambas fuentes en paralelo:
-  //  • jsmediatags → etiquetas + carátula (muy fiable, incl. M4A/MP4)
-  //  • music-metadata → datos técnicos (bitrate, kHz, canales)
-  const [jtags, meta] = await Promise.all([
-    readJsMediaTags(file).catch(() => null),
-    (async () => {
-      try {
-        const mm = await loadMusicMetadata();
-        if (mm && mm.parseBlob) return await mm.parseBlob(file, { duration: true });
-      } catch (e) { console.warn('[music-metadata] parse:', e && e.message); }
-      return null;
-    })()
-  ]);
+  const ext   = _fileExt(file);
+  const isMp4 = ['m4a','mp4','m4b','aac','m4v'].includes(ext) || /mp4|m4a|aac|x-m4a/i.test(file.type || '');
 
-  await applyAudioMeta(file, meta, jtags);
+  // Etiquetas + carátula:
+  //  1) Para M4A/MP4 → lector propio de átomos MP4 (JS puro, sin depender de nada)
+  //  2) Si no → jsmediatags (MP3/otros)
+  let tags = null;
+  if (isMp4) { try { tags = await parseMp4Tags(file); } catch (e) { console.warn('[mp4parse]', e && e.message); } }
+  if (!tags || (!tags.title && !tags.artist && !tags.picture)) {
+    try { const jt = await readJsMediaTags(file); if (jt) tags = { ...(jt || {}), ...(tags || {}) }; } catch {}
+  }
+
+  // Datos técnicos (bitrate, kHz, canales) con music-metadata (best-effort)
+  let meta = null;
+  try {
+    const mm = await loadMusicMetadata();
+    if (mm && mm.parseBlob) meta = await mm.parseBlob(file, { duration: true });
+  } catch (e) { console.warn('[music-metadata] parse:', e && e.message); }
+
+  await applyAudioMeta(file, meta, tags);
 }
 
 async function applyAudioMeta(file, meta, jtags) {
@@ -1492,6 +1567,7 @@ async function applyAudioMeta(file, meta, jtags) {
     return '';
   };
   const digits = (v) => String(v || '').replace(/\D+/g, '');
+  const yearOf = (v) => (String(v || '').match(/\d{4}/) || [''])[0];
 
   const title  = pick(common.title, jt.title) || _stripExt(file.name);
   const artist = pick(common.artist, common.albumartist, jt.artist);
@@ -1530,8 +1606,8 @@ async function applyAudioMeta(file, meta, jtags) {
     title, artist,
     album:      pick(common.album, jt.album),
     genre:      pick(common.genre, jt.genre),
-    year:       (common.year ? String(common.year) : '') || digits(jt.year),
-    track:      (common.track && common.track.no) ? String(common.track.no) : digits((jt.track || '').split('/')[0]),
+    year:       (common.year ? String(common.year) : '') || yearOf(jt.year),
+    track:      (common.track && common.track.no) ? String(common.track.no) : digits(String(jt.track || '').split('/')[0]),
     composer:   pick(common.composer, jt.composer),
     copyright:  pick(common.copyright, jt.copyright),
     comment:    pick(common.comment, jt.comment),
