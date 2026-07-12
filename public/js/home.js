@@ -582,10 +582,11 @@ function fileRowHTML(f) {
   const authorLine = f.author
     ? `<div class="pub-author">${escapeHtml(f.author)}</div>` : '';
 
+  const fid = escapeHtml(f.id || '');
   return `
-    <div class="pub-row" id="frow-${escapeHtml(f.id || '')}">
-      <div class="pub-thumb">${thumb}${playOverlay}</div>
-      <div class="pub-info">
+    <div class="pub-row" id="frow-${fid}">
+      <div class="pub-thumb" onclick="openPubDetail('${fid}')" style="cursor:pointer">${thumb}${playOverlay}</div>
+      <div class="pub-info" onclick="openPubDetail('${fid}')" style="cursor:pointer">
         <div class="pub-title">${escapeHtml(f.title || f.fileName || f.originalName || 'Sin nombre')}</div>
         ${authorLine}
         <div class="pub-meta">
@@ -605,6 +606,80 @@ function fileRowHTML(f) {
         </button>
       </div>
     </div>`;
+}
+
+// ═══════════════ DETALLE DE PUBLICACIÓN ═══════════════
+function openPubDetail(fileId) {
+  const f = (State.files || []).find(x => (x.id || x.fileId) === fileId);
+  if (!f) return;
+
+  const ext   = (f.fileName || f.originalName || '').split('.').pop().toLowerCase();
+  const AUDIO = ['mp3','wav','ogg','m4a','aac','flac','opus'];
+  const VIDEO = ['mp4','webm','mov','mkv','avi','m4v','3gp'];
+  const IMG   = ['jpg','jpeg','png','gif','webp','avif','svg'];
+  const mt = f.mediaType
+    || (AUDIO.includes(ext) ? 'audio' : VIDEO.includes(ext) ? 'video' : IMG.includes(ext) ? 'image' : 'file');
+
+  const url   = f.url || f.fileUrl || '';
+  const cover = f.coverUrl || (mt === 'image' ? url : '');
+
+  const ICONS = {
+    audio: '<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+    video: '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/></svg>',
+    image: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    file:  '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+  };
+
+  // Portada
+  const coverEl = document.getElementById('pubdCover');
+  if (cover) {
+    coverEl.innerHTML = `<img src="${escapeHtml(cover)}" alt="">`;
+    coverEl.className = 'pubd-cover has-img';
+  } else {
+    coverEl.innerHTML = ICONS[mt] || ICONS.file;
+    coverEl.className = 'pubd-cover pubd-cover--' + mt;
+  }
+
+  // Tipo
+  const typeMap = { audio: '♪ Canción', video: '▶ Video', image: '🖼 Imagen', file: '📄 Archivo' };
+  const typeEl = document.getElementById('pubdType');
+  typeEl.textContent = typeMap[mt] || typeMap.file;
+  typeEl.className = 'pubd-type pubd-type--' + mt;
+
+  // Título / autor / descripción
+  document.getElementById('pubdTitle').textContent = f.title || f.fileName || f.originalName || 'Sin nombre';
+  const authEl = document.getElementById('pubdAuthor');
+  authEl.textContent = f.author ? ('por ' + f.author) : '';
+  authEl.style.display = f.author ? '' : 'none';
+  const descEl = document.getElementById('pubdDesc');
+  descEl.textContent = f.description || '';
+  descEl.style.display = f.description ? '' : 'none';
+
+  // Ficha de datos
+  const facts = [
+    ['Archivo', f.fileName || f.originalName || '—'],
+    ['Tamaño',  formatBytes(f.fileSize || f.size || 0)],
+    ['Fecha',   formatDate(f.createdAt || f.uploadedAt)],
+    ['Tipo',    (typeMap[mt] || 'Archivo').replace(/^[^\s]+\s/, '')]
+  ];
+  document.getElementById('pubdFacts').innerHTML = facts
+    .map(([k, v]) => `<div class="pubd-fact"><span>${k}</span><b>${escapeHtml(String(v))}</b></div>`)
+    .join('');
+
+  // Botón abrir / reproducir
+  const openEl = document.getElementById('pubdOpen');
+  const lblMap = { audio: 'Escuchar', video: 'Reproducir', image: 'Ver imagen', file: 'Abrir archivo' };
+  document.getElementById('pubdOpenLabel').textContent = lblMap[mt] || lblMap.file;
+  if (url) { openEl.href = url; openEl.style.display = ''; }
+  else { openEl.removeAttribute('href'); openEl.style.display = 'none'; }
+
+  document.getElementById('pubdBackdrop').classList.add('show');
+}
+
+function closePubDetail(e) {
+  if (e && e.target && e.target.closest && e.target.closest('.pubd-sheet')) return;
+  const bd = document.getElementById('pubdBackdrop');
+  if (bd) bd.classList.remove('show');
 }
 
 let _fdelFileId = null;

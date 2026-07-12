@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260712">
+  <link rel="stylesheet" href="css/home.css?v=20260712b">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -1115,6 +1115,28 @@
   </div>
 </div>
 
+<!-- ══ DETALLE DE PUBLICACIÓN ══ -->
+<div class="pubd-backdrop" id="pubdBackdrop" onclick="closePubDetail(event)">
+  <div class="pubd-sheet" id="pubdSheet">
+    <div class="del-pill"></div>
+    <div class="pubd-cover" id="pubdCover"></div>
+    <div class="pubd-head">
+      <span class="pubd-type" id="pubdType"></span>
+      <h3 class="pubd-title" id="pubdTitle">—</h3>
+      <div class="pubd-author" id="pubdAuthor"></div>
+    </div>
+    <div class="pubd-desc" id="pubdDesc"></div>
+    <div class="pubd-facts" id="pubdFacts"></div>
+    <div class="pubd-actions">
+      <a class="pubd-open" id="pubdOpen" href="#" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <span id="pubdOpenLabel">Abrir archivo</span>
+      </a>
+      <button class="pubd-closebtn" onclick="closePubDetail()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ TOAST ══ -->
 <div class="toast" id="toast"></div>
 
@@ -1122,6 +1144,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260712"></script>
+<script src="js/home.js?v=20260712b"></script>
 </body>
 </html>
