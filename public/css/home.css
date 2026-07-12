@@ -1031,3 +1031,29 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .ana3-sug-lbl{font-size:12px;font-weight:700;color:rgba(0,0,0,.6)}
 .ana3-sug-sub{font-size:10.5px;color:rgba(0,0,0,.28)}
 
+
+/* ═══════════════════ MEDIA: portada, canción, video ═══════════════════ */
+/* Miniatura con portada + overlay de reproducción */
+.pub-thumb{position:relative}
+.pub-thumb-img{width:100%;height:100%;object-fit:cover;display:block}
+.pub-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.28);opacity:0;transition:opacity .15s}
+.pub-row:hover .pub-play{opacity:1}
+.pub-play svg{width:18px;height:18px;color:#fff;fill:#fff}
+.pub-author{font-size:12px;color:var(--muted);font-weight:500;margin:1px 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pub-type{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 7px;border-radius:6px;margin-right:2px}
+.pub-type--audio{color:#7c3aed;background:rgba(124,58,237,.10)}
+.pub-type--video{color:#2563eb;background:rgba(37,99,235,.10)}
+
+/* Zona de subida de portada */
+.cover-zone{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1.5px dashed var(--smoke-3);border-radius:14px;cursor:pointer;background:var(--upload-bg);transition:border-color .15s,background .15s}
+.cover-zone:hover{border-color:var(--muted-2);background:var(--smoke-2)}
+.cover-preview{width:56px;height:56px;border-radius:12px;flex-shrink:0;overflow:hidden;background:var(--smoke-2);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.cover-preview.has-img{background:transparent}
+.cover-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.cover-preview svg{stroke:currentColor;fill:none}
+.cover-info{flex:1;min-width:0}
+.cover-title{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.cover-hint{font-size:11.5px;color:var(--muted)}
+.cover-clear{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);background:transparent;transition:background .15s,color .15s}
+.cover-clear:hover{background:rgba(229,72,77,.08);color:var(--danger)}
+.cover-clear svg{stroke:currentColor;fill:none}

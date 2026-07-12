@@ -67,6 +67,13 @@ export async function onRequestPost(context) {
   const title        = String(form.get('title')       || '').trim().slice(0, 120) || safeFilename;
   const description  = String(form.get('description') || '').trim().slice(0, 500);
   const projectId    = String(form.get('projectId')   || '').trim();
+  const author       = String(form.get('author')      || '').trim().slice(0, 120);
+
+  // Tipo de medio (para pintar la publicación como canción / video / imagen)
+  const mediaType = mimeType.startsWith('audio/') ? 'audio'
+                  : mimeType.startsWith('video/') ? 'video'
+                  : mimeType.startsWith('image/') ? 'image'
+                  : 'file';
 
   const now         = Date.now();
   const nowIso      = new Date(now).toISOString();
@@ -79,10 +86,30 @@ export async function onRequestPost(context) {
   const upload = await uploadBytesToStorage(env, storageCtx.storageTok, storagePath, mimeType, fileBytes);
   if (upload.errorResponse) return upload.errorResponse;
 
+  // Portada / banner opcional (imagen ≤ 5 MB) para canciones y videos
+  let coverUrl = '';
+  const coverInput = form.get('cover');
+  if (coverInput && typeof coverInput !== 'string') {
+    try {
+      const coverBytes = await coverInput.arrayBuffer();
+      const COVER_MAX  = 5 * 1024 * 1024;
+      const coverMime  = coverInput.type || 'image/jpeg';
+      if (coverBytes.byteLength > 0 && coverBytes.byteLength <= COVER_MAX && coverMime.startsWith('image/')) {
+        const coverName = sanitizeUploadName(coverInput.name || 'cover.jpg');
+        const coverPath = `covers/${user.uid}/${now}-${coverName}`;
+        const cup = await uploadBytesToStorage(env, storageCtx.storageTok, coverPath, coverMime, coverBytes);
+        if (!cup.errorResponse) coverUrl = cup.fileUrl;
+      }
+    } catch (e) {
+      console.warn('[POST /api/user/files] cover upload:', e.message);
+    }
+  }
+
   const fileMeta = {
     fileId, id: fileId,
     fileName: safeFilename, originalName, name: safeFilename,
     title, description, mimeType,
+    author, mediaType, coverUrl,
     fileSize: fileBytes.byteLength, size: fileBytes.byteLength,
     storagePath, url: upload.fileUrl, fileUrl: upload.fileUrl,
     projectId: projectId || '',

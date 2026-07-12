@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/variables.css?v=20260506f">
-  <link rel="stylesheet" href="css/home.css?v=20260626e">
+  <link rel="stylesheet" href="css/home.css?v=20260712">
 <style>
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   </style>
@@ -234,6 +234,31 @@
         </div>
         <div class="pub-file-list" id="pubFileList" style="display:none"></div>
       </div>
+
+      <!-- Autor / Artista — solo para canciones -->
+      <div class="field" id="pubAuthorField" style="display:none">
+        <label class="field-label">Autor / Artista</label>
+        <input class="field-input" id="pubAuthor" type="text" maxlength="120" placeholder="Nombre del autor o artista">
+      </div>
+
+      <!-- Portada / Banner — para canciones y videos -->
+      <div class="field" id="pubCoverField" style="display:none">
+        <label class="field-label">Portada / Banner</label>
+        <div class="cover-zone" id="coverZone" onclick="document.getElementById('coverInput').click()">
+          <div class="cover-preview" id="coverPreview">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="cover-info">
+            <div class="cover-title" id="coverTitle">Sube una portada</div>
+            <div class="cover-hint">Imagen JPG/PNG/WEBP · máx 5 MB</div>
+          </div>
+          <button type="button" class="cover-clear" id="coverClear" style="display:none" onclick="event.stopPropagation();clearCover()" aria-label="Quitar portada">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <input type="file" id="coverInput" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleCoverSelect(this)">
+      </div>
+
       <div class="field">
         <label class="field-label">Descripción</label>
         <textarea class="field-input field-textarea" id="pubDesc" placeholder="Describe tu publicación..."></textarea>
@@ -1097,6 +1122,6 @@
 <!-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
-<script src="js/home.js?v=20260711"></script>
+<script src="js/home.js?v=20260712"></script>
 </body>
 </html>

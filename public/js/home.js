@@ -549,17 +549,47 @@ async function loadRecentFiles() {
 
 function fileRowHTML(f) {
   const ext = (f.fileName || f.originalName || '').split('.').pop().toLowerCase();
-  const isImg = ['jpg','jpeg','png','gif','webp','avif','svg'].includes(ext);
-  const thumb = (isImg && f.url)
-    ? `<img src="${escapeHtml(f.url)}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;display:block">`
-    : `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+  const AUDIO = ['mp3','wav','ogg','m4a','aac','flac','opus'];
+  const VIDEO = ['mp4','webm','mov','mkv','avi','m4v','3gp'];
+  const IMG   = ['jpg','jpeg','png','gif','webp','avif','svg'];
+
+  const mt = f.mediaType
+    || (AUDIO.includes(ext) ? 'audio'
+      : VIDEO.includes(ext) ? 'video'
+      : IMG.includes(ext)   ? 'image' : 'file');
+  const isAudio = mt === 'audio';
+  const isVideo = mt === 'video';
+
+  // Portada / banner: usa coverUrl; si es imagen usa la propia imagen
+  const cover = f.coverUrl || (mt === 'image' ? f.url : '');
+
+  let thumb;
+  if (cover) {
+    thumb = `<img class="pub-thumb-img" src="${escapeHtml(cover)}" alt="">`;
+  } else if (isAudio) {
+    thumb = `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+  } else if (isVideo) {
+    thumb = `<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/></svg>`;
+  } else {
+    thumb = `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+  }
+
+  const playOverlay = (isAudio || isVideo)
+    ? `<span class="pub-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg></span>`
+    : '';
+  const typeBadge = isAudio ? `<span class="pub-type pub-type--audio">♪ Canción</span>`
+                  : isVideo ? `<span class="pub-type pub-type--video">▶ Video</span>` : '';
+  const authorLine = f.author
+    ? `<div class="pub-author">${escapeHtml(f.author)}</div>` : '';
+
   return `
     <div class="pub-row" id="frow-${escapeHtml(f.id || '')}">
-      <div class="pub-thumb">${thumb}</div>
+      <div class="pub-thumb">${thumb}${playOverlay}</div>
       <div class="pub-info">
-        <div class="pub-title">${escapeHtml(f.fileName || f.originalName || 'Sin nombre')}</div>
+        <div class="pub-title">${escapeHtml(f.title || f.fileName || f.originalName || 'Sin nombre')}</div>
+        ${authorLine}
         <div class="pub-meta">
-          <span class="pub-badge badge-pub">Publicado</span>
+          ${typeBadge || `<span class="pub-badge badge-pub">Publicado</span>`}
           ${formatDate(f.createdAt || f.uploadedAt)}
           · ${formatBytes(f.fileSize || f.size || 0)}
         </div>
@@ -1221,8 +1251,11 @@ async function loadAnalytics() {
 // ║  PUBLISH — Subir archivos / publicaciones
 // ═══════════════════════════════════════════════════════════════
 let _selectedFiles = [];
+let _coverFile     = null;   // portada / banner opcional
 
-const PUB_IMG_EXT = ['jpg','jpeg','png','gif','webp','avif','svg','bmp'];
+const PUB_IMG_EXT   = ['jpg','jpeg','png','gif','webp','avif','svg','bmp'];
+const PUB_AUDIO_EXT = ['mp3','wav','ogg','m4a','aac','flac','opus'];
+const PUB_VIDEO_EXT = ['mp4','webm','mov','mkv','avi','m4v','3gp'];
 
 function _fileExt(f) {
   return (f.name || '').split('.').pop().toLowerCase();
@@ -1230,6 +1263,22 @@ function _fileExt(f) {
 
 function _isImage(f) {
   return (f.type && f.type.startsWith('image/')) || PUB_IMG_EXT.includes(_fileExt(f));
+}
+function _isAudio(f) {
+  return (f.type && f.type.startsWith('audio/')) || PUB_AUDIO_EXT.includes(_fileExt(f));
+}
+function _isVideo(f) {
+  return (f.type && f.type.startsWith('video/')) || PUB_VIDEO_EXT.includes(_fileExt(f));
+}
+
+// Muestra "Autor" (canciones) y "Portada" (canciones + videos) según el tipo
+function updateMediaFields() {
+  const anyAudio = _selectedFiles.some(_isAudio);
+  const anyVideo = _selectedFiles.some(_isVideo);
+  const authorF  = document.getElementById('pubAuthorField');
+  const coverF   = document.getElementById('pubCoverField');
+  if (authorF) authorF.style.display = anyAudio ? '' : 'none';
+  if (coverF)  coverF.style.display  = (anyAudio || anyVideo) ? '' : 'none';
 }
 
 function _thumbHTML(f) {
@@ -1251,6 +1300,7 @@ function renderSelectedFiles() {
     list.style.display = 'none';
     list.innerHTML = '';
     if (title) title.textContent = 'Arrastra tus archivos aquí o explora';
+    updateMediaFields();
     return;
   }
 
@@ -1271,6 +1321,48 @@ function renderSelectedFiles() {
       </button>
     </div>
   `).join('');
+
+  updateMediaFields();
+}
+
+// ── Portada / banner ──────────────────────────────────────────────────────
+function handleCoverSelect(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  if (!/^image\/(jpeg|png|webp)$/i.test(f.type)) {
+    showToast('La portada debe ser JPG, PNG o WEBP.', 'error');
+    input.value = ''; return;
+  }
+  if (f.size > 5 * 1024 * 1024) {
+    showToast('La portada supera los 5 MB.', 'error');
+    input.value = ''; return;
+  }
+  _coverFile = f;
+  const prev  = document.getElementById('coverPreview');
+  const title = document.getElementById('coverTitle');
+  const clr   = document.getElementById('coverClear');
+  if (prev) {
+    const url = URL.createObjectURL(f);
+    prev.innerHTML = `<img src="${url}" alt="" onload="URL.revokeObjectURL(this.src)">`;
+    prev.classList.add('has-img');
+  }
+  if (title) title.textContent = f.name;
+  if (clr) clr.style.display = '';
+}
+
+function clearCover() {
+  _coverFile = null;
+  const prev  = document.getElementById('coverPreview');
+  const title = document.getElementById('coverTitle');
+  const clr   = document.getElementById('coverClear');
+  const inp   = document.getElementById('coverInput');
+  if (prev) {
+    prev.classList.remove('has-img');
+    prev.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+  }
+  if (title) title.textContent = 'Sube una portada';
+  if (clr) clr.style.display = 'none';
+  if (inp) inp.value = '';
 }
 
 function handleFileSelect(input) {
@@ -1292,10 +1384,13 @@ function clearPublishState() {
   _selectedFiles = [];
   const t = document.getElementById('pubTitle');
   const d = document.getElementById('pubDesc');
+  const a = document.getElementById('pubAuthor');
   const i = document.getElementById('fileInput');
   if (t) t.value = '';
   if (d) d.value = '';
+  if (a) a.value = '';
   if (i) i.value = '';
+  clearCover();
   renderSelectedFiles();
 }
 
@@ -1312,10 +1407,11 @@ function handlePublishBack() {
 }
 
 async function handlePublish() {
-  const title = document.getElementById('pubTitle')?.value.trim();
-  const desc  = document.getElementById('pubDesc')?.value.trim();
-  const btn   = document.getElementById('pubBtn');
-  const btn2  = document.getElementById('pubBtn2');
+  const title  = document.getElementById('pubTitle')?.value.trim();
+  const desc   = document.getElementById('pubDesc')?.value.trim();
+  const author = document.getElementById('pubAuthor')?.value.trim();
+  const btn    = document.getElementById('pubBtn');
+  const btn2   = document.getElementById('pubBtn2');
 
   if (_selectedFiles.length === 0) {
     showToast('Selecciona al menos un archivo', 'error');
@@ -1331,8 +1427,11 @@ async function handlePublish() {
     try {
       const fd = new FormData();
       fd.append('file', f);
-      if (title) fd.append('title', _selectedFiles.length > 1 ? `${title} (${i + 1}/${_selectedFiles.length})` : title);
-      if (desc)  fd.append('description', desc);
+      if (title)  fd.append('title', _selectedFiles.length > 1 ? `${title} (${i + 1}/${_selectedFiles.length})` : title);
+      if (desc)   fd.append('description', desc);
+      // Autor y portada aplican a canciones/videos
+      if (author && _isAudio(f)) fd.append('author', author);
+      if (_coverFile && (_isAudio(f) || _isVideo(f))) fd.append('cover', _coverFile);
       await API.publishFile(fd);
       ok++;
     } catch (e) {
