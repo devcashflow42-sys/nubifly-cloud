@@ -1376,11 +1376,55 @@ let _mmPromise      = null;
 
 function loadMusicMetadata() {
   if (_mmPromise) return _mmPromise;
-  _mmPromise = import('https://cdn.jsdelivr.net/npm/music-metadata@11/+esm')
-    .catch(() => import('https://esm.sh/music-metadata@11'))
-    .catch(() => import('https://cdn.jsdelivr.net/npm/music-metadata-browser@2/+esm'))
+  // esm.sh resuelve los built-ins de Node en el navegador mejor que jsdelivr
+  _mmPromise = import('https://esm.sh/music-metadata@11?bundle')
+    .catch(() => import('https://cdn.jsdelivr.net/npm/music-metadata@11/+esm'))
     .catch(err => { console.warn('[music-metadata] no se pudo cargar:', err && err.message); return null; });
   return _mmPromise;
+}
+
+// jsmediatags — muy fiable en navegador para ID3 (MP3) y MP4/M4A (título,
+// artista, álbum, carátula, etc.). Se carga como script UMD.
+let _jsmtPromise = null;
+function loadJsMediaTags() {
+  if (_jsmtPromise) return _jsmtPromise;
+  _jsmtPromise = new Promise((resolve) => {
+    if (window.jsmediatags) return resolve(window.jsmediatags);
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js';
+    s.async = true;
+    s.onload  = () => resolve(window.jsmediatags || null);
+    s.onerror = () => { console.warn('[jsmediatags] no se pudo cargar'); resolve(null); };
+    document.head.appendChild(s);
+  });
+  return _jsmtPromise;
+}
+function readJsMediaTags(file) {
+  return new Promise((resolve) => {
+    loadJsMediaTags().then((jsmt) => {
+      if (!jsmt || !jsmt.read) return resolve(null);
+      try {
+        jsmt.read(file, {
+          onSuccess: (res) => resolve((res && res.tags) ? res.tags : null),
+          onError:   ()   => resolve(null)
+        });
+      } catch { resolve(null); }
+    });
+  });
+}
+
+// Extrae la portada de music-metadata o de jsmediatags → { format, data:Uint8Array }
+function _extractPicture(meta, jtags) {
+  const p = meta && meta.common && meta.common.picture && meta.common.picture[0];
+  if (p && p.data) {
+    const data = (p.data instanceof Uint8Array) ? p.data : new Uint8Array(p.data);
+    if (data.length) return { format: p.format || 'image/jpeg', data };
+  }
+  const jp = jtags && jtags.picture;
+  if (jp && jp.data && jp.data.length) {
+    return { format: jp.format || 'image/jpeg', data: new Uint8Array(jp.data) };
+  }
+  return null;
 }
 
 function _stripExt(name) { return String(name || '').replace(/\.[^.]+$/, ''); }
@@ -1413,24 +1457,44 @@ function _audioDurationFallback(file) {
   });
 }
 
-// Extrae metadatos del audio y rellena el formulario automáticamente
+// Extrae metadatos del audio (2 fuentes) y rellena el formulario automáticamente
 async function autofillAudioMeta(file) {
   if (!file) return;
   renderAudioPanel({ loading: true, file });
-  let meta = null;
-  try {
-    const mm = await loadMusicMetadata();
-    if (mm && mm.parseBlob) meta = await mm.parseBlob(file, { duration: true });
-  } catch (e) { console.warn('[music-metadata] parse:', e && e.message); }
-  await applyAudioMeta(file, meta);
+
+  // Lanzar ambas fuentes en paralelo:
+  //  • jsmediatags → etiquetas + carátula (muy fiable, incl. M4A/MP4)
+  //  • music-metadata → datos técnicos (bitrate, kHz, canales)
+  const [jtags, meta] = await Promise.all([
+    readJsMediaTags(file).catch(() => null),
+    (async () => {
+      try {
+        const mm = await loadMusicMetadata();
+        if (mm && mm.parseBlob) return await mm.parseBlob(file, { duration: true });
+      } catch (e) { console.warn('[music-metadata] parse:', e && e.message); }
+      return null;
+    })()
+  ]);
+
+  await applyAudioMeta(file, meta, jtags);
 }
 
-async function applyAudioMeta(file, meta) {
+async function applyAudioMeta(file, meta, jtags) {
   const common = (meta && meta.common) || {};
   const format = (meta && meta.format) || {};
+  const jt     = jtags || {};
 
-  const title  = (common.title || '').trim() || _stripExt(file.name);
-  const artist = (common.artist || common.albumartist || '').trim();
+  const pick = (...vals) => {
+    for (const v of vals) {
+      const s = (Array.isArray(v) ? _joinTag(v) : (v == null ? '' : String(v))).trim();
+      if (s) return s;
+    }
+    return '';
+  };
+  const digits = (v) => String(v || '').replace(/\D+/g, '');
+
+  const title  = pick(common.title, jt.title) || _stripExt(file.name);
+  const artist = pick(common.artist, common.albumartist, jt.artist);
 
   // Rellenar campos si están vacíos (respetar lo que el usuario ya escribió)
   const tEl = document.getElementById('pubTitle');
@@ -1442,17 +1506,20 @@ async function applyAudioMeta(file, meta) {
   let duration = Number(format.duration) || 0;
   if (!duration) { try { duration = await _audioDurationFallback(file); } catch {} }
 
-  // Portada embebida → convertir a File y usarla (si el usuario no puso otra)
-  const pic = common.picture && common.picture[0];
-  if (pic && pic.data && (!_coverFile || _coverFromMeta)) {
+  // Bitrate: de la librería o aproximado por tamaño/duración
+  let bitrate = Number(format.bitrate) || 0;
+  if (!bitrate && duration) bitrate = Math.round((file.size * 8) / duration);
+
+  // Portada embebida (music-metadata o jsmediatags) → File
+  const pic = _extractPicture(meta, jtags);
+  if (pic && (!_coverFile || _coverFromMeta)) {
     try {
       let fmt = pic.format || 'image/jpeg';
       if (!/^image\//i.test(fmt)) fmt = 'image/' + String(fmt).replace(/^\./, '');
       if (!/^image\/(jpeg|jpg|png|webp)$/i.test(fmt)) fmt = 'image/jpeg';
       fmt = fmt.replace('jpg', 'jpeg');
       const ext = (fmt.split('/')[1] || 'jpg');
-      const blob = new Blob([pic.data], { type: fmt });
-      _coverFile = new File([blob], `cover.${ext}`, { type: fmt });
+      _coverFile = new File([new Blob([pic.data], { type: fmt })], `cover.${ext}`, { type: fmt });
       _coverFromMeta = true;
       _setCoverPreview(_coverFile, 'Portada embebida del audio');
     } catch (e) { console.warn('[cover embed]', e && e.message); }
@@ -1461,16 +1528,16 @@ async function applyAudioMeta(file, meta) {
   _audioMeta = {
     forName:    file.name,
     title, artist,
-    album:      (common.album || '').trim(),
-    genre:      _joinTag(common.genre),
-    year:       common.year ? String(common.year) : '',
-    track:      (common.track && common.track.no) ? String(common.track.no) : '',
-    composer:   _joinTag(common.composer),
-    copyright:  (common.copyright || '').trim(),
-    comment:    _joinTag(common.comment),
-    lyrics:     _joinTag(common.lyrics),
+    album:      pick(common.album, jt.album),
+    genre:      pick(common.genre, jt.genre),
+    year:       (common.year ? String(common.year) : '') || digits(jt.year),
+    track:      (common.track && common.track.no) ? String(common.track.no) : digits((jt.track || '').split('/')[0]),
+    composer:   pick(common.composer, jt.composer),
+    copyright:  pick(common.copyright, jt.copyright),
+    comment:    pick(common.comment, jt.comment),
+    lyrics:     pick(common.lyrics, jt.lyrics),
     duration:   duration ? String(Math.round(duration)) : '',
-    bitrate:    format.bitrate ? String(Math.round(format.bitrate)) : '',
+    bitrate:    bitrate ? String(Math.round(bitrate)) : '',
     sampleRate: format.sampleRate ? String(Math.round(format.sampleRate)) : '',
     channels:   format.numberOfChannels ? String(format.numberOfChannels) : '',
     container:  format.container || '',
