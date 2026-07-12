@@ -655,13 +655,26 @@ function openPubDetail(fileId) {
   descEl.textContent = f.description || '';
   descEl.style.display = f.description ? '' : 'none';
 
-  // Ficha de datos
-  const facts = [
-    ['Archivo', f.fileName || f.originalName || '—'],
-    ['Tamaño',  formatBytes(f.fileSize || f.size || 0)],
-    ['Fecha',   formatDate(f.createdAt || f.uploadedAt)],
-    ['Tipo',    (typeMap[mt] || 'Archivo').replace(/^[^\s]+\s/, '')]
-  ];
+  // Ficha de datos (incluye metadatos de audio cuando existen)
+  const facts = [];
+  const add = (k, v) => { if (v || v === 0) facts.push([k, v]); };
+  add('Archivo', f.fileName || f.originalName || '—');
+  add('Álbum',   f.album);
+  add('Año',     f.year);
+  add('Género',  f.genre);
+  if (f.track) add('Pista', f.track);
+  if (f.duration) {
+    const s = Math.round(Number(f.duration)); const mm = Math.floor(s/60), ss = String(s%60).padStart(2,'0');
+    add('Duración', `${mm}:${ss}`);
+  }
+  if (f.bitrate)    add('Bitrate', Math.round(Number(f.bitrate)/1000) + ' kbps');
+  if (f.sampleRate) add('Frecuencia', (Number(f.sampleRate)/1000).toFixed(1).replace(/\.0$/,'') + ' kHz');
+  if (f.channels)   add('Canales', Number(f.channels) === 1 ? 'Mono' : Number(f.channels) === 2 ? 'Estéreo' : f.channels);
+  add('Compositor', f.composer);
+  add('Copyright',  f.copyright);
+  add('Tamaño',  formatBytes(f.fileSize || f.size || 0));
+  add('Fecha',   formatDate(f.createdAt || f.uploadedAt));
+  add('Formato', (f.container || '').toUpperCase() || (typeMap[mt] || 'Archivo').replace(/^[^\s]+\s/, ''));
   document.getElementById('pubdFacts').innerHTML = facts
     .map(([k, v]) => `<div class="pubd-fact"><span>${k}</span><b>${escapeHtml(String(v))}</b></div>`)
     .join('');
@@ -1356,6 +1369,183 @@ function updateMediaFields() {
   if (coverF)  coverF.style.display  = (anyAudio || anyVideo) ? '' : 'none';
 }
 
+// ═══════════════ METADATOS DE AUDIO (music-metadata) ═══════════════
+let _audioMeta      = null;   // metadatos extraídos (para enviar al backend)
+let _coverFromMeta  = false;  // la portada actual vino embebida en el audio
+let _mmPromise      = null;
+
+function loadMusicMetadata() {
+  if (_mmPromise) return _mmPromise;
+  _mmPromise = import('https://cdn.jsdelivr.net/npm/music-metadata@11/+esm')
+    .catch(() => import('https://esm.sh/music-metadata@11'))
+    .catch(() => import('https://cdn.jsdelivr.net/npm/music-metadata-browser@2/+esm'))
+    .catch(err => { console.warn('[music-metadata] no se pudo cargar:', err && err.message); return null; });
+  return _mmPromise;
+}
+
+function _stripExt(name) { return String(name || '').replace(/\.[^.]+$/, ''); }
+function _fmtDuration(sec) {
+  sec = Math.round(Number(sec) || 0);
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  const pad = n => String(n).padStart(2, '0');
+  return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+function _channelsLabel(n) {
+  return n === 1 ? 'Mono' : n === 2 ? 'Estéreo' : n ? `${n} canales` : '';
+}
+function _joinTag(v) {
+  if (Array.isArray(v)) return v.map(x => (x && x.text != null) ? x.text : x).filter(Boolean).join(', ');
+  return v == null ? '' : String(v);
+}
+
+// Duración de respaldo con <audio> si la librería no está disponible
+function _audioDurationFallback(file) {
+  return new Promise(resolve => {
+    try {
+      const a = document.createElement('audio');
+      a.preload = 'metadata';
+      const url = URL.createObjectURL(file);
+      a.onloadedmetadata = () => { const d = a.duration; URL.revokeObjectURL(url); resolve(isFinite(d) ? d : 0); };
+      a.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
+      a.src = url;
+    } catch { resolve(0); }
+  });
+}
+
+// Extrae metadatos del audio y rellena el formulario automáticamente
+async function autofillAudioMeta(file) {
+  if (!file) return;
+  renderAudioPanel({ loading: true, file });
+  let meta = null;
+  try {
+    const mm = await loadMusicMetadata();
+    if (mm && mm.parseBlob) meta = await mm.parseBlob(file, { duration: true });
+  } catch (e) { console.warn('[music-metadata] parse:', e && e.message); }
+  await applyAudioMeta(file, meta);
+}
+
+async function applyAudioMeta(file, meta) {
+  const common = (meta && meta.common) || {};
+  const format = (meta && meta.format) || {};
+
+  const title  = (common.title || '').trim() || _stripExt(file.name);
+  const artist = (common.artist || common.albumartist || '').trim();
+
+  // Rellenar campos si están vacíos (respetar lo que el usuario ya escribió)
+  const tEl = document.getElementById('pubTitle');
+  const aEl = document.getElementById('pubAuthor');
+  if (tEl && !tEl.value.trim()) tEl.value = title;
+  if (aEl && !aEl.value.trim() && artist) aEl.value = artist;
+
+  // Duración: de la librería o respaldo con <audio>
+  let duration = Number(format.duration) || 0;
+  if (!duration) { try { duration = await _audioDurationFallback(file); } catch {} }
+
+  // Portada embebida → convertir a File y usarla (si el usuario no puso otra)
+  const pic = common.picture && common.picture[0];
+  if (pic && pic.data && (!_coverFile || _coverFromMeta)) {
+    try {
+      let fmt = pic.format || 'image/jpeg';
+      if (!/^image\//i.test(fmt)) fmt = 'image/' + String(fmt).replace(/^\./, '');
+      if (!/^image\/(jpeg|jpg|png|webp)$/i.test(fmt)) fmt = 'image/jpeg';
+      fmt = fmt.replace('jpg', 'jpeg');
+      const ext = (fmt.split('/')[1] || 'jpg');
+      const blob = new Blob([pic.data], { type: fmt });
+      _coverFile = new File([blob], `cover.${ext}`, { type: fmt });
+      _coverFromMeta = true;
+      _setCoverPreview(_coverFile, 'Portada embebida del audio');
+    } catch (e) { console.warn('[cover embed]', e && e.message); }
+  }
+
+  _audioMeta = {
+    forName:    file.name,
+    title, artist,
+    album:      (common.album || '').trim(),
+    genre:      _joinTag(common.genre),
+    year:       common.year ? String(common.year) : '',
+    track:      (common.track && common.track.no) ? String(common.track.no) : '',
+    composer:   _joinTag(common.composer),
+    copyright:  (common.copyright || '').trim(),
+    comment:    _joinTag(common.comment),
+    lyrics:     _joinTag(common.lyrics),
+    duration:   duration ? String(Math.round(duration)) : '',
+    bitrate:    format.bitrate ? String(Math.round(format.bitrate)) : '',
+    sampleRate: format.sampleRate ? String(Math.round(format.sampleRate)) : '',
+    channels:   format.numberOfChannels ? String(format.numberOfChannels) : '',
+    container:  format.container || '',
+    codec:      format.codec || ''
+  };
+
+  renderAudioPanel({ file, meta: _audioMeta, coverFile: _coverFile });
+  updateMediaFields();
+}
+
+function _setCoverPreview(file, label) {
+  const prev  = document.getElementById('coverPreview');
+  const title = document.getElementById('coverTitle');
+  const clr   = document.getElementById('coverClear');
+  if (prev) {
+    const url = URL.createObjectURL(file);
+    prev.innerHTML = `<img src="${url}" alt="" onload="URL.revokeObjectURL(this.src)">`;
+    prev.classList.add('has-img');
+  }
+  if (title) title.textContent = label || file.name;
+  if (clr) clr.style.display = '';
+}
+
+function renderAudioPanel(state) {
+  const panel = document.getElementById('audioMetaPanel');
+  if (!panel) return;
+
+  if (state && state.loading) {
+    panel.style.display = '';
+    panel.innerHTML = `
+      <div class="ameta-card ameta-loading">
+        <div class="ameta-cover"><span class="ameta-spin"></span></div>
+        <div class="ameta-main">
+          <div class="ameta-title">Leyendo metadatos…</div>
+          <div class="ameta-artist">${escapeHtml(state.file ? state.file.name : '')}</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const m = state && state.meta;
+  if (!m) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+
+  let coverHTML;
+  if (state.coverFile) {
+    const url = URL.createObjectURL(state.coverFile);
+    coverHTML = `<img src="${url}" alt="" onload="URL.revokeObjectURL(this.src)">`;
+  } else {
+    coverHTML = `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+  }
+
+  const subParts = [m.album, m.year, m.genre].filter(Boolean);
+  const chips = [];
+  if (m.duration)   chips.push(_fmtDuration(m.duration));
+  if (m.bitrate)    chips.push(Math.round(Number(m.bitrate) / 1000) + ' kbps');
+  if (m.sampleRate) chips.push((Number(m.sampleRate) / 1000).toFixed(1).replace(/\.0$/, '') + ' kHz');
+  if (m.channels)   chips.push(_channelsLabel(Number(m.channels)));
+  const fmtLabel = (m.container || m.codec || (state.file ? _fileExt(state.file) : '')).toUpperCase();
+  if (fmtLabel) chips.push(fmtLabel);
+  if (state.file) chips.push(formatBytes(state.file.size));
+
+  panel.style.display = '';
+  panel.innerHTML = `
+    <div class="ameta-card">
+      <div class="ameta-cover">${coverHTML}</div>
+      <div class="ameta-main">
+        <div class="ameta-badge">♪ Audio detectado</div>
+        <div class="ameta-title">${escapeHtml(m.title || '')}</div>
+        ${m.artist ? `<div class="ameta-artist">${escapeHtml(m.artist)}</div>` : ''}
+        ${subParts.length ? `<div class="ameta-sub">${escapeHtml(subParts.join(' · '))}</div>` : ''}
+        <div class="ameta-chips">${chips.map(c => `<span class="ameta-chip">${escapeHtml(c)}</span>`).join('')}</div>
+      </div>
+    </div>`;
+}
+
 function _thumbHTML(f) {
   if (_isImage(f)) {
     const url = URL.createObjectURL(f);
@@ -1413,20 +1603,13 @@ function handleCoverSelect(input) {
     input.value = ''; return;
   }
   _coverFile = f;
-  const prev  = document.getElementById('coverPreview');
-  const title = document.getElementById('coverTitle');
-  const clr   = document.getElementById('coverClear');
-  if (prev) {
-    const url = URL.createObjectURL(f);
-    prev.innerHTML = `<img src="${url}" alt="" onload="URL.revokeObjectURL(this.src)">`;
-    prev.classList.add('has-img');
-  }
-  if (title) title.textContent = f.name;
-  if (clr) clr.style.display = '';
+  _coverFromMeta = false;   // el usuario eligió su propia portada
+  _setCoverPreview(f, f.name);
 }
 
 function clearCover() {
   _coverFile = null;
+  _coverFromMeta = false;
   const prev  = document.getElementById('coverPreview');
   const title = document.getElementById('coverTitle');
   const clr   = document.getElementById('coverClear');
@@ -1448,6 +1631,9 @@ function handleFileSelect(input) {
   }
   input.value = '';
   renderSelectedFiles();
+  // Extraer metadatos automáticamente del primer audio seleccionado
+  const firstAudio = incoming.find(_isAudio);
+  if (firstAudio) autofillAudioMeta(firstAudio);
 }
 
 function removeSelectedFile(index) {
@@ -1466,6 +1652,9 @@ function clearPublishState() {
   if (a) a.value = '';
   if (i) i.value = '';
   clearCover();
+  _audioMeta = null;
+  const panel = document.getElementById('audioMetaPanel');
+  if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
   renderSelectedFiles();
 }
 
@@ -1507,6 +1696,16 @@ async function handlePublish() {
       // Autor y portada aplican a canciones/videos
       if (author && _isAudio(f)) fd.append('author', author);
       if (_coverFile && (_isAudio(f) || _isVideo(f))) fd.append('cover', _coverFile);
+      // Metadatos técnicos del audio (solo para el archivo del que se leyeron)
+      if (_isAudio(f) && _audioMeta && _audioMeta.forName === f.name) {
+        const M = _audioMeta;
+        const put = (k, v) => { if (v) fd.append(k, v); };
+        put('album', M.album);       put('genre', M.genre);       put('year', M.year);
+        put('track', M.track);       put('composer', M.composer); put('copyright', M.copyright);
+        put('comment', M.comment);   put('lyrics', M.lyrics);     put('duration', M.duration);
+        put('bitrate', M.bitrate);   put('sampleRate', M.sampleRate); put('channels', M.channels);
+        put('container', M.container); put('codec', M.codec);
+      }
       await API.publishFile(fd);
       ok++;
     } catch (e) {

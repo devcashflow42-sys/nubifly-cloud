@@ -1102,3 +1102,33 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 .pubd-open svg{stroke:currentColor;fill:none}
 .pubd-closebtn{width:100%;padding:13px;border-radius:14px;background:var(--surface-sm);color:var(--ink);font-size:14.5px;font-weight:600;transition:background .15s}
 .pubd-closebtn:hover{background:var(--smoke-3)}
+
+/* ═══════════════════ PANEL DE METADATOS DE AUDIO (estilo Spotify) ═══════════════════ */
+.ameta-wrap{margin-top:14px}
+.ameta-card{display:flex;gap:16px;padding:16px;border-radius:18px;align-items:center;
+  background:linear-gradient(135deg,rgba(124,58,237,.07),rgba(37,99,235,.04));
+  border:1px solid var(--smoke-2);box-shadow:var(--sh)}
+.ameta-cover{width:88px;height:88px;border-radius:14px;flex-shrink:0;overflow:hidden;display:flex;
+  align-items:center;justify-content:center;color:#fff;
+  background:linear-gradient(135deg,#7c3aed,#5b21b6);box-shadow:0 10px 22px -10px rgba(124,58,237,.55)}
+.ameta-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.ameta-cover svg{width:34px;height:34px;stroke:currentColor;fill:none;stroke-width:1.5}
+.ameta-main{flex:1;min-width:0}
+.ameta-badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;color:#7c3aed;
+  background:rgba(124,58,237,.12);padding:2px 8px;border-radius:6px;margin-bottom:6px}
+.ameta-title{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.2px;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ameta-artist{font-size:13.5px;color:var(--ink-3);font-weight:600;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ameta-sub{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ameta-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.ameta-chip{font-size:10.5px;font-weight:600;color:var(--ink-3);background:var(--white);
+  border:1px solid var(--smoke-3);border-radius:99px;padding:3px 9px;font-family:'DM Mono',monospace}
+.ameta-spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;display:block}
+.ameta-loading .ameta-cover{background:linear-gradient(135deg,#9ca3af,#6b7280)}
+@media (max-width:480px){
+  .ameta-card{gap:12px;padding:13px}
+  .ameta-cover{width:70px;height:70px;border-radius:12px}
+  .ameta-title{font-size:15px}
+}

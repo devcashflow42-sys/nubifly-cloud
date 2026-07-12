@@ -69,6 +69,29 @@ export async function onRequestPost(context) {
   const projectId    = String(form.get('projectId')   || '').trim();
   const author       = String(form.get('author')      || '').trim().slice(0, 120);
 
+  // ── Metadatos de audio (opcionales, extraídos en el navegador) ──
+  const toInt = (v) => { const n = parseInt(v, 10); return Number.isFinite(n) && n >= 0 ? n : 0; };
+  const audioMeta = {
+    album:      String(form.get('album')     || '').trim().slice(0, 200),
+    genre:      String(form.get('genre')     || '').trim().slice(0, 120),
+    year:       toInt(form.get('year')),
+    track:      toInt(form.get('track')),
+    composer:   String(form.get('composer')  || '').trim().slice(0, 200),
+    copyright:  String(form.get('copyright') || '').trim().slice(0, 300),
+    comment:    String(form.get('comment')   || '').trim().slice(0, 2000),
+    lyrics:     String(form.get('lyrics')    || '').trim().slice(0, 20000),
+    duration:   toInt(form.get('duration')),      // segundos
+    bitrate:    toInt(form.get('bitrate')),        // bps
+    sampleRate: toInt(form.get('sampleRate')),     // Hz
+    channels:   toInt(form.get('channels')),
+    container:  String(form.get('container') || '').trim().slice(0, 40),
+    codec:      String(form.get('codec')     || '').trim().slice(0, 60)
+  };
+  // Quitar campos vacíos para no ensuciar la base de datos
+  for (const k of Object.keys(audioMeta)) {
+    if (audioMeta[k] === '' || audioMeta[k] === 0) delete audioMeta[k];
+  }
+
   // Tipo de medio (para pintar la publicación como canción / video / imagen)
   const mediaType = mimeType.startsWith('audio/') ? 'audio'
                   : mimeType.startsWith('video/') ? 'video'
@@ -110,6 +133,7 @@ export async function onRequestPost(context) {
     fileName: safeFilename, originalName, name: safeFilename,
     title, description, mimeType,
     author, mediaType, coverUrl,
+    ...audioMeta,
     fileSize: fileBytes.byteLength, size: fileBytes.byteLength,
     storagePath, url: upload.fileUrl, fileUrl: upload.fileUrl,
     projectId: projectId || '',
