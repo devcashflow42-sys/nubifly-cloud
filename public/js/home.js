@@ -655,26 +655,13 @@ function openPubDetail(fileId) {
   descEl.textContent = f.description || '';
   descEl.style.display = f.description ? '' : 'none';
 
-  // Ficha de datos (incluye metadatos de audio cuando existen)
-  const facts = [];
-  const add = (k, v) => { if (v || v === 0) facts.push([k, v]); };
-  add('Archivo', f.fileName || f.originalName || '—');
-  add('Álbum',   f.album);
-  add('Año',     f.year);
-  add('Género',  f.genre);
-  if (f.track) add('Pista', f.track);
-  if (f.duration) {
-    const s = Math.round(Number(f.duration)); const mm = Math.floor(s/60), ss = String(s%60).padStart(2,'0');
-    add('Duración', `${mm}:${ss}`);
-  }
-  if (f.bitrate)    add('Bitrate', Math.round(Number(f.bitrate)/1000) + ' kbps');
-  if (f.sampleRate) add('Frecuencia', (Number(f.sampleRate)/1000).toFixed(1).replace(/\.0$/,'') + ' kHz');
-  if (f.channels)   add('Canales', Number(f.channels) === 1 ? 'Mono' : Number(f.channels) === 2 ? 'Estéreo' : f.channels);
-  add('Compositor', f.composer);
-  add('Copyright',  f.copyright);
-  add('Tamaño',  formatBytes(f.fileSize || f.size || 0));
-  add('Fecha',   formatDate(f.createdAt || f.uploadedAt));
-  add('Formato', (f.container || '').toUpperCase() || (typeMap[mt] || 'Archivo').replace(/^[^\s]+\s/, ''));
+  // Ficha de datos — solo lo básico
+  const facts = [
+    ['Archivo', f.fileName || f.originalName || '—'],
+    ['Tipo',    (typeMap[mt] || 'Archivo').replace(/^[^\s]+\s/, '')],
+    ['Tamaño',  formatBytes(f.fileSize || f.size || 0)],
+    ['Fecha',   formatDate(f.createdAt || f.uploadedAt)]
+  ];
   document.getElementById('pubdFacts').innerHTML = facts
     .map(([k, v]) => `<div class="pubd-fact"><span>${k}</span><b>${escapeHtml(String(v))}</b></div>`)
     .join('');
@@ -1601,23 +1588,13 @@ async function applyAudioMeta(file, meta, jtags) {
     } catch (e) { console.warn('[cover embed]', e && e.message); }
   }
 
+  // Solo lo esencial para la vista previa (no se guarda en la base de datos)
   _audioMeta = {
-    forName:    file.name,
+    forName:   file.name,
     title, artist,
-    album:      pick(common.album, jt.album),
-    genre:      pick(common.genre, jt.genre),
-    year:       (common.year ? String(common.year) : '') || yearOf(jt.year),
-    track:      (common.track && common.track.no) ? String(common.track.no) : digits(String(jt.track || '').split('/')[0]),
-    composer:   pick(common.composer, jt.composer),
-    copyright:  pick(common.copyright, jt.copyright),
-    comment:    pick(common.comment, jt.comment),
-    lyrics:     pick(common.lyrics, jt.lyrics),
-    duration:   duration ? String(Math.round(duration)) : '',
-    bitrate:    bitrate ? String(Math.round(bitrate)) : '',
-    sampleRate: format.sampleRate ? String(Math.round(format.sampleRate)) : '',
-    channels:   format.numberOfChannels ? String(format.numberOfChannels) : '',
-    container:  format.container || '',
-    codec:      format.codec || ''
+    duration:  duration ? String(Math.round(duration)) : '',
+    container: format.container || '',
+    codec:     format.codec || ''
   };
 
   renderAudioPanel({ file, meta: _audioMeta, coverFile: _coverFile });
@@ -1665,12 +1642,9 @@ function renderAudioPanel(state) {
     coverHTML = `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
   }
 
-  const subParts = [m.album, m.year, m.genre].filter(Boolean);
-  const chips = [];
-  if (m.duration)   chips.push(_fmtDuration(m.duration));
-  if (m.bitrate)    chips.push(Math.round(Number(m.bitrate) / 1000) + ' kbps');
-  if (m.sampleRate) chips.push((Number(m.sampleRate) / 1000).toFixed(1).replace(/\.0$/, '') + ' kHz');
-  if (m.channels)   chips.push(_channelsLabel(Number(m.channels)));
+  // Solo lo básico: tipo, duración y tamaño
+  const chips = ['♪ Audio'];
+  if (m.duration) chips.push(_fmtDuration(m.duration));
   const fmtLabel = (m.container || m.codec || (state.file ? _fileExt(state.file) : '')).toUpperCase();
   if (fmtLabel) chips.push(fmtLabel);
   if (state.file) chips.push(formatBytes(state.file.size));
@@ -1680,10 +1654,9 @@ function renderAudioPanel(state) {
     <div class="ameta-card">
       <div class="ameta-cover">${coverHTML}</div>
       <div class="ameta-main">
-        <div class="ameta-badge">♪ Audio detectado</div>
+        <div class="ameta-badge">Portada detectada</div>
         <div class="ameta-title">${escapeHtml(m.title || '')}</div>
         ${m.artist ? `<div class="ameta-artist">${escapeHtml(m.artist)}</div>` : ''}
-        ${subParts.length ? `<div class="ameta-sub">${escapeHtml(subParts.join(' · '))}</div>` : ''}
         <div class="ameta-chips">${chips.map(c => `<span class="ameta-chip">${escapeHtml(c)}</span>`).join('')}</div>
       </div>
     </div>`;
@@ -1836,19 +1809,9 @@ async function handlePublish() {
       fd.append('file', f);
       if (title)  fd.append('title', _selectedFiles.length > 1 ? `${title} (${i + 1}/${_selectedFiles.length})` : title);
       if (desc)   fd.append('description', desc);
-      // Autor y portada aplican a canciones/videos
+      // Autor y portada aplican a canciones/videos (nada más — sin metadatos técnicos)
       if (author && _isAudio(f)) fd.append('author', author);
       if (_coverFile && (_isAudio(f) || _isVideo(f))) fd.append('cover', _coverFile);
-      // Metadatos técnicos del audio (solo para el archivo del que se leyeron)
-      if (_isAudio(f) && _audioMeta && _audioMeta.forName === f.name) {
-        const M = _audioMeta;
-        const put = (k, v) => { if (v) fd.append(k, v); };
-        put('album', M.album);       put('genre', M.genre);       put('year', M.year);
-        put('track', M.track);       put('composer', M.composer); put('copyright', M.copyright);
-        put('comment', M.comment);   put('lyrics', M.lyrics);     put('duration', M.duration);
-        put('bitrate', M.bitrate);   put('sampleRate', M.sampleRate); put('channels', M.channels);
-        put('container', M.container); put('codec', M.codec);
-      }
       await API.publishFile(fd);
       ok++;
     } catch (e) {
