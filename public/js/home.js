@@ -1326,14 +1326,20 @@ async function loadAnalytics() {
 // ║  PUBLISH — Subir archivos / publicaciones
 // ═══════════════════════════════════════════════════════════════
 let _selectedFiles = [];
-let _coverFile     = null;   // portada / banner opcional
+let _coverFile     = null;   // portada / banner opcional (manual global)
+const _fileMeta    = new Map();   // fileKey → { mediaType, title, artist, coverFile, coverUrl, duration, container, loading }
 
 const PUB_IMG_EXT   = ['jpg','jpeg','png','gif','webp','avif','svg','bmp'];
 const PUB_AUDIO_EXT = ['mp3','wav','ogg','m4a','aac','flac','opus'];
 const PUB_VIDEO_EXT = ['mp4','webm','mov','mkv','avi','m4v','3gp'];
 
+function _fileKey(f) { return `${f.name}|${f.size}|${f.lastModified}`; }
+
 function _fileExt(f) {
   return (f.name || '').split('.').pop().toLowerCase();
+}
+function _mediaTypeOf(f) {
+  return _isAudio(f) ? 'audio' : _isVideo(f) ? 'video' : _isImage(f) ? 'image' : 'file';
 }
 
 function _isImage(f) {
@@ -1356,9 +1362,8 @@ function updateMediaFields() {
   if (coverF)  coverF.style.display  = (anyAudio || anyVideo) ? '' : 'none';
 }
 
-// ═══════════════ METADATOS DE AUDIO (music-metadata) ═══════════════
-let _audioMeta      = null;   // metadatos extraídos (para enviar al backend)
-let _coverFromMeta  = false;  // la portada actual vino embebida en el audio
+// ═══════════════ METADATOS DE AUDIO (por archivo) ═══════════════
+let _coverFromMeta  = false;  // la portada global actual vino embebida en el audio
 let _mmPromise      = null;
 
 function loadMusicMetadata() {
@@ -1514,38 +1519,38 @@ function _audioDurationFallback(file) {
   });
 }
 
-// Extrae metadatos del audio y rellena el formulario automáticamente
-async function autofillAudioMeta(file) {
-  if (!file) return;
-  renderAudioPanel({ loading: true, file });
+// Extrae los metadatos de un archivo → objeto { mediaType, title, artist, coverFile, coverUrl, duration, container }
+async function extractFileMeta(file) {
+  const mediaType = _mediaTypeOf(file);
+  const out = { mediaType, name: file.name };
 
+  if (mediaType === 'image') {
+    out.title = _stripExt(file.name);
+    out.coverUrl = URL.createObjectURL(file);   // la propia imagen como vista previa
+    return out;
+  }
+  if (mediaType !== 'audio') {
+    out.title = _stripExt(file.name);
+    return out;
+  }
+
+  // ── AUDIO ──
   const ext   = _fileExt(file);
   const isMp4 = ['m4a','mp4','m4b','aac','m4v'].includes(ext) || /mp4|m4a|aac|x-m4a/i.test(file.type || '');
-
-  // Etiquetas + carátula:
-  //  1) Para M4A/MP4 → lector propio de átomos MP4 (JS puro, sin depender de nada)
-  //  2) Si no → jsmediatags (MP3/otros)
   let tags = null;
   if (isMp4) { try { tags = await parseMp4Tags(file); } catch (e) { console.warn('[mp4parse]', e && e.message); } }
   if (!tags || (!tags.title && !tags.artist && !tags.picture)) {
     try { const jt = await readJsMediaTags(file); if (jt) tags = { ...(jt || {}), ...(tags || {}) }; } catch {}
   }
-
-  // Datos técnicos (bitrate, kHz, canales) con music-metadata (best-effort)
-  let meta = null;
+  let mm = null;
   try {
-    const mm = await loadMusicMetadata();
-    if (mm && mm.parseBlob) meta = await mm.parseBlob(file, { duration: true });
+    const lib = await loadMusicMetadata();
+    if (lib && lib.parseBlob) mm = await lib.parseBlob(file, { duration: true });
   } catch (e) { console.warn('[music-metadata] parse:', e && e.message); }
 
-  await applyAudioMeta(file, meta, tags);
-}
-
-async function applyAudioMeta(file, meta, jtags) {
-  const common = (meta && meta.common) || {};
-  const format = (meta && meta.format) || {};
-  const jt     = jtags || {};
-
+  const common = (mm && mm.common) || {};
+  const format = (mm && mm.format) || {};
+  const jt     = tags || {};
   const pick = (...vals) => {
     for (const v of vals) {
       const s = (Array.isArray(v) ? _joinTag(v) : (v == null ? '' : String(v))).trim();
@@ -1553,52 +1558,28 @@ async function applyAudioMeta(file, meta, jtags) {
     }
     return '';
   };
-  const digits = (v) => String(v || '').replace(/\D+/g, '');
-  const yearOf = (v) => (String(v || '').match(/\d{4}/) || [''])[0];
 
-  const title  = pick(common.title, jt.title) || _stripExt(file.name);
-  const artist = pick(common.artist, common.albumartist, jt.artist);
+  out.title  = pick(common.title, jt.title) || _stripExt(file.name);
+  out.artist = pick(common.artist, common.albumartist, jt.artist);
 
-  // Rellenar campos si están vacíos (respetar lo que el usuario ya escribió)
-  const tEl = document.getElementById('pubTitle');
-  const aEl = document.getElementById('pubAuthor');
-  if (tEl && !tEl.value.trim()) tEl.value = title;
-  if (aEl && !aEl.value.trim() && artist) aEl.value = artist;
-
-  // Duración: de la librería o respaldo con <audio>
   let duration = Number(format.duration) || 0;
   if (!duration) { try { duration = await _audioDurationFallback(file); } catch {} }
+  out.duration  = duration ? Math.round(duration) : 0;
+  out.container = (format.container || '').toUpperCase();
 
-  // Bitrate: de la librería o aproximado por tamaño/duración
-  let bitrate = Number(format.bitrate) || 0;
-  if (!bitrate && duration) bitrate = Math.round((file.size * 8) / duration);
-
-  // Portada embebida (music-metadata o jsmediatags) → File
-  const pic = _extractPicture(meta, jtags);
-  if (pic && (!_coverFile || _coverFromMeta)) {
+  const pic = _extractPicture(mm, tags);
+  if (pic) {
     try {
       let fmt = pic.format || 'image/jpeg';
       if (!/^image\//i.test(fmt)) fmt = 'image/' + String(fmt).replace(/^\./, '');
       if (!/^image\/(jpeg|jpg|png|webp)$/i.test(fmt)) fmt = 'image/jpeg';
       fmt = fmt.replace('jpg', 'jpeg');
-      const ext = (fmt.split('/')[1] || 'jpg');
-      _coverFile = new File([new Blob([pic.data], { type: fmt })], `cover.${ext}`, { type: fmt });
-      _coverFromMeta = true;
-      _setCoverPreview(_coverFile, 'Portada embebida del audio');
+      const cext = (fmt.split('/')[1] || 'jpg');
+      out.coverFile = new File([new Blob([pic.data], { type: fmt })], `cover.${cext}`, { type: fmt });
+      out.coverUrl  = URL.createObjectURL(out.coverFile);
     } catch (e) { console.warn('[cover embed]', e && e.message); }
   }
-
-  // Solo lo esencial para la vista previa (no se guarda en la base de datos)
-  _audioMeta = {
-    forName:   file.name,
-    title, artist,
-    duration:  duration ? String(Math.round(duration)) : '',
-    container: format.container || '',
-    codec:     format.codec || ''
-  };
-
-  renderAudioPanel({ file, meta: _audioMeta, coverFile: _coverFile });
-  updateMediaFields();
+  return out;
 }
 
 function _setCoverPreview(file, label) {
@@ -1614,67 +1595,53 @@ function _setCoverPreview(file, label) {
   if (clr) clr.style.display = '';
 }
 
-function renderAudioPanel(state) {
-  const panel = document.getElementById('audioMetaPanel');
-  if (!panel) return;
+// Íconos placeholder de portada según el tipo
+const _CARD_ICON = {
+  audio: '<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  video: '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/></svg>',
+  image: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  file:  '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+};
 
-  if (state && state.loading) {
-    panel.style.display = '';
-    panel.innerHTML = `
-      <div class="ameta-card ameta-loading">
-        <div class="ameta-cover"><span class="ameta-spin"></span></div>
-        <div class="ameta-main">
-          <div class="ameta-title">Leyendo metadatos…</div>
-          <div class="ameta-artist">${escapeHtml(state.file ? state.file.name : '')}</div>
-        </div>
-      </div>`;
-    return;
-  }
+// Tarjeta de un archivo seleccionado (mismo diseño que la portada detectada)
+function pubCardHTML(f, i) {
+  const meta = _fileMeta.get(_fileKey(f)) || { mediaType: _mediaTypeOf(f), loading: _isAudio(f) };
+  const mt   = meta.mediaType || _mediaTypeOf(f);
+  const typeLabel = mt === 'audio' ? '♪ Audio' : mt === 'video' ? '▶ Video' : mt === 'image' ? '🖼 Imagen' : '📄 Archivo';
 
-  const m = state && state.meta;
-  if (!m) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+  let cover;
+  if (meta.loading)        cover = `<span class="ameta-spin"></span>`;
+  else if (meta.coverUrl)  cover = `<img src="${escapeHtml(meta.coverUrl)}" alt="">`;
+  else                     cover = _CARD_ICON[mt] || _CARD_ICON.file;
 
-  let coverHTML;
-  if (state.coverFile) {
-    const url = URL.createObjectURL(state.coverFile);
-    coverHTML = `<img src="${url}" alt="" onload="URL.revokeObjectURL(this.src)">`;
-  } else {
-    coverHTML = `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
-  }
+  const badge = meta.loading ? 'Leyendo…'
+              : (mt === 'audio' && meta.coverFile) ? 'Portada detectada' : typeLabel;
+  const titleTxt = meta.title || _stripExt(f.name);
 
-  // Solo lo básico: tipo, duración y tamaño
-  const chips = ['♪ Audio'];
-  if (m.duration) chips.push(_fmtDuration(m.duration));
-  const fmtLabel = (m.container || m.codec || (state.file ? _fileExt(state.file) : '')).toUpperCase();
+  const chips = [typeLabel];
+  if (meta.duration) chips.push(_fmtDuration(meta.duration));
+  const fmtLabel = (meta.container || _fileExt(f)).toUpperCase();
   if (fmtLabel) chips.push(fmtLabel);
-  if (state.file) chips.push(formatBytes(state.file.size));
+  chips.push(formatBytes(f.size));
 
-  panel.style.display = '';
-  panel.innerHTML = `
-    <div class="ameta-card">
-      <div class="ameta-cover">${coverHTML}</div>
-      <div class="ameta-main">
-        <div class="ameta-badge">Portada detectada</div>
-        <div class="ameta-title">${escapeHtml(m.title || '')}</div>
-        ${m.artist ? `<div class="ameta-artist">${escapeHtml(m.artist)}</div>` : ''}
-        <div class="ameta-chips">${chips.map(c => `<span class="ameta-chip">${escapeHtml(c)}</span>`).join('')}</div>
+  return `
+    <div class="pub-card${meta.loading ? ' is-loading' : ''}">
+      <div class="pub-card-cover pub-card-cover--${mt}">${cover}</div>
+      <div class="pub-card-main">
+        <div class="pub-card-badge">${escapeHtml(badge)}</div>
+        <div class="pub-card-title">${escapeHtml(titleTxt)}</div>
+        ${meta.artist ? `<div class="pub-card-artist">${escapeHtml(meta.artist)}</div>` : ''}
+        <div class="pub-card-chips">${chips.map(c => `<span class="ameta-chip">${escapeHtml(c)}</span>`).join('')}</div>
       </div>
+      <button class="pub-card-remove" type="button" aria-label="Quitar archivo" onclick="removeSelectedFile(${i})">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
     </div>`;
 }
 
-function _thumbHTML(f) {
-  if (_isImage(f)) {
-    const url = URL.createObjectURL(f);
-    return `<img src="${url}" alt="" onload="URL.revokeObjectURL(this.src)">`;
-  }
-  const ext = _fileExt(f) || 'doc';
-  return `<span class="pub-file-ext">${escapeHtml(ext.slice(0,4))}</span>`;
-}
-
 function renderSelectedFiles() {
-  const list   = document.getElementById('pubFileList');
-  const zone   = document.getElementById('uploadZone');
-  const title  = document.getElementById('uploadTitle');
+  const list  = document.getElementById('pubFileList');
+  const title = document.getElementById('uploadTitle');
   if (!list) return;
 
   if (_selectedFiles.length === 0) {
@@ -1690,18 +1657,7 @@ function renderSelectedFiles() {
     : `${_selectedFiles.length} archivos seleccionados`;
 
   list.style.display = 'flex';
-  list.innerHTML = _selectedFiles.map((f, i) => `
-    <div class="pub-file-row">
-      <div class="pub-file-thumb">${_thumbHTML(f)}</div>
-      <div class="pub-file-info">
-        <div class="pub-file-name">${escapeHtml(f.name)}</div>
-        <div class="pub-file-size">${formatBytes(f.size)}</div>
-      </div>
-      <button class="pub-file-remove" type="button" aria-label="Quitar archivo" onclick="removeSelectedFile(${i})">
-        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-  `).join('');
+  list.innerHTML = _selectedFiles.map((f, i) => pubCardHTML(f, i)).join('');
 
   updateMediaFields();
 }
@@ -1741,24 +1697,59 @@ function clearCover() {
 
 function handleFileSelect(input) {
   const incoming = Array.from(input.files || []);
+  const added = [];
   for (const f of incoming) {
     const dup = _selectedFiles.some(x => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified);
-    if (!dup) _selectedFiles.push(f);
+    if (!dup) { _selectedFiles.push(f); added.push(f); }
   }
   input.value = '';
+
+  // Marcar audios como "cargando" para el spinner de la tarjeta
+  for (const f of added) {
+    if (_isAudio(f)) _fileMeta.set(_fileKey(f), { mediaType: 'audio', loading: true });
+  }
   renderSelectedFiles();
-  // Extraer metadatos automáticamente del primer audio seleccionado
-  const firstAudio = incoming.find(_isAudio);
-  if (firstAudio) autofillAudioMeta(firstAudio);
+
+  // Extraer metadatos de cada archivo nuevo (por archivo)
+  const firstAudioIdx = added.findIndex(_isAudio);
+  added.forEach((f, idx) => {
+    extractFileMeta(f).then(meta => {
+      _fileMeta.set(_fileKey(f), meta);
+      // Autocompletar los campos globales con el PRIMER audio (para 1 archivo)
+      if (idx === firstAudioIdx) {
+        const tEl = document.getElementById('pubTitle');
+        const aEl = document.getElementById('pubAuthor');
+        if (tEl && !tEl.value.trim() && meta.title)  tEl.value = meta.title;
+        if (aEl && !aEl.value.trim() && meta.artist) aEl.value = meta.artist;
+        if (meta.coverFile && (!_coverFile || _coverFromMeta)) {
+          _coverFile = meta.coverFile; _coverFromMeta = true;
+          _setCoverPreview(_coverFile, 'Portada embebida del audio');
+        }
+      }
+      renderSelectedFiles();
+    }).catch(() => {
+      _fileMeta.set(_fileKey(f), { mediaType: _mediaTypeOf(f), title: _stripExt(f.name) });
+      renderSelectedFiles();
+    });
+  });
 }
 
 function removeSelectedFile(index) {
+  const f = _selectedFiles[index];
+  if (f) {
+    const m = _fileMeta.get(_fileKey(f));
+    if (m && m.coverUrl) { try { URL.revokeObjectURL(m.coverUrl); } catch {} }
+    _fileMeta.delete(_fileKey(f));
+  }
   _selectedFiles.splice(index, 1);
   renderSelectedFiles();
 }
 
 function clearPublishState() {
   _selectedFiles = [];
+  // liberar object URLs de las portadas por archivo
+  _fileMeta.forEach(m => { if (m && m.coverUrl) { try { URL.revokeObjectURL(m.coverUrl); } catch {} } });
+  _fileMeta.clear();
   const t = document.getElementById('pubTitle');
   const d = document.getElementById('pubDesc');
   const a = document.getElementById('pubAuthor');
@@ -1768,9 +1759,6 @@ function clearPublishState() {
   if (a) a.value = '';
   if (i) i.value = '';
   clearCover();
-  _audioMeta = null;
-  const panel = document.getElementById('audioMetaPanel');
-  if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
   renderSelectedFiles();
 }
 
@@ -1787,16 +1775,20 @@ function handlePublishBack() {
 }
 
 async function handlePublish() {
-  const title  = document.getElementById('pubTitle')?.value.trim();
-  const desc   = document.getElementById('pubDesc')?.value.trim();
-  const author = document.getElementById('pubAuthor')?.value.trim();
-  const btn    = document.getElementById('pubBtn');
-  const btn2   = document.getElementById('pubBtn2');
+  const gTitle  = document.getElementById('pubTitle')?.value.trim();
+  const desc    = document.getElementById('pubDesc')?.value.trim();
+  const gAuthor = document.getElementById('pubAuthor')?.value.trim();
+  const btn     = document.getElementById('pubBtn');
+  const btn2    = document.getElementById('pubBtn2');
 
   if (_selectedFiles.length === 0) {
     showToast('Selecciona al menos un archivo', 'error');
     return;
   }
+
+  const single = _selectedFiles.length === 1;
+  // Portada manual global (si el usuario subió una propia)
+  const manualCover = (_coverFile && !_coverFromMeta) ? _coverFile : null;
 
   setBtnLoading(btn, true);
   setBtnLoading(btn2, true);
@@ -1804,14 +1796,18 @@ async function handlePublish() {
   let ok = 0, failed = 0;
   for (let i = 0; i < _selectedFiles.length; i++) {
     const f = _selectedFiles[i];
+    const meta = _fileMeta.get(_fileKey(f)) || {};
+    // Título/autor/portada por archivo (cada canción con lo suyo)
+    const effTitle  = (single && gTitle) ? gTitle : (meta.title || _stripExt(f.name));
+    const effAuthor = _isAudio(f) ? ((single && gAuthor) ? gAuthor : (meta.artist || '')) : '';
+    const effCover  = (_isAudio(f) || _isVideo(f)) ? (manualCover || meta.coverFile || null) : null;
     try {
       const fd = new FormData();
       fd.append('file', f);
-      if (title)  fd.append('title', _selectedFiles.length > 1 ? `${title} (${i + 1}/${_selectedFiles.length})` : title);
-      if (desc)   fd.append('description', desc);
-      // Autor y portada aplican a canciones/videos (nada más — sin metadatos técnicos)
-      if (author && _isAudio(f)) fd.append('author', author);
-      if (_coverFile && (_isAudio(f) || _isVideo(f))) fd.append('cover', _coverFile);
+      if (effTitle)  fd.append('title', effTitle);
+      if (desc)      fd.append('description', desc);
+      if (effAuthor) fd.append('author', effAuthor);
+      if (effCover)  fd.append('cover', effCover);
       await API.publishFile(fd);
       ok++;
     } catch (e) {
