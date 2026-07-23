@@ -63,8 +63,8 @@ export async function onRequestPost(context) {
 
   const mimeType     = fileInput.type || 'application/octet-stream';
   const originalName = fileInput.name || 'file';
-  const safeFilename = sanitizeUploadName(originalName);
-  const title        = String(form.get('title')       || '').trim().slice(0, 120) || safeFilename;
+  const safeFilename = sanitizeUploadName(originalName); // solo para la ruta de almacenamiento
+  const title        = String(form.get('title')       || '').trim().slice(0, 120) || originalName;
   const description  = String(form.get('description') || '').trim().slice(0, 500);
   const projectId    = String(form.get('projectId')   || '').trim();
   const author       = String(form.get('author')      || '').trim().slice(0, 120);
@@ -107,7 +107,7 @@ export async function onRequestPost(context) {
 
   const fileMeta = {
     fileId, id: fileId,
-    fileName: safeFilename, originalName, name: safeFilename,
+    fileName: originalName, originalName, name: originalName,
     title, description, mimeType,
     author, mediaType, coverUrl,
     fileSize: fileBytes.byteLength, size: fileBytes.byteLength,
