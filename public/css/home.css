@@ -183,8 +183,13 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 
 /* ═══════════════════════ PAGE SCAFFOLD ═══════════════════════ */
 .page-wrap{position:fixed;inset:0;padding-top:var(--topbar-h);overflow-y:auto;background:var(--white)}
-.page{display:none;padding:0 18px 40px;max-width:520px;margin:0 auto}
+/* El contenido principal aprovecha el ancho disponible en pantallas grandes,
+   manteniendo márgenes laterales uniformes y centrado. */
+.page{display:none;padding:0 clamp(18px,2.6vw,44px) 40px;max-width:1600px;margin:0 auto}
 .page.active{display:block;animation:fadeUp .28s var(--ease) both}
+/* Páginas tipo formulario: se mantienen a un ancho cómodo y centrado */
+#page-nueva,#page-nuevo-proyecto{max-width:720px}
+@media (min-width:1920px){.page{max-width:1780px}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 
 /* ═══════════════════════ BUTTONS ═══════════════════════ */
@@ -214,6 +219,10 @@ body{font-family:'Sora',sans-serif;background:var(--white);color:var(--ink);font
 
 /* ═══════════════════════ STATS GRID ═══════════════════════ */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+/* Tablet: más aire; Laptop y superiores: 4 columnas (las 4 tarjetas en una fila,
+   la de "actividad reciente" ocupa el ancho completo con grid-column:1/-1). */
+@media (min-width:768px){.stats-grid{gap:14px}}
+@media (min-width:1024px){.stats-grid{grid-template-columns:repeat(4,1fr);gap:16px}}
 .stat-card{background:rgba(0,0,0,.025);border-radius:var(--r);border:1px solid rgba(0,0,0,.07);padding:18px 16px 16px;transition:background .18s;cursor:default}
 .stat-card:hover{background:rgba(0,0,0,.04)}
 .stat-card.full{grid-column:1/-1}
