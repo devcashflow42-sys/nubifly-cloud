@@ -9,26 +9,25 @@
  *   0. CORS preflight
  *   1. Detección de payloads maliciosos (SQLi, XSS, path traversal…)
  *   2. Validación de variables de entorno requeridas
- *   3. Resolución del token Firebase
+ *   3. Conexión a PostgreSQL (context.data.sql)
  *   4. Detección de bots y herramientas de ataque
- *   5. Rate limiting por IP (auth y admin — Firebase RTDB)
- *   6. Validación de firma HMAC-SHA256 (Capa 3 original)
+ *   5. Rate limiting por IP (auth y admin — PostgreSQL)
+ *   6. Validación de firma HMAC-SHA256
  *   7. Routing → handler
  *   8. Cabeceras de seguridad en la respuesta final
  *
  * Variables de entorno requeridas:
- *   FIREBASE_DATABASE_URL  — URL de la Realtime Database
- *   JWT_SECRET             — firma del accessToken
- *   APP_SECRET             — clave HMAC para verificar peticiones (Capa 6)
+ *   DATABASE_URL  — cadena de conexión PostgreSQL
+ *   JWT_SECRET    — firma del accessToken
+ *   APP_SECRET    — clave HMAC para verificar peticiones (Capa 6)
  *
  * Opcionales:
- *   JWT_REFRESH_SECRET       — firma del refreshToken
- *   FIREBASE_DB_SECRET       — Database Secret (alternativa a Service Account)
- *   FIREBASE_SERVICE_ACCOUNT — JSON del Service Account
- *   SKIP_REQUEST_SIGNING     — 'true' para desactivar Capa 6 (solo desarrollo)
+ *   JWT_REFRESH_SECRET   — firma del refreshToken
+ *   ADMIN_EMAIL          — correo del administrador (rol admin automático)
+ *   SKIP_REQUEST_SIGNING — 'true' para desactivar Capa 6 (solo desarrollo)
  */
 
-import { getFirebaseToken }                    from '../_lib/firebase.js';
+import { getDb, endDb }                        from '../_lib/db.js';
 import { validateRequest }                     from '../_lib/request-validator.js';
 import { CORS_HEADERS }                        from '../_lib/response.js';
 import {
@@ -78,14 +77,13 @@ const AUTH_PREFIXES = [
 const ADMIN_PREFIXES = ['/api/admin'];
 
 // ── Endpoints de pago públicos (sin login/firma) — limitar por IP ─────────────
-// El webhook queda fuera: lo llama Stripe y puede llegar en ráfagas.
 const PAYMENT_PREFIXES = ['/api/payment/checkout', '/api/payment/session'];
 
 function getRLType(pathname) {
   if (AUTH_PREFIXES.some(p    => pathname.startsWith(p))) return 'auth';
   if (ADMIN_PREFIXES.some(p   => pathname.startsWith(p))) return 'admin';
-  if (PAYMENT_PREFIXES.some(p => pathname.startsWith(p))) return 'admin'; // cupo moderado
-  return null; // sin Firebase RL para endpoints de usuario (evita latencia)
+  if (PAYMENT_PREFIXES.some(p => pathname.startsWith(p))) return 'admin';
+  return null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,33 +114,21 @@ export async function onRequest(context) {
   }
 
   // ── 2. Validar variables de entorno críticas ──────────────────────────────
-  if (!env.FIREBASE_DATABASE_URL || !env.JWT_SECRET) {
+  if (!env.DATABASE_URL || !env.JWT_SECRET) {
     return deny('SERVICE_UNAVAILABLE', 'Servicio no disponible.', 503, rid);
   }
 
-  // ── 3. Resolver token Firebase ────────────────────────────────────────────
-  let tok;
-  if (env.FIREBASE_DB_SECRET) {
-    tok = `secret:${env.FIREBASE_DB_SECRET}`;
-  } else {
-    if (!env.FIREBASE_SERVICE_ACCOUNT) {
-      return deny('SERVICE_UNAVAILABLE', 'Servicio no disponible.', 503, rid);
-    }
-    let sa;
-    try {
-      sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
-      if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
-    } catch {
-      return deny('SERVICE_UNAVAILABLE', 'Servicio no disponible.', 503, rid);
-    }
-    try { tok = await getFirebaseToken(sa); }
-    catch {
-      return deny('SERVICE_UNAVAILABLE', 'Servicio no disponible.', 503, rid);
-    }
+  // ── 3. Conexión a PostgreSQL ──────────────────────────────────────────────
+  let sql;
+  try { sql = getDb(env); }
+  catch {
+    return deny('SERVICE_UNAVAILABLE', 'Servicio no disponible.', 503, rid);
   }
+  context.data.sql = sql;
+  context.data.env = env;
 
-  context.data.tok = tok;
-  context.data.db  = env.FIREBASE_DATABASE_URL.replace(/\/$/, '');
+  // Cerrar la conexión al terminar la petición (no bloquea la respuesta)
+  const closeDb = () => { try { context.waitUntil(endDb(sql)); } catch { endDb(sql); } };
 
   // ── 4. Detección de bots / herramientas de ataque ─────────────────────────
   const ua         = request.headers.get('User-Agent') || '';
@@ -151,16 +137,16 @@ export async function onRequest(context) {
   const uaResult   = analyzeUA(ua);
 
   if (uaResult.blocked) {
-    // Herramienta de ataque confirmada — siempre bloquear
     logSec('critical', 'ATTACK_TOOL', { ip, tool: uaResult.tool, path: url.pathname, ua });
-    persistSecEvent('ATTACK_TOOL', { ip, tool: uaResult.tool, path: url.pathname }, tok, context.data.db);
+    persistSecEvent('ATTACK_TOOL', { ip, tool: uaResult.tool, path: url.pathname }, sql);
+    closeDb();
     return deny('ACCESS_DENIED', 'Solicitud inválida o acceso no autorizado.', 403, rid);
   }
 
   if (!hasToken && uaResult.risk === 'medium') {
-    // Herramienta de automatización sin token — bloquear en auth, advertir en otros
     if (isAuthPath) {
       logSec('high', 'AUTOMATION_BLOCKED', { ip, tool: uaResult.tool, path: url.pathname });
+      closeDb();
       return deny('ACCESS_DENIED', 'Solicitud inválida o acceso no autorizado.', 403, rid);
     }
     logSec('medium', 'AUTOMATION_OBSERVED', { ip, tool: uaResult.tool, path: url.pathname });
@@ -170,33 +156,35 @@ export async function onRequest(context) {
   const rlType = getRLType(url.pathname);
   if (rlType) {
     let rl;
-    try { rl = await checkRateLimit(ip, rlType, tok, context.data.db); }
-    catch { rl = { limited: false }; } // no bloquear si Firebase falla en RL
+    try { rl = await checkRateLimit(ip, rlType, sql); }
+    catch { rl = { limited: false }; }
 
     if (rl.limited) {
       logSec('high', 'RATE_LIMITED', { ip, path: url.pathname, type: rlType, retryAfter: rl.retryAfter });
       const res = deny('RATE_LIMITED', 'Demasiadas solicitudes. Inténtalo más tarde.', 429, rid);
       res.headers?.set?.('Retry-After', String(rl.retryAfter));
+      closeDb();
       return res;
     }
   }
 
-  // ── 6. Validar firma HMAC-SHA256 (Capa 3 original) ───────────────────────
+  // ── 6. Validar firma HMAC-SHA256 ──────────────────────────────────────────
   const skipSigning = env.SKIP_REQUEST_SIGNING === 'true';
   const isExempt    = isExemptFromSigning(url.pathname);
 
   if (!skipSigning && !isExempt) {
-    const result = await validateRequest(request, env, tok, context.data.db);
-    if (result.error) return withSecurityHeaders(result.error, rid);
+    const result = await validateRequest(request, env, sql);
+    if (result.error) { closeDb(); return withSecurityHeaders(result.error, rid); }
   }
 
   // ── 7. Routing al handler + 8. Cabeceras de seguridad en la respuesta ────
   try {
     const response = await context.next();
+    closeDb();
     return withSecurityHeaders(response, rid);
   } catch (err) {
-    // Nunca exponer errores internos, stack traces ni rutas del servidor
     console.error('[middleware] unhandled:', err?.message || 'unknown');
+    closeDb();
     return deny('SERVER_ERROR', 'Error procesando la solicitud.', 500, rid);
   }
 }

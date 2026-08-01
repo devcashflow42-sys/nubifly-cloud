@@ -3,7 +3,6 @@
  * CAPA 3 — Validación de firma HMAC-SHA256 por petición
  */
 
-import { fbGet, fbSet, fbDelete } from './firebase.js';
 import { jsonRes, fail }          from './response.js';
 
 const TIMESTAMP_TOLERANCE_MS = 30_000;
@@ -53,7 +52,7 @@ function sanitizeNonce(nonce) {
   return nonce.replace(/[^a-zA-Z0-9\-_]/g, '').slice(0, 64);
 }
 
-export async function validateRequest(request, env, tok, db) {
+export async function validateRequest(request, env, sql) {
   const timestamp = request.headers.get('X-Timestamp');
   const nonce     = request.headers.get('X-Nonce');
   const signature = request.headers.get('X-Signature');
@@ -79,11 +78,11 @@ export async function validateRequest(request, env, tok, db) {
   }
 
   const safeNonce = sanitizeNonce(nonce);
-  const nonceKey  = `nonceStore/${safeNonce}`;
   let existingNonce = null;
 
   try {
-    existingNonce = await fbGet(nonceKey, tok, db);
+    const rows = await sql`select nonce from nonce_store where nonce = ${safeNonce} and exp > ${now}`;
+    existingNonce = rows.length ? rows[0] : null;
   } catch (e) {
     console.error('[request-validator] Error consultando nonce:', e.message);
     return {
@@ -119,30 +118,21 @@ export async function validateRequest(request, env, tok, db) {
     }
   }
 
-  fbSet(nonceKey, { ts: now, exp: now + NONCE_TTL_MS }, tok, db).catch(e => {
-    console.warn('[request-validator] No se pudo guardar nonce:', e.message);
-  });
+  sql`insert into nonce_store (nonce, ts, exp) values (${safeNonce}, ${now}, ${now + NONCE_TTL_MS})
+      on conflict (nonce) do update set ts = ${now}, exp = ${now + NONCE_TTL_MS}`
+    .catch(e => { console.warn('[request-validator] No se pudo guardar nonce:', e.message); });
 
   if (Math.random() < NONCE_CLEANUP_CHANCE) {
-    cleanupExpiredNonces(tok, db);
+    cleanupExpiredNonces(sql);
   }
 
   return { ok: true };
 }
 
-export async function cleanupExpiredNonces(tok, db) {
+export async function cleanupExpiredNonces(sql) {
   try {
-    const all = await fbGet('nonceStore', tok, db);
-    if (!all) return 0;
-    const now     = Date.now();
-    const expired = Object.entries(all)
-      .filter(([, v]) => v && v.exp < now)
-      .map(([k]) => k);
-    if (expired.length === 0) return 0;
-    await Promise.all(
-      expired.map(k => fbDelete(`nonceStore/${k}`, tok, db).catch(() => {}))
-    );
-    return expired.length;
+    const res = await sql`delete from nonce_store where exp < ${Date.now()}`;
+    return res.count || 0;
   } catch (e) {
     console.warn('[request-validator] Error en cleanup:', e.message);
     return 0;

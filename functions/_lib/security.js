@@ -14,7 +14,8 @@
  *   5. Registro privado de eventos de seguridad
  */
 
-import { fbGet, fbUpdate } from './firebase.js';
+// Nota: el rate-limit y los eventos de seguridad se guardan en PostgreSQL
+// (tablas security_rl y security_events). Se recibe el cliente `sql` por parámetro.
 
 // ═══════════════════════════════════════════════════════════════
 // ║  CABECERAS DE SEGURIDAD
@@ -222,25 +223,30 @@ async function ipHash(ip, salt = '') {
  *
  * @returns {{ limited: bool, remaining: int, retryAfter: int }}
  */
-export async function checkRateLimit(ip, type, tok, db) {
-  const cfg  = RL_CONFIG[type] || RL_CONFIG.api;
-  const key  = await ipHash(ip, type);
-  const path = `security/rl/${key}`;
-  const now  = Date.now();
+export async function checkRateLimit(ip, type, sql) {
+  const cfg = RL_CONFIG[type] || RL_CONFIG.api;
+  const key = await ipHash(ip, type);
+  const now = Date.now();
 
   let data = null;
-  try { data = await fbGet(path, tok, db); } catch { /* no bloquear si Firebase falla */ }
+  try {
+    const rows = await sql`select data from security_rl where rl_key = ${key}`;
+    data = rows[0]?.data || null;
+  } catch { /* no bloquear si la BD falla */ }
+
+  const save = (payload) => {
+    sql`insert into security_rl (rl_key, data, updated)
+        values (${key}, ${sql.json(payload)}, ${now})
+        on conflict (rl_key) do update set data = ${sql.json(payload)}, updated = ${now}`
+      .catch(() => {});
+  };
 
   // ── IP temporalmente bloqueada ─────────────────────────────────────────
   if (data?.blockedUntil && data.blockedUntil > now) {
-    return {
-      limited:     true,
-      remaining:   0,
-      retryAfter:  Math.ceil((data.blockedUntil - now) / 1000),
-    };
+    return { limited: true, remaining: 0, retryAfter: Math.ceil((data.blockedUntil - now) / 1000) };
   }
 
-  // ── Calcular contador en la ventana actual ─────────────────────────────
+  // ── Contador en la ventana actual ──────────────────────────────────────
   const inWindow    = data?.windowStart && (now - data.windowStart < cfg.windowMs);
   const count       = inWindow ? (data.count || 0) + 1 : 1;
   const windowStart = inWindow ? data.windowStart : now;
@@ -251,26 +257,13 @@ export async function checkRateLimit(ip, type, tok, db) {
     const newViolations = violations + 1;
     const blockMs       = BLOCK_LADDER_MS[Math.min(newViolations - 1, BLOCK_LADDER_MS.length - 1)];
     const blockedUntil  = now + blockMs;
-
-    fbUpdate({ [path]: { count, windowStart, violations: newViolations, blockedUntil } }, tok, db)
-      .catch(() => {});
-
-    return {
-      limited:    true,
-      remaining:  0,
-      retryAfter: Math.ceil(blockMs / 1000),
-    };
+    save({ count, windowStart, violations: newViolations, blockedUntil });
+    return { limited: true, remaining: 0, retryAfter: Math.ceil(blockMs / 1000) };
   }
 
-  // ── Dentro del límite: actualizar contador ────────────────────────────
-  fbUpdate({ [path]: { count, windowStart, violations, blockedUntil: 0 } }, tok, db)
-    .catch(() => {});
-
-  return {
-    limited:   false,
-    remaining: cfg.max - count,
-    retryAfter: 0,
-  };
+  // ── Dentro del límite ─────────────────────────────────────────────────
+  save({ count, windowStart, violations, blockedUntil: 0 });
+  return { limited: false, remaining: cfg.max - count, retryAfter: 0 };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -289,13 +282,14 @@ export function logSec(level, event, meta = {}) {
 }
 
 /**
- * Persiste un evento de seguridad grave en Firebase (best-effort).
- * Path: security/events/{timestamp_random}
+ * Persiste un evento de seguridad grave en PostgreSQL (best-effort).
  */
-export function persistSecEvent(event, meta, tok, db) {
-  if (!tok || !db) return;
-  const key = `security/events/${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  fbUpdate({ [key]: { ts: Date.now(), event, ...meta } }, tok, db).catch(() => {});
+export function persistSecEvent(event, meta, sql) {
+  if (!sql) return;
+  const id = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  sql`insert into security_events (event_id, kind, ip, details, ts)
+      values (${id}, ${event}, ${meta?.ip || null}, ${sql.json(meta || {})}, ${Date.now()})`
+    .catch(() => {});
 }
 
 // ═══════════════════════════════════════════════════════════════

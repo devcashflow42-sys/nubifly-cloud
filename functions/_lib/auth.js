@@ -3,11 +3,11 @@
  *
  * Helpers de autenticación: validación de JWT, API keys de proyecto
  * y API keys de usuario, más el resolver para Authorization: Bearer.
+ * Datos en PostgreSQL (context.data.sql).
  */
 import { verifyJwt } from './crypto.js';
-import { fbGet }     from './firebase.js';
-import { encodeApiKey } from './helpers.js';
 import { jsonRes, fail } from './response.js';
+import { rowToControl, rowToProject, rowToApiKey } from './models.js';
 
 // ─── JWT guard ──────────────────────────────────────────────
 // Retorna el payload del JWT o null si no hay token / es inválido.
@@ -21,15 +21,17 @@ export async function authenticate(request, env) {
 }
 
 // ─── Project API Key — usado por endpoints v1 legacy ────────
-export async function validateApiKey(apiKey, tok, db) {
+export async function validateApiKey(apiKey, sql) {
   if (!apiKey) return null;
-  const index = await fbGet(`apiKeyIndex/${encodeApiKey(apiKey)}`, tok, db);
-  if (!index) return null;
-  const { projectId, ownerId } = index;
-  const [project, control] = await Promise.all([
-    fbGet(`projects/${projectId}`, tok, db),
-    fbGet(`controlUsers/${ownerId}`, tok, db)
+  const idx = (await sql`select project_id, owner_id from api_key_index where api_key = ${apiKey}`)[0];
+  if (!idx) return null;
+  const { project_id: projectId, owner_id: ownerId } = idx;
+  const [projectRow, controlRow] = await Promise.all([
+    sql`select * from projects where project_id = ${projectId}`,
+    sql`select * from control_users where uid = ${ownerId}`
   ]);
+  const project = rowToProject(projectRow[0]);
+  const control = rowToControl(controlRow[0]);
   if (!project) return null;
   if (control?.ban?.isBanned) return { err: 'OWNER_BANNED' };
   if (control?.suspension?.isSuspended) {
@@ -41,15 +43,13 @@ export async function validateApiKey(apiKey, tok, db) {
 }
 
 // ─── User API Key — lookup vía índice ───────────────────────
-// Returns { uid, keyId, keyData } on success
-//         { err, message }          on disabled key
-//         null                      when key not found
-export async function validateUserApiKey(apiKey, tok, db) {
+export async function validateUserApiKey(apiKey, sql) {
   if (!apiKey) return null;
-  const index = await fbGet(`userApiKeyIndex/${encodeApiKey(apiKey)}`, tok, db);
-  if (!index) return null;
-  const { uid, keyId } = index;
-  const keyData = await fbGet(`userApiKeys/${uid}/${keyId}`, tok, db);
+  const idx = (await sql`select uid, key_id from user_api_key_index where api_key = ${apiKey}`)[0];
+  if (!idx) return null;
+  const { uid, key_id: keyId } = idx;
+  const keyRow = (await sql`select * from user_api_keys where key_id = ${keyId}`)[0];
+  const keyData = rowToApiKey(keyRow);
   if (!keyData) return null;
   if (keyData.active === false)
     return { err: 'API_KEY_DISABLED', message: 'Esta API Key está desactivada.' };
@@ -66,19 +66,13 @@ export function extractBearerApiKey(request) {
 }
 
 // Resuelve el contexto de acceso para un Authorization: Bearer TU_API_KEY.
-// Acepta tanto user keys como project keys.
-//
-// Returns:
-//   { errorResponse }                                    on auth failure
-//   { access: { kind: 'userKey',    ownerId, apiKeyId, apiKeyName, projectId, keyData } }
-//   { access: { kind: 'projectKey', ownerId, apiKeyId:'', apiKeyName, projectId, keyData, project } }
-export async function resolveBearerApiKeyAccess(request, tok, db) {
+export async function resolveBearerApiKeyAccess(request, sql) {
   const apiKey = extractBearerApiKey(request);
   if (!apiKey) {
     return { errorResponse: jsonRes(fail('API Key requerida. Usa Authorization: Bearer TU_API_KEY.', 'API_KEY_MISSING'), 401) };
   }
 
-  const userKd = await validateUserApiKey(apiKey, tok, db);
+  const userKd = await validateUserApiKey(apiKey, sql);
   if (userKd?.err) {
     return { errorResponse: jsonRes({ success: false, error: userKd.err, message: userKd.message || 'Acceso denegado.' }, 403) };
   }
@@ -95,17 +89,17 @@ export async function resolveBearerApiKeyAccess(request, tok, db) {
     };
   }
 
-  // Project API key — validador relajado (solo bloquea cuentas explícitamente
-  // baneadas / suspendidas / inactivas; las cuentas legacy sin controlUsers
-  // se tratan como activas).
-  const index = await fbGet(`apiKeyIndex/${encodeApiKey(apiKey)}`, tok, db);
-  if (!index) return { errorResponse: jsonRes(fail('API Key inválida.', 'API_KEY_INVALID'), 401) };
+  // Project API key
+  const idx = (await sql`select project_id, owner_id from api_key_index where api_key = ${apiKey}`)[0];
+  if (!idx) return { errorResponse: jsonRes(fail('API Key inválida.', 'API_KEY_INVALID'), 401) };
 
-  const { projectId, ownerId } = index;
-  const [project, control] = await Promise.all([
-    fbGet(`projects/${projectId}`, tok, db),
-    fbGet(`controlUsers/${ownerId}`, tok, db).catch(() => null)
+  const { project_id: projectId, owner_id: ownerId } = idx;
+  const [projectRow, controlRow] = await Promise.all([
+    sql`select * from projects where project_id = ${projectId}`,
+    sql`select * from control_users where uid = ${ownerId}`
   ]);
+  const project = rowToProject(projectRow[0]);
+  const control = rowToControl(controlRow[0]);
   if (!project) return { errorResponse: jsonRes(fail('API Key inválida.', 'API_KEY_INVALID'), 401) };
 
   if (control?.ban?.isBanned) return { errorResponse: jsonRes(fail('Acceso denegado.', 'OWNER_BANNED'), 403) };
@@ -131,7 +125,6 @@ export async function resolveBearerApiKeyAccess(request, tok, db) {
 }
 
 // Helper que combina authenticate() + retorno de respuesta 401.
-// Útil para endpoints protegidos por JWT.
 export async function requireAuth(request, env) {
   const user = await authenticate(request, env);
   if (!user) {

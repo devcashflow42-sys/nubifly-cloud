@@ -1,13 +1,9 @@
 /**
- * GET /api/auth/guest/verify — verificar sesión activa de invitado
- *
+ * GET /api/auth/guest/verify — verificar sesión activa de invitado (PostgreSQL)
  * Authorization: Bearer <guestToken>
- *
- * Verifica: firma JWT, expiración, hash del token en Firebase,
- * expiración de la sesión y estado de suspensión.
  */
 import { verifyJwt }       from '../../../_lib/crypto.js';
-import { fbGet, fbUpdate } from '../../../_lib/firebase.js';
+import { rowToUser }       from '../../../_lib/models.js';
 import { jsonRes, fail }   from '../../../_lib/response.js';
 
 async function sha256hex(str) {
@@ -17,13 +13,12 @@ async function sha256hex(str) {
 
 export async function onRequestGet(context) {
   const { request, env } = context;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
   const h     = request.headers.get('Authorization') || '';
   const token = h.startsWith('Bearer ') ? h.slice(7) : null;
   if (!token) return jsonRes(fail('Token requerido.', 'UNAUTHORIZED'), 401);
 
-  // ── Verificar JWT ──────────────────────────────────────────────────────
   let payload;
   try { payload = await verifyJwt(token, env.JWT_SECRET); }
   catch { return jsonRes(fail('Token inválido o expirado.', 'TOKEN_INVALID'), 401); }
@@ -35,13 +30,10 @@ export async function onRequestGet(context) {
   const uid = payload.uid;
   const now = Date.now();
 
-  // ── Cargar sesión y usuario ────────────────────────────────────────────
-  let session, user;
+  let session, userRow;
   try {
-    [session, user] = await Promise.all([
-      fbGet(`guestSessions/${uid}`, tok, db),
-      fbGet(`users/${uid}`, tok, db)
-    ]);
+    session = (await sql`select token_hash, expires_at from guest_sessions where guest_id = ${uid}`)[0] || null;
+    userRow = (await sql`select * from users where uid = ${uid}`)[0] || null;
   } catch {
     return jsonRes(fail('Error al verificar sesión.', 'DB_ERROR'), 500);
   }
@@ -51,33 +43,32 @@ export async function onRequestGet(context) {
   }
 
   const tokenHash = await sha256hex(token);
-  if (session.tokenHash !== tokenHash) {
+  if (session.token_hash !== tokenHash) {
+    return jsonRes({ success: false, code: 'SESSION_EXPIRED', message: 'La sesión expiró.' }, 401);
+  }
+  if (Number(session.expires_at) < now) {
     return jsonRes({ success: false, code: 'SESSION_EXPIRED', message: 'La sesión expiró.' }, 401);
   }
 
-  if (session.expiresAt < now) {
-    return jsonRes({ success: false, code: 'SESSION_EXPIRED', message: 'La sesión expiró.' }, 401);
-  }
-
+  const user = rowToUser(userRow) || {};
   if (user?.status?.suspended) {
     return jsonRes({ success: false, code: 'ACCOUNT_SUSPENDED', message: 'Esta cuenta está suspendida.' }, 403);
   }
 
-  // Actualizar lastSeen
-  fbUpdate({ [`users/${uid}/metadata/lastSeen`]: now }, tok, db).catch(() => {});
+  sql`update users set last_seen = ${now} where uid = ${uid}`.catch(() => {});
 
   return jsonRes({
     success:    true,
     valid:      true,
     guestId:    uid,
-    expiresAt:  session.expiresAt,
+    expiresAt:  Number(session.expires_at),
     user: {
       uid,
-      type:               'guest',
-      name:               'Invitado',
-      isGuest:            true,
-      permissions:        user?.permissions || {},
-      upgradeAvailable:   user?.guest?.upgradeAvailable ?? true
+      type:             'guest',
+      name:             'Invitado',
+      isGuest:          true,
+      permissions:      user?.permissions || {},
+      upgradeAvailable: user?.guest?.upgradeAvailable ?? true
     }
   });
 }
