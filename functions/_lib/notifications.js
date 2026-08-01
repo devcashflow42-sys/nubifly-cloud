@@ -5,10 +5,10 @@
  * El backend solo persiste; la app Android consulta en polling y crea
  * la notificación local con NotificationManager.
  *
- * Estructura Firebase:
- *   userInbox/{uid}/{notifId}          — notificaciones por usuario
- *   userMilestones/{uid}/...           — flags antispam de logros
- *   notifications/{notifId}            — broadcasts globales (1 doc, todos leen)
+ * PostgreSQL:
+ *   user_inbox        — notificaciones por usuario
+ *   user_milestones   — flags antispam de logros (uid, milestone_key)
+ *   notifications     — broadcasts globales
  *
  * Exports públicos:
  *   notifVigente(item)                 — helper de filtrado por expira
@@ -16,7 +16,6 @@
  *   crearNotificacionUsuario(...)      — notificaciones sociales
  *   crearAvisoSistema(...)             — avisos automáticos
  */
-import { fbGet, fbSet } from './firebase.js';
 
 // ── Hitos de número redondo ───────────────────────────────────────────────────
 const HITOS = [10, 50, 100, 500, 1000, 5000];
@@ -36,16 +35,34 @@ export function notifVigente(item) {
   return item.expira > Date.now();
 }
 
-// ── Helper interno: persistir en userInbox ───────────────────────────────────
-async function guardarEnInbox(userId, campos, tok, db) {
+// ── Helper interno: persistir en user_inbox ──────────────────────────────────
+async function guardarEnInbox(userId, campos, sql) {
   const id  = newNotifId();
-  const doc = { ...campos, id, leida: false, createdAt: Date.now() };
-  await fbSet(`userInbox/${userId}/${id}`, doc, tok, db);
+  const now = Date.now();
+  await sql`
+    insert into user_inbox
+      (notif_id, uid, tipo, nivel, origen, emisor, titulo, mensaje, accion, recurso_id, leida, expira, created_at)
+    values
+      (${id}, ${userId}, ${campos.tipo || null}, ${campos.nivel || null}, ${campos.origen || null},
+       ${campos.emisor || null}, ${campos.titulo || null}, ${campos.mensaje || null}, ${campos.accion || null},
+       ${campos.recursoId || null}, false, ${campos.expira || null}, ${now})
+  `;
   return id;
 }
 
+// ── Helper interno: comprobar/marcar un hito (antispam) ──────────────────────
+// Devuelve true si el hito YA existía (bloquea), false si lo creó ahora.
+async function hitoYaMarcado(userId, milestoneKey, sql) {
+  const res = await sql`
+    insert into user_milestones (uid, milestone_key, achieved)
+    values (${userId}, ${milestoneKey}, true)
+    on conflict (uid, milestone_key) do nothing
+  `;
+  return res.count === 0; // 0 filas insertadas = ya existía
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// LOGROS  —  antispam con flags en userMilestones
+// LOGROS  —  antispam con flags en user_milestones
 // ─────────────────────────────────────────────────────────────────────────────
 
 const LOGRO_META = {
@@ -73,54 +90,45 @@ function hitoMeta(dominio, count) {
 
 /**
  * Crea una notificación de logro. Incluye antispam:
- * - primer_archivo / primer_proyecto → solo una vez por usuario (flag booleano)
+ * - primer_archivo / primer_proyecto → solo una vez por usuario
  * - hito_archivos / hito_proyectos   → solo si count está en HITOS y no fue notificado antes
  *
  * @param {string} userId
  * @param {string} tipo       'primer_archivo' | 'primer_proyecto' | 'hito_archivos' | 'hito_proyectos'
  * @param {string|null} recursoId
- * @param {object} tok
- * @param {string} db
+ * @param {import('postgres').Sql} sql
  * @param {number} count      Requerido para hito_archivos / hito_proyectos
  * @returns {string|null}     ID de la notificación creada, null si antispam bloqueó
  */
-export async function crearNotificacionLogro(userId, tipo, recursoId, tok, db, count = 0) {
+export async function crearNotificacionLogro(userId, tipo, recursoId, sql, count = 0) {
   try {
-    const base = `userMilestones/${userId}`;
-
     // ── Primer archivo ────────────────────────────────────────────────────────
     if (tipo === 'primer_archivo') {
-      const flag = await fbGet(`${base}/primerArchivoNotif`, tok, db).catch(() => null);
-      if (flag) return null;
-      await fbSet(`${base}/primerArchivoNotif`, true, tok, db);
+      if (await hitoYaMarcado(userId, 'primerArchivoNotif', sql)) return null;
       return guardarEnInbox(userId, {
         tipo: 'logro', nivel: 'success', origen: 'sistema', emisor: 'sistema',
         recursoId: recursoId || null, expira: null, ...LOGRO_META.primer_archivo
-      }, tok, db);
+      }, sql);
     }
 
     // ── Primer proyecto ───────────────────────────────────────────────────────
     if (tipo === 'primer_proyecto') {
-      const flag = await fbGet(`${base}/primerProyectoNotif`, tok, db).catch(() => null);
-      if (flag) return null;
-      await fbSet(`${base}/primerProyectoNotif`, true, tok, db);
+      if (await hitoYaMarcado(userId, 'primerProyectoNotif', sql)) return null;
       return guardarEnInbox(userId, {
         tipo: 'logro', nivel: 'success', origen: 'sistema', emisor: 'sistema',
         recursoId: recursoId || null, expira: null, ...LOGRO_META.primer_proyecto
-      }, tok, db);
+      }, sql);
     }
 
     // ── Hitos numéricos ───────────────────────────────────────────────────────
     if (tipo === 'hito_archivos' || tipo === 'hito_proyectos') {
       if (!HITOS.includes(count)) return null; // no es un número redondo
       const flagNode = tipo === 'hito_archivos' ? 'hitosArchivos' : 'hitosProyectos';
-      const flag = await fbGet(`${base}/${flagNode}/${count}`, tok, db).catch(() => null);
-      if (flag) return null; // hito ya notificado
-      await fbSet(`${base}/${flagNode}/${count}`, true, tok, db);
+      if (await hitoYaMarcado(userId, `${flagNode}_${count}`, sql)) return null;
       return guardarEnInbox(userId, {
         tipo: 'logro', nivel: 'success', origen: 'sistema', emisor: 'sistema',
         recursoId: recursoId || null, expira: null, ...hitoMeta(tipo, count)
-      }, tok, db);
+      }, sql);
     }
 
     console.warn('[notifications] crearNotificacionLogro: tipo desconocido:', tipo);
@@ -159,17 +167,16 @@ const SOCIAL_META = {
 
 /**
  * Crea una notificación social de usuario a usuario.
- * 1 documento en userInbox del destinatario; el emisor no recibe copia.
+ * 1 documento en user_inbox del destinatario; el emisor no recibe copia.
  *
  * @param {string} destinatarioId
  * @param {string} emisorId
  * @param {string} tipo           'vista' | 'compartido' | 'like'
  * @param {string|null} recursoId ID de la publicación/archivo
- * @param {object} tok
- * @param {string} db
+ * @param {import('postgres').Sql} sql
  * @returns {string|null}
  */
-export async function crearNotificacionUsuario(destinatarioId, emisorId, tipo, recursoId, tok, db) {
+export async function crearNotificacionUsuario(destinatarioId, emisorId, tipo, recursoId, sql) {
   try {
     const meta = SOCIAL_META[tipo];
     if (!meta) {
@@ -181,7 +188,7 @@ export async function crearNotificacionUsuario(destinatarioId, emisorId, tipo, r
       titulo: meta.titulo, mensaje: meta.mensaje, accion: meta.accion,
       recursoId: recursoId || null, emisor: emisorId,
       expira: null
-    }, tok, db);
+    }, sql);
   } catch (e) {
     console.error('[notifications] crearNotificacionUsuario error:', e.message);
     return null;
@@ -196,28 +203,22 @@ export async function crearNotificacionUsuario(destinatarioId, emisorId, tipo, r
 /**
  * Crea un aviso del sistema para un usuario específico.
  *
- * El filtrado por expira del GET /api/user/notifications hace que el aviso
- * deje de aparecer automáticamente cuando expira, sin borrar datos.
- * Para avisos condicionados (ej. "almacenamiento alto"), pasar una expira
- * corta y re-crear el aviso si la condición persiste en el siguiente chequeo.
- *
  * @param {string}      userId
  * @param {string}      nivel      'info' | 'warning' | 'error'
  * @param {string}      titulo
  * @param {string}      mensaje
  * @param {number|null} expiraMs   Timestamp ms de expiración, null = permanente
- * @param {object}      tok
- * @param {string}      db
+ * @param {import('postgres').Sql} sql
  * @returns {string|null}
  */
-export async function crearAvisoSistema(userId, nivel, titulo, mensaje, expiraMs, tok, db) {
+export async function crearAvisoSistema(userId, nivel, titulo, mensaje, expiraMs, sql) {
   try {
     return guardarEnInbox(userId, {
       tipo: 'aviso', nivel, origen: 'sistema',
       titulo, mensaje, accion: 'open_settings',
       recursoId: null, emisor: 'sistema',
       expira: expiraMs || null
-    }, tok, db);
+    }, sql);
   } catch (e) {
     console.error('[notifications] crearAvisoSistema error:', e.message);
     return null;

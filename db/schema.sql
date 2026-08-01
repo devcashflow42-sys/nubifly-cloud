@@ -302,3 +302,16 @@ CREATE TABLE IF NOT EXISTS api_usage (
   count       BIGINT DEFAULT 0,
   PRIMARY KEY (project_id, period)
 );
+
+-- ─────────────── ÍNDICES DE UNICIDAD (email / username) ───────────────
+-- Equivalen a los nodos Firebase `emails/{emailKey}` y `usernames/{username}`.
+-- Se usan para comprobar disponibilidad y resolver login por email/username.
+CREATE TABLE IF NOT EXISTS emails (
+  email_key  TEXT PRIMARY KEY,          -- email normalizado (minúsculas)
+  uid        TEXT REFERENCES users(uid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS usernames (
+  username   TEXT PRIMARY KEY,          -- username en minúsculas
+  uid        TEXT REFERENCES users(uid) ON DELETE CASCADE
+);

@@ -1,13 +1,14 @@
 /**
  * GET  /api/user/files — lista todos los archivos subidos por el usuario.
  * POST /api/user/files — sube un archivo (JWT auth, multipart/form-data).
+ * Datos en PostgreSQL (context.data.sql).
  */
 import { requireAuth }               from '../../_lib/auth.js';
-import { fbGet, fbUpdate }           from '../../_lib/firebase.js';
 import { sanitizeUploadName }        from '../../_lib/helpers.js';
 import { resolveStorageToken,
          uploadBytesToStorage }      from '../../_lib/storage.js';
 import { jsonRes, ok, fail }         from '../../_lib/response.js';
+import { rowToFile }                 from '../../_lib/models.js';
 import { crearNotificacionLogro }    from '../../_lib/notifications.js';
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
@@ -15,38 +16,22 @@ const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
 export async function onRequestGet(context) {
   const { user, errorResponse } = await requireAuth(context.request, context.env);
   if (errorResponse) return errorResponse;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
-  const toTs = f => f.createdAt ? new Date(f.createdAt).getTime() : (f.uploadedAt || 0);
-  const collected = new Map();
-
-  // Read from all paths where files/publications can be stored
-  const paths = [
-    `userFiles/${user.uid}`,
-    `userRecentPublications/${user.uid}`,
-    `user_recent_publications/${user.uid}`
-  ];
-  await Promise.all(paths.map(async path => {
-    try {
-      const data = await fbGet(path, tok, db);
-      if (data && typeof data === 'object') {
-        for (const [id, f] of Object.entries(data)) {
-          if (!collected.has(id) && f && typeof f === 'object') {
-            collected.set(id, { id, ...f });
-          }
-        }
-      }
-    } catch { /* ignore missing paths */ }
-  }));
-
-  const files = Array.from(collected.values()).sort((a, b) => toTs(b) - toTs(a)).slice(0, 200);
+  const rows = await sql`
+    select * from files
+    where owner_id = ${user.uid}
+    order by created_at desc nulls last
+    limit 200
+  `;
+  const files = rows.map(rowToFile);
   return jsonRes(ok({ files }));
 }
 
 export async function onRequestPost(context) {
   const { user, errorResponse } = await requireAuth(context.request, context.env);
   if (errorResponse) return errorResponse;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
   const { env } = context;
 
   let form;
@@ -76,11 +61,10 @@ export async function onRequestPost(context) {
                   : 'file';
 
   const now         = Date.now();
-  const nowIso      = new Date(now).toISOString();
   const fileId      = crypto.randomUUID();
   const storagePath = `publications/${user.uid}/${projectId || 'general'}/${now}-${safeFilename}`;
 
-  const storageCtx = await resolveStorageToken(env, tok);
+  const storageCtx = await resolveStorageToken(env, null);
   if (storageCtx.errorResponse) return storageCtx.errorResponse;
 
   const upload = await uploadBytesToStorage(env, storageCtx.storageTok, storagePath, mimeType, fileBytes);
@@ -105,43 +89,35 @@ export async function onRequestPost(context) {
     }
   }
 
-  const fileMeta = {
-    fileId, id: fileId,
-    fileName: originalName, originalName, name: originalName,
-    title, description, mimeType,
-    author, mediaType, coverUrl,
-    fileSize: fileBytes.byteLength, size: fileBytes.byteLength,
-    storagePath, url: upload.fileUrl, fileUrl: upload.fileUrl,
-    projectId: projectId || '',
-    ownerId: user.uid, userId: user.uid,
-    source: 'dashboard', status: 'published',
-    createdAt: nowIso, updatedAt: nowIso
-  };
-
-  const updates = {
-    [`files/${fileId}`]:                                           fileMeta,
-    [`userFiles/${user.uid}/${fileId}`]:                           fileMeta,
-    [`recentPublications/${fileId}`]:                              fileMeta,
-    [`recent_publications/${fileId}`]:                             fileMeta,
-    [`userRecentPublications/${user.uid}/${fileId}`]:              fileMeta,
-    [`user_recent_publications/${user.uid}/${fileId}`]:            fileMeta,
-  };
-  if (projectId) {
-    updates[`projectFiles/${projectId}/${fileId}`]                    = fileMeta;
-    updates[`projectRecentPublications/${projectId}/${fileId}`]       = fileMeta;
-    updates[`project_recent_publications/${projectId}/${fileId}`]     = fileMeta;
-  }
-
   try {
-    await fbUpdate(updates, tok, db);
+    await sql`
+      insert into files
+        (file_id, owner_id, project_id, file_name, original_name, title, description,
+         author, media_type, mime_type, cover_url, url, storage_path, file_size,
+         source, status, visibility, created_at, updated_at)
+      values
+        (${fileId}, ${user.uid}, ${projectId || null}, ${originalName}, ${originalName},
+         ${title}, ${description}, ${author}, ${mediaType}, ${mimeType}, ${coverUrl || null},
+         ${upload.fileUrl}, ${storagePath}, ${fileBytes.byteLength}, ${'dashboard'},
+         ${'published'}, ${'private'}, ${now}, ${now})
+    `;
   } catch (e) {
-    console.error('[POST /api/user/files] fbUpdate:', e.message);
+    console.error('[POST /api/user/files] insert:', e.message);
     return jsonRes(fail('Error guardando el archivo. Inténtalo de nuevo.', 'DB_ERROR'), 500);
   }
 
-  // context.waitUntil mantiene el worker vivo hasta que la notificación se guarde en Firebase
+  const fileMeta = rowToFile({
+    file_id: fileId, owner_id: user.uid, project_id: projectId || null,
+    file_name: originalName, original_name: originalName, title, description,
+    author, media_type: mediaType, mime_type: mimeType, cover_url: coverUrl,
+    url: upload.fileUrl, storage_path: storagePath, file_size: fileBytes.byteLength,
+    source: 'dashboard', status: 'published', visibility: 'private',
+    created_at: now, updated_at: now
+  });
+
+  // context.waitUntil mantiene el worker vivo hasta que la notificación se guarde
   context.waitUntil(
-    crearNotificacionLogro(user.uid, 'primer_archivo', fileId, tok, db)
+    crearNotificacionLogro(user.uid, 'primer_archivo', fileId, sql)
       .catch(e => console.warn('[notify/primer_archivo]', e.message))
   );
 

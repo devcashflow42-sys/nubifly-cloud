@@ -1,57 +1,38 @@
 /**
  * GET  /api/projects   — listado de proyectos del usuario
  * POST /api/projects   — crea un proyecto (genera API key automáticamente)
+ * Datos en PostgreSQL (context.data.sql).
  */
 import { requireAuth }     from '../../_lib/auth.js';
-import { fbGet, fbUpdate } from '../../_lib/firebase.js';
-import { encodeApiKey, generateApiKey } from '../../_lib/helpers.js';
+import { generateApiKey }  from '../../_lib/helpers.js';
 import { jsonRes, ok, fail } from '../../_lib/response.js';
+import { rowToProject }    from '../../_lib/models.js';
 import { crearNotificacionLogro } from '../../_lib/notifications.js';
 
 export async function onRequestGet(context) {
   const { user, errorResponse } = await requireAuth(context.request, context.env);
   if (errorResponse) return errorResponse;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
-  // Fast path: índice user-scoped
-  let data = await fbGet(`userProjects/${user.uid}`, tok, db);
-
-  if (!data) {
-    // Migración one-time: escanear todos los proyectos, filtrar por ownerId, backfill
-    const all = await fbGet('projects', tok, db);
-    if (all) {
-      const owned = {};
-      for (const [id, p] of Object.entries(all)) {
-        if (p && p.ownerId === user.uid) owned[id] = p;
-      }
-      if (Object.keys(owned).length > 0) {
-        const backfill = {};
-        for (const [id, p] of Object.entries(owned)) {
-          backfill[`userProjects/${user.uid}/${id}`] = p;
-        }
-        await fbUpdate(backfill, tok, db).catch(() => {});
-        data = owned;
-      }
-    }
-  }
-
-  const list = data
-    ? Object.entries(data).map(([id, p]) => ({ id, ...p })).sort((a, b) => b.createdAt - a.createdAt)
-    : [];
-  return jsonRes(ok({ projects: list }));
+  const rows = await sql`
+    select * from projects
+    where owner_id = ${user.uid}
+    order by created_at desc nulls last
+  `;
+  return jsonRes(ok({ projects: rows.map(rowToProject) }));
 }
 
 export async function onRequestPost(context) {
   const { user, errorResponse } = await requireAuth(context.request, context.env);
   if (errorResponse) return errorResponse;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
   let body;
   try { body = await context.request.json(); } catch { return jsonRes(fail('JSON inválido.'), 400); }
 
   const { name, description = '', tags, deadline, access } = body;
-  if (!name || !name.trim())          return jsonRes(fail('El nombre del proyecto es requerido.', 'NAME_REQUIRED'), 400);
-  if (name.trim().length > 60)         return jsonRes(fail('El nombre no puede superar 60 caracteres.', 'NAME_TOO_LONG'), 400);
+  if (!name || !name.trim())    return jsonRes(fail('El nombre del proyecto es requerido.', 'NAME_REQUIRED'), 400);
+  if (name.trim().length > 60)  return jsonRes(fail('El nombre no puede superar 60 caracteres.', 'NAME_TOO_LONG'), 400);
 
   const safeTags = Array.isArray(tags)
     ? tags.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim().slice(0, 30)).slice(0, 10)
@@ -62,24 +43,38 @@ export async function onRequestPost(context) {
   const pid    = crypto.randomUUID().replace(/-/g, '');
   const apiKey = generateApiKey();
   const now    = Date.now();
-  const project = {
-    projectId: pid, ownerId: user.uid,
-    name: name.trim(), description: description.trim(),
-    tags: safeTags, deadline: safeDeadline, access: safeAccess,
-    apiKey, storageUsed: 0, createdAt: now, updatedAt: now
-  };
 
-  await fbUpdate({
-    [`projects/${pid}`]:                         project,
-    [`userProjects/${user.uid}/${pid}`]:         project,
-    [`apiKeyIndex/${encodeApiKey(apiKey)}`]:     { projectId: pid, ownerId: user.uid }
-  }, tok, db);
+  try {
+    await sql.begin(async tx => {
+      await tx`
+        insert into projects
+          (project_id, owner_id, name, description, tags, deadline, access, api_key, storage_used, created_at, updated_at)
+        values
+          (${pid}, ${user.uid}, ${name.trim()}, ${description.trim()}, ${tx.json(safeTags)},
+           ${safeDeadline}, ${safeAccess}, ${apiKey}, 0, ${now}, ${now})
+      `;
+      await tx`
+        insert into api_key_index (api_key, project_id, owner_id)
+        values (${apiKey}, ${pid}, ${user.uid})
+        on conflict (api_key) do update set project_id = ${pid}, owner_id = ${user.uid}
+      `;
+    });
+  } catch (e) {
+    console.error('[POST /api/projects] insert:', e.message);
+    return jsonRes(fail('No se pudo crear el proyecto. Inténtalo de nuevo.', 'DB_ERROR'), 500);
+  }
 
-  // context.waitUntil mantiene el worker vivo hasta que la notificación se guarde en Firebase
+  const project = rowToProject({
+    project_id: pid, owner_id: user.uid, name: name.trim(), description: description.trim(),
+    tags: safeTags, deadline: safeDeadline, access: safeAccess, api_key: apiKey,
+    storage_used: 0, created_at: now, updated_at: now
+  });
+
+  // context.waitUntil mantiene el worker vivo hasta que la notificación se guarde
   context.waitUntil(
-    crearNotificacionLogro(user.uid, 'primer_proyecto', pid, tok, db)
+    crearNotificacionLogro(user.uid, 'primer_proyecto', pid, sql)
       .catch(e => console.warn('[notify/primer_proyecto]', e.message))
   );
 
-  return jsonRes(ok({ project: { id: pid, ...project } }, 'Proyecto creado correctamente.'), 201);
+  return jsonRes(ok({ project }, 'Proyecto creado correctamente.'), 201);
 }

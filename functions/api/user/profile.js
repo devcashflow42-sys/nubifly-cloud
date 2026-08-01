@@ -1,9 +1,9 @@
 /**
  * GET   /api/user/profile  — perfil privado completo del usuario autenticado
  * PATCH /api/user/profile  — editar name, username, bio, website, location, banner, birthday
+ * Datos en PostgreSQL (context.data.sql).
  */
 import { requireAuth }     from '../../_lib/auth.js';
-import { fbGet, fbUpdate } from '../../_lib/firebase.js';
 import { jsonRes, ok, fail } from '../../_lib/response.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -64,12 +64,12 @@ function buildUserResponse(uid, rec, ctrl) {
     location:      rec?.location  || '',
     birthday,
     age:           computeAge(birthday),
-    isOnline:      rec?.isOnline  || false,
-    accountStatus: ctrl?.accountStatus  || 'active',
-    plan:          ctrl?.plan?.type     || 'normal',
-    isPremium:     ctrl?.plan?.isPremium || false,
-    createdAt:     rec?.createdAt || 0,
-    updatedAt:     rec?.updatedAt || 0,
+    isOnline:      rec?.is_online || false,
+    accountStatus: ctrl?.account_status || 'active',
+    plan:          ctrl?.plan_type      || 'normal',
+    isPremium:     ctrl?.is_premium     || false,
+    createdAt:     rec?.created_at || 0,
+    updatedAt:     rec?.updated_at || 0,
   };
 }
 
@@ -78,13 +78,13 @@ function buildUserResponse(uid, rec, ctrl) {
 export async function onRequestGet(context) {
   const { user, errorResponse } = await requireAuth(context.request, context.env);
   if (errorResponse) return errorResponse;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
   let userRec, ctrl;
   try {
     [userRec, ctrl] = await Promise.all([
-      fbGet(`users/${user.uid}`, tok, db),
-      fbGet(`controlUsers/${user.uid}`, tok, db),
+      sql`select * from users where uid = ${user.uid}`.then(r => r[0] || null),
+      sql`select * from control_users where uid = ${user.uid}`.then(r => r[0] || null),
     ]);
   } catch (e) {
     console.error('[GET profile]', e.message);
@@ -99,7 +99,7 @@ export async function onRequestGet(context) {
 export async function onRequestPatch(context) {
   const { user, errorResponse } = await requireAuth(context.request, context.env);
   if (errorResponse) return errorResponse;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
   let body;
   try { body = await context.request.json(); } catch { return jsonRes(fail('JSON inválido.'), 400); }
@@ -160,10 +160,10 @@ export async function onRequestPatch(context) {
   }
 
   // ── username ──────────────────────────────────────────────────────────────
-  let oldUsername;
+  let oldUsername, newUsername;
   if (body.username !== undefined) {
     // Accept "@handle" — strip the @ before storing
-    const newUsername = normalizeUsername(body.username);
+    newUsername = normalizeUsername(body.username);
 
     if (!newUsername)
       return jsonRes(fail('El username no puede estar vacío.', 'INVALID_USERNAME'), 400);
@@ -181,49 +181,53 @@ export async function onRequestPatch(context) {
 
     // Read current record to get old username
     let current;
-    try { current = await fbGet(`users/${user.uid}`, tok, db); }
+    try { current = (await sql`select username from users where uid = ${user.uid}`)[0]; }
     catch (e) { return jsonRes(fail('Error leyendo usuario.', 'DB_ERROR'), 503); }
 
     oldUsername = current?.username?.toLowerCase();
 
     if (newUsername !== oldUsername) {
       let taken;
-      try { taken = await fbGet(`usernames/${newUsername}`, tok, db); }
+      try { taken = (await sql`select uid from usernames where username = ${newUsername}`)[0]; }
       catch (e) { return jsonRes(fail('Error verificando disponibilidad.', 'DB_ERROR'), 503); }
 
-      if (taken && taken !== user.uid)
+      if (taken && taken.uid !== user.uid)
         return jsonRes(fail('Este username ya está en uso.', 'USERNAME_EXISTS'), 409);
     }
 
     body.username = newUsername;
   }
 
-  // ── Build multi-path update ───────────────────────────────────────────────
+  // ── Aplicar cambios (transacción) ──────────────────────────────────────────
   const now = Date.now();
-  const updates = { [`users/${user.uid}/updatedAt`]: now };
+  try {
+    await sql.begin(async tx => {
+      // Campos del perfil (solo los enviados)
+      if (body.name     !== undefined) await tx`update users set name = ${String(body.name).trim().slice(0, 50)} where uid = ${user.uid}`;
+      if (body.username !== undefined) await tx`update users set username = ${body.username} where uid = ${user.uid}`;
+      if (body.bio      !== undefined) await tx`update users set bio = ${String(body.bio).trim().slice(0, 300)} where uid = ${user.uid}`;
+      if (body.website  !== undefined) await tx`update users set website = ${String(body.website).trim().slice(0, 200)} where uid = ${user.uid}`;
+      if (body.location !== undefined) await tx`update users set location = ${String(body.location).trim().slice(0, 100)} where uid = ${user.uid}`;
+      if (body.banner   !== undefined) await tx`update users set banner = ${String(body.banner).trim().slice(0, 500)} where uid = ${user.uid}`;
+      if (cleanBirthday !== undefined) await tx`update users set birthday = ${cleanBirthday} where uid = ${user.uid}`;
+      await tx`update users set updated_at = ${now} where uid = ${user.uid}`;
 
-  if (body.name     !== undefined) updates[`users/${user.uid}/name`]     = String(body.name).trim().slice(0, 50);
-  if (body.username !== undefined) updates[`users/${user.uid}/username`] = body.username;
-  if (body.bio      !== undefined) updates[`users/${user.uid}/bio`]      = String(body.bio).trim().slice(0, 300);
-  if (body.website  !== undefined) updates[`users/${user.uid}/website`]  = String(body.website).trim().slice(0, 200);
-  if (body.location !== undefined) updates[`users/${user.uid}/location`] = String(body.location).trim().slice(0, 100);
-  if (body.banner   !== undefined) updates[`users/${user.uid}/banner`]   = String(body.banner).trim().slice(0, 500);
-  if (cleanBirthday !== undefined) updates[`users/${user.uid}/birthday`] = cleanBirthday;
-
-  // Sync username index — old entry deleted, new entry written atomically
-  if (body.username !== undefined && oldUsername !== body.username) {
-    updates[`usernames/${body.username}`] = user.uid;
-    if (oldUsername) updates[`usernames/${oldUsername}`] = null;
-  }
-
-  try { await fbUpdate(updates, tok, db); }
-  catch (e) {
+      // Sincronizar índice de usernames
+      if (body.username !== undefined && oldUsername !== body.username) {
+        if (oldUsername) await tx`delete from usernames where username = ${oldUsername}`;
+        await tx`
+          insert into usernames (username, uid) values (${body.username}, ${user.uid})
+          on conflict (username) do update set uid = ${user.uid}
+        `;
+      }
+    });
+  } catch (e) {
     console.error('[PATCH profile]', e.message);
     return jsonRes(fail('Error actualizando perfil.', 'DB_WRITE_ERROR'), 503);
   }
 
-  const updated = await fbGet(`users/${user.uid}`, tok, db).catch(() => null);
-  const ctrl    = await fbGet(`controlUsers/${user.uid}`, tok, db).catch(() => null);
+  const updated = (await sql`select * from users where uid = ${user.uid}`)[0] || null;
+  const ctrl    = (await sql`select * from control_users where uid = ${user.uid}`)[0] || null;
 
   return jsonRes(ok({
     user: buildUserResponse(user.uid, updated, ctrl)

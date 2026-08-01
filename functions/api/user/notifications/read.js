@@ -8,18 +8,17 @@
  *   {}  |  { "ids": [] }        → marca TODAS las no leídas
  *
  * Distingue automáticamente entre notificaciones del inbox personal
- * (userInbox) y broadcasts globales (userNotifications overrides).
+ * (user_inbox) y broadcasts globales (user_notifications overrides).
  *
  * Response: { "success": true, "data": { "marked": N } }
  */
 import { requireAuth }     from '../../../_lib/auth.js';
-import { fbGet, fbUpdate } from '../../../_lib/firebase.js';
 import { jsonRes, ok }     from '../../../_lib/response.js';
 
 export async function onRequestPatch(context) {
   const { user, errorResponse } = await requireAuth(context.request, context.env);
   if (errorResponse) return errorResponse;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
   let body = {};
   try { body = await context.request.json(); } catch { /* body vacío = marcar todas */ }
@@ -31,42 +30,42 @@ export async function onRequestPatch(context) {
 
   const now = Date.now();
 
-  // ── Leer inbox personal (siempre necesario para diferenciar tipos) ────────
-  const inboxData = await fbGet(`userInbox/${user.uid}`, tok, db).catch(() => null);
-  const inboxMap  = inboxData && typeof inboxData === 'object' ? inboxData : {};
-  const inboxIds  = new Set(Object.keys(inboxMap));
+  // ── Conjunto de IDs del inbox personal (para diferenciar tipos) ────────────
+  const inboxRows = await sql`select notif_id from user_inbox where uid = ${user.uid}`;
+  const inboxIds  = new Set(inboxRows.map(r => r.notif_id));
 
-  // ── Si es "marcar todas", necesitamos también los IDs de los broadcasts ──
+  // ── Objetivo: IDs pedidas, o todas (inbox + broadcasts) ────────────────────
   let broadcastIds = [];
   if (!idsRequeridas) {
-    const globalData = await fbGet('notifications', tok, db).catch(() => null);
-    broadcastIds = globalData && typeof globalData === 'object' ? Object.keys(globalData) : [];
+    const globalRows = await sql`select notif_id from notifications where active is not false`;
+    broadcastIds = globalRows.map(r => r.notif_id);
   }
-
   const objetivo = idsRequeridas ?? [...inboxIds, ...broadcastIds];
 
-  // ── Construir multi-path update ───────────────────────────────────────────
-  const updates = {};
+  const inboxToMark     = objetivo.filter(id => inboxIds.has(id));
+  const broadcastToMark = objetivo.filter(id => !inboxIds.has(id));
 
-  for (const id of objetivo) {
-    if (inboxIds.has(id)) {
-      if (!inboxMap[id]?.leida) {
-        // Notificación personal: campo leida en el documento
-        updates[`userInbox/${user.uid}/${id}/leida`]  = true;
-        updates[`userInbox/${user.uid}/${id}/readAt`] = now;
-      }
-    } else {
-      // Broadcast global: override en userNotifications
-      updates[`userNotifications/${user.uid}/${id}/read`]   = true;
-      updates[`userNotifications/${user.uid}/${id}/readAt`] = now;
-    }
+  let marked = 0;
+
+  // ── Inbox personal ─────────────────────────────────────────────────────────
+  if (inboxToMark.length > 0) {
+    const res = await sql`
+      update user_inbox
+      set leida = true, read_at = ${now}
+      where uid = ${user.uid} and leida = false and notif_id in ${sql(inboxToMark)}
+    `;
+    marked += res.count;
   }
 
-  if (Object.keys(updates).length > 0) {
-    await fbUpdate(updates, tok, db);
+  // ── Broadcasts globales (override en user_notifications) ────────────────────
+  for (const id of broadcastToMark) {
+    await sql`
+      insert into user_notifications (uid, notif_id, read, read_at)
+      values (${user.uid}, ${id}, true, ${now})
+      on conflict (uid, notif_id) do update set read = true, read_at = ${now}
+    `;
+    marked++;
   }
 
-  // Cada ID genera 2 entradas en updates (campo + readAt)
-  const marked = Math.floor(Object.keys(updates).length / 2);
   return jsonRes(ok({ marked }));
 }
