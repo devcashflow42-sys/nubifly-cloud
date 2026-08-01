@@ -1,0 +1,9 @@
+# Configuración de Cloudflare Pages (Functions)
+# Activa nodejs_compat (necesario para el driver 'postgres') y fija el
+# directorio de salida estático. El comando de build (npm install) se
+# configura en el dashboard: Settings → Builds & deployments.
+
+name = "nubifly-cloud"
+compatibility_date = "2024-11-06"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "public"
