@@ -175,10 +175,14 @@ export async function onRequest(context) {
   }
 
   // ── 6. Validar firma HMAC-SHA256 ──────────────────────────────────────────
+  // Las peticiones que llevan un JWT (Authorization: Bearer) ya se autentican
+  // en cada endpoint con requireAuth(), así que NO exigimos además firma HMAC:
+  // el frontend web usa JWT y nunca firma. La firma sigue siendo obligatoria
+  // para rutas no exentas SIN token (defensa anti-bots en superficies públicas).
   const skipSigning = env.SKIP_REQUEST_SIGNING === 'true';
   const isExempt    = isExemptFromSigning(url.pathname);
 
-  if (!skipSigning && !isExempt) {
+  if (!skipSigning && !isExempt && !hasToken) {
     const result = await validateRequest(request, env, sql);
     if (result.error) { closeDb(); return withSecurityHeaders(result.error, rid); }
   }
