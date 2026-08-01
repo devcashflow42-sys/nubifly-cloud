@@ -113,16 +113,22 @@ export async function onRequest(context) {
     return deny('ACCESS_DENIED', 'Solicitud inválida o acceso no autorizado.', 403, rid);
   }
 
-  // ── 2. Validar variables de entorno críticas ──────────────────────────────
-  if (!env.DATABASE_URL || !env.JWT_SECRET) {
-    return deny('SERVICE_UNAVAILABLE', 'Servicio no disponible.', 503, rid);
+  // ── 2. Validar variables de entorno críticas (mensajes específicos) ───────
+  if (!env.DATABASE_URL) {
+    console.error('[middleware] Falta DATABASE_URL');
+    return deny('DB_NOT_CONFIGURED', 'Base de datos no configurada: falta DATABASE_URL en el servidor.', 503, rid);
+  }
+  if (!env.JWT_SECRET) {
+    console.error('[middleware] Falta JWT_SECRET');
+    return deny('JWT_NOT_CONFIGURED', 'Configuración incompleta: falta JWT_SECRET en el servidor.', 503, rid);
   }
 
   // ── 3. Conexión a PostgreSQL ──────────────────────────────────────────────
   let sql;
   try { sql = getDb(env); }
-  catch {
-    return deny('SERVICE_UNAVAILABLE', 'Servicio no disponible.', 503, rid);
+  catch (e) {
+    console.error('[middleware] getDb:', e?.message);
+    return deny('DB_INIT_ERROR', 'No se pudo inicializar la base de datos: ' + (e?.message || 'error'), 503, rid);
   }
   context.data.sql = sql;
   context.data.env = env;
