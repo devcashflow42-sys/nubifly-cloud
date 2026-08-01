@@ -12,10 +12,10 @@
  * POST (requiere Authorization: Bearer <APP_ADMIN_SECRET>):
  *   Body (todos opcionales): { version, maintenance, suspension, appUrl }
  *
- * Auto-crea appConfig en Firebase si no existe (solo la primera vez).
+ * Datos en PostgreSQL (context.data.sql). La tabla app_config tiene UNA sola
+ * fila (id = 1, garantizado por CHECK). Si no existe, se auto-crea con defaults.
  */
-import { fbGet, fbUpdate } from '../../../_lib/firebase.js';
-import { jsonRes, fail }   from '../../../_lib/response.js';
+import { jsonRes, fail } from '../../../_lib/response.js';
 
 const DEFAULT_CONFIG = {
   version:     '1.0',
@@ -36,25 +36,31 @@ function compareVersions(server, client) {
   return 0;
 }
 
+// Lee la única fila de configuración; la crea con defaults si aún no existe.
+async function loadConfig(sql) {
+  let row = (await sql`select * from app_config where id = 1`)[0];
+  if (!row) {
+    const now = Date.now();
+    await sql`
+      insert into app_config (id, version, app_url, maintenance, suspension, downloads, created_at, updated_at)
+      values (1, ${DEFAULT_CONFIG.version}, ${DEFAULT_CONFIG.appUrl}, false, false, 0, ${now}, ${now})
+      on conflict (id) do nothing`;
+    row = (await sql`select * from app_config where id = 1`)[0];
+  }
+  return row;
+}
+
 export async function onRequestGet(context) {
-  const { request, env } = context;
-  const { tok, db } = context.data;
+  const { request } = context;
+  const { sql } = context.data;
 
   const clientVersion = new URL(request.url).searchParams.get('version') || null;
 
-  // ── Leer appConfig; crear con defaults si no existe ───────────────────
   let config;
-  try { config = await fbGet('appConfig', tok, db); }
+  try { config = await loadConfig(sql); }
   catch (e) {
-    console.error('[app/Update] fbGet:', e.message);
+    console.error('[app/Update] loadConfig:', e.message);
     return jsonRes(fail('Error al leer configuración.', 'DB_ERROR'), 500);
-  }
-
-  if (!config) {
-    const now = Date.now();
-    config = { ...DEFAULT_CONFIG, createdAt: now, updatedAt: now };
-    try { await fbUpdate({ appConfig: config }, tok, db); }
-    catch (e) { console.warn('[app/Update] no se pudo crear appConfig:', e.message); }
   }
 
   // ── Chequeo de suspensión y mantenimiento ─────────────────────────────
@@ -90,10 +96,10 @@ export async function onRequestGet(context) {
     message,
     data: {
       version:     serverVersion,
-      maintenance: config.maintenance  ?? false,
-      suspension:  config.suspension   ?? false,
-      appUrl:      config.appUrl       || DEFAULT_CONFIG.appUrl,
-      downloads:   config.downloads    || 0
+      maintenance: config.maintenance ?? false,
+      suspension:  config.suspension  ?? false,
+      appUrl:      config.app_url      || DEFAULT_CONFIG.appUrl,
+      downloads:   Number(config.downloads) || 0
     }
   });
 }
@@ -101,14 +107,14 @@ export async function onRequestGet(context) {
 // ── POST /api/app/Update/app — publicar nueva versión ────────────────────────
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const { tok, db } = context.data;
+  const { sql } = context.data;
 
   // ── Autenticación con APP_ADMIN_SECRET ────────────────────────────────
   const adminSecret = env.APP_ADMIN_SECRET;
   if (!adminSecret) {
     return jsonRes(fail('APP_ADMIN_SECRET no configurado en el servidor.', 'CONFIG_ERROR'), 503);
   }
-  const auth  = request.headers.get('Authorization') || '';
+  const auth   = request.headers.get('Authorization') || '';
   const bearer = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (bearer !== adminSecret) {
     return jsonRes(fail('No autorizado.', 'UNAUTHORIZED'), 401);
@@ -135,28 +141,22 @@ export async function onRequestPost(context) {
     return jsonRes(fail('appUrl debe ser una URL válida.', 'INVALID_URL'), 400);
   }
 
-  // ── Leer config actual ────────────────────────────────────────────────
-  let config;
-  try { config = await fbGet('appConfig', tok, db); }
-  catch (e) {
-    console.error('[app/Update POST] fbGet:', e.message);
-    return jsonRes(fail('Error al leer configuración.', 'DB_ERROR'), 500);
-  }
-  if (!config) config = { ...DEFAULT_CONFIG };
-
-  // ── Aplicar solo los campos enviados ─────────────────────────────────
-  const updated = {
-    ...config,
-    ...(version     !== undefined && { version:     version.trim() }),
-    ...(maintenance !== undefined && { maintenance }),
-    ...(suspension  !== undefined && { suspension }),
-    ...(appUrl      !== undefined && { appUrl }),
-    updatedAt: Date.now()
-  };
-
-  try { await fbUpdate({ appConfig: updated }, tok, db); }
-  catch (e) {
-    console.error('[app/Update POST] fbUpdate:', e.message);
+  // ── Asegurar que la fila existe y aplicar solo los campos enviados ─────
+  let updated;
+  try {
+    await loadConfig(sql);
+    const now = Date.now();
+    updated = (await sql`
+      update app_config set
+        version     = coalesce(${version     !== undefined ? version.trim() : null}, version),
+        maintenance = coalesce(${maintenance !== undefined ? maintenance    : null}, maintenance),
+        suspension  = coalesce(${suspension  !== undefined ? suspension     : null}, suspension),
+        app_url     = coalesce(${appUrl      !== undefined ? appUrl         : null}, app_url),
+        updated_at  = ${now}
+      where id = 1
+      returning *`)[0];
+  } catch (e) {
+    console.error('[app/Update POST] update:', e.message);
     return jsonRes(fail('Error al guardar configuración.', 'DB_ERROR'), 500);
   }
 
@@ -167,9 +167,9 @@ export async function onRequestPost(context) {
       version:     updated.version,
       maintenance: updated.maintenance,
       suspension:  updated.suspension,
-      appUrl:      updated.appUrl,
-      downloads:   updated.downloads || 0,
-      updatedAt:   updated.updatedAt
+      appUrl:      updated.app_url,
+      downloads:   Number(updated.downloads) || 0,
+      updatedAt:   updated.updated_at
     }
   });
 }

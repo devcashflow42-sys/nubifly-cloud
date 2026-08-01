@@ -315,3 +315,26 @@ CREATE TABLE IF NOT EXISTS usernames (
   username   TEXT PRIMARY KEY,          -- username en minúsculas
   uid        TEXT REFERENCES users(uid) ON DELETE CASCADE
 );
+
+-- ─────────────── CONFIGURACIÓN DE LA APP (versión / mantenimiento) ───────────────
+-- Reemplaza el nodo Firebase `appConfig`. Es una tabla de UNA SOLA FILA:
+-- el CHECK (id = 1) impide que se creen filas duplicadas. La app y la web
+-- consultan GET /api/app/Update/app al abrir para saber versión, mantenimiento
+-- y suspensión. Solo el admin (APP_ADMIN_SECRET) puede modificarla vía POST.
+CREATE TABLE IF NOT EXISTS app_config (
+  id           INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  version      TEXT    NOT NULL DEFAULT '1.0',
+  app_url      TEXT    DEFAULT 'https://nubifly.com/app.apk',
+  maintenance  BOOLEAN NOT NULL DEFAULT FALSE,
+  suspension   BOOLEAN NOT NULL DEFAULT FALSE,
+  downloads    BIGINT  NOT NULL DEFAULT 0,
+  created_at   BIGINT,
+  updated_at   BIGINT
+);
+
+-- Semilla de la única fila (se ejecuta una sola vez; si ya existe no hace nada).
+INSERT INTO app_config (id, version, app_url, maintenance, suspension, downloads, created_at, updated_at)
+VALUES (1, '1.0', 'https://nubifly.com/app.apk', FALSE, FALSE, 0,
+        (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
+        (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT)
+ON CONFLICT (id) DO NOTHING;
